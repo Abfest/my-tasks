@@ -535,7 +535,7 @@ function save(){
   localStorage.setItem('cal_evts3',JSON.stringify(events));
 }
 
-function isoDate(d){return d.toISOString().split('T')[0];}
+function isoDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function applyTheme(){document.body.classList.toggle('light',!isDark);document.getElementById('themeBtn').textContent=isDark?'🌙':'☀️';localStorage.setItem('sq_theme',isDark?'dark':'light');}
 function toggleTheme(){isDark=!isDark;applyTheme();}
