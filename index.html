@@ -641,7 +641,7 @@ function renderWeek(){
     cols.appendChild(col);}
 }
 function showWkDetail(dStr){
-  const d=new Date(dStr+'T00:00:00');
+  const d=new Date(dStr+'T12:00:00');
   document.getElementById('wkDetailDate').textContent=`${DAYS_F[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]}`;
   const dayEvts=events.filter(e=>e.date===dStr).sort((a,b)=>a.time.localeCompare(b.time));
   document.getElementById('wkDetailItems').innerHTML=dayEvts.length?dayEvts.map(e=>`<div class="cal-detail-item"><div class="cal-detail-dot" style="background:${CAT_COLOR[e.cat]}"></div><span class="cal-detail-time">${e.time}</span><span style="flex:1;">${esc(e.title)}</span><button onclick="delEvt(${e.id},'wk')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;">✕</button></div>`).join(''):'<div class="cal-empty">No events — tap to add</div>';
@@ -672,7 +672,7 @@ function renderMonth(){
     cell.onclick=()=>{selMoDate=dStr;renderMonth();showMoDetail(dStr);};grid.appendChild(cell);}
 }
 function showMoDetail(dStr){
-  const d=new Date(dStr+'T00:00:00');
+  const d=new Date(dStr+'T12:00:00');
   document.getElementById('moDetailDate').textContent=`${DAYS_F[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`;
   const dayEvts=events.filter(e=>e.date===dStr).sort((a,b)=>a.time.localeCompare(b.time));
   document.getElementById('moDetailItems').innerHTML=dayEvts.length?dayEvts.map(e=>`<div class="cal-detail-item"><div class="cal-detail-dot" style="background:${CAT_COLOR[e.cat]}"></div><span class="cal-detail-time">${e.time}</span><span style="flex:1;">${esc(e.title)}</span><button onclick="delEvt(${e.id},'mo')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;">✕</button></div>`).join(''):'<div class="cal-empty">No events — tap to add below</div>';
