@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="My Tasks">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<title>My Tasks</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f1a;
+    --surface: #1a1a2e;
+    --surface2: #22223b;
+    --accent: #c084fc;
+    --accent2: #818cf8;
+    --text: #f0eeff;
+    --text2: #a39cc5;
+    --text3: #6b6490;
+    --work: #818cf8;
+    --personal: #c084fc;
+    --urgent: #fb7185;
+    --health: #34d399;
+    --border: rgba(255,255,255,0.07);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { background: var(--bg); min-height: 100vh; }
+  body { font-family: 'DM Sans', sans-serif; color: var(--text); max-width: 480px; margin: 0 auto; padding: 0 0 6rem; min-height: 100vh; position: relative; }
+
+  /* header */
+  header { padding: 3rem 1.5rem 1.5rem; position: relative; }
+  header::before { content: ''; position: absolute; top: 0; left: -50%; width: 200%; height: 220px; background: radial-gradient(ellipse at 60% 0%, rgba(192,132,252,0.15) 0%, transparent 70%); pointer-events: none; }
+  .greeting { font-size: 13px; color: var(--text3); font-weight: 300; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  h1 { font-family: 'DM Serif Display', serif; font-size: 32px; font-weight: 400; color: var(--text); line-height: 1.1; }
+  h1 em { font-style: italic; color: var(--accent); }
+
+  /* stats bar */
+  .stats { display: flex; gap: 8px; padding: 0 1.5rem 1.5rem; }
+  .stat { flex: 1; background: var(--surface); border: 0.5px solid var(--border); border-radius: 10px; padding: 10px 12px; text-align: center; }
+  .stat-n { font-size: 22px; font-weight: 500; color: var(--text); line-height: 1; }
+  .stat-l { font-size: 11px; color: var(--text3); margin-top: 3px; letter-spacing: 0.04em; }
+
+  /* add input */
+  .add-zone { padding: 0 1.5rem 1rem; }
+  .add-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+  .add-input { background: none; border: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 300; outline: none; width: 100%; }
+  .add-input::placeholder { color: var(--text3); }
+  .add-row2 { display: flex; gap: 8px; align-items: center; }
+  .cat-btns { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; }
+  .cat-btn { font-size: 11px; padding: 4px 10px; border-radius: 20px; border: 0.5px solid var(--border); background: transparent; color: var(--text3); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+  .cat-btn.active[data-cat="work"] { background: rgba(129,140,248,0.15); color: var(--work); border-color: rgba(129,140,248,0.4); }
+  .cat-btn.active[data-cat="personal"] { background: rgba(192,132,252,0.15); color: var(--personal); border-color: rgba(192,132,252,0.4); }
+  .cat-btn.active[data-cat="urgent"] { background: rgba(251,113,133,0.15); color: var(--urgent); border-color: rgba(251,113,133,0.4); }
+  .cat-btn.active[data-cat="health"] { background: rgba(52,211,153,0.15); color: var(--health); border-color: rgba(52,211,153,0.4); }
+  .add-btn { background: var(--accent); color: #1a0040; border: none; border-radius: 8px; width: 32px; height: 32px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 500; flex-shrink: 0; transition: opacity 0.15s, transform 0.1s; line-height: 1; }
+  .add-btn:active { transform: scale(0.93); opacity: 0.85; }
+
+  /* filters */
+  .filters { display: flex; gap: 6px; padding: 0 1.5rem 1.25rem; overflow-x: auto; scrollbar-width: none; }
+  .filters::-webkit-scrollbar { display: none; }
+  .f-btn { font-size: 12px; padding: 6px 14px; border-radius: 20px; border: 0.5px solid var(--border); background: transparent; color: var(--text3); cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap; transition: all 0.15s; }
+  .f-btn.active { background: rgba(192,132,252,0.12); color: var(--accent); border-color: rgba(192,132,252,0.35); font-weight: 500; }
+
+  /* task list */
+  .section-label { font-size: 11px; font-weight: 500; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; padding: 0 1.5rem; margin-bottom: 8px; margin-top: 4px; }
+  .task-list { display: flex; flex-direction: column; gap: 6px; padding: 0 1.5rem; }
+  .task { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 13px 14px; transition: opacity 0.2s, transform 0.2s; animation: slideIn 0.2s ease; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+  .task.done { opacity: 0.4; }
+  .task.done .task-text { text-decoration: line-through; color: var(--text3); }
+  .check { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--text3); background: transparent; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.18s; }
+  .check.done { border-color: var(--accent); background: var(--accent); }
+  .check.done::after { content: ''; display: block; width: 5px; height: 9px; border: 2px solid #1a0040; border-top: none; border-left: none; transform: rotate(45deg) translate(-1px,-1px); }
+  .task-body { flex: 1; min-width: 0; }
+  .task-text { font-size: 14px; font-weight: 300; color: var(--text); line-height: 1.4; }
+  .task-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+  .badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+  .badge-work { background: rgba(129,140,248,0.15); color: var(--work); }
+  .badge-personal { background: rgba(192,132,252,0.15); color: var(--personal); }
+  .badge-urgent { background: rgba(251,113,133,0.15); color: var(--urgent); }
+  .badge-health { background: rgba(52,211,153,0.15); color: var(--health); }
+  .del-btn { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 14px; padding: 4px; border-radius: 6px; flex-shrink: 0; transition: color 0.15s; line-height: 1; }
+  .del-btn:hover { color: var(--urgent); }
+
+  .empty { text-align: center; padding: 3rem 1.5rem; color: var(--text3); font-size: 14px; font-weight: 300; }
+  .empty strong { display: block; font-family: 'DM Serif Display', serif; font-size: 22px; font-weight: 400; color: var(--text2); margin-bottom: 6px; font-style: italic; }
+
+  .clear-row { padding: 1rem 1.5rem 0; display: flex; justify-content: flex-end; }
+  .clear-btn { background: none; border: none; font-size: 12px; color: var(--text3); cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .clear-btn:hover { color: var(--urgent); }
+
+  /* install banner */
+  #installBanner { display: none; position: fixed; bottom: 1rem; left: 1rem; right: 1rem; max-width: 478px; margin: 0 auto; background: var(--surface2); border: 0.5px solid rgba(192,132,252,0.3); border-radius: var(--radius); padding: 14px 16px; z-index: 100; animation: slideUp 0.3s ease; }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .install-text { font-size: 13px; color: var(--text2); margin-bottom: 10px; }
+  .install-text strong { color: var(--text); font-weight: 500; display: block; margin-bottom: 2px; }
+  .install-btns { display: flex; gap: 8px; }
+  .inst-btn { flex: 1; padding: 8px; border-radius: 8px; font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; border: none; }
+  .inst-yes { background: var(--accent); color: #1a0040; font-weight: 500; }
+  .inst-no { background: var(--border); color: var(--text3); background: rgba(255,255,255,0.06); }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="greeting" id="greeting">Good morning</p>
+  <h1>Your <em>tasks</em>,<br>sorted.</h1>
+</header>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n" id="sTotal">0</div><div class="stat-l">total</div></div>
+  <div class="stat"><div class="stat-n" id="sDone">0</div><div class="stat-l">done</div></div>
+  <div class="stat"><div class="stat-n" id="sLeft">0</div><div class="stat-l">left</div></div>
+</div>
+
+<div class="add-zone">
+  <div class="add-card">
+    <input class="add-input" id="taskInput" placeholder="What needs to get done?" maxlength="120" />
+    <div class="add-row2">
+      <div class="cat-btns">
+        <button class="cat-btn active" data-cat="work">Work</button>
+        <button class="cat-btn" data-cat="personal">Personal</button>
+        <button class="cat-btn" data-cat="urgent">Urgent</button>
+        <button class="cat-btn" data-cat="health">Health</button>
+      </div>
+      <button class="add-btn" onclick="addTask()">+</button>
+    </div>
+  </div>
+</div>
+
+<div class="filters">
+  <button class="f-btn active" data-filter="all">All</button>
+  <button class="f-btn" data-filter="active">Active</button>
+  <button class="f-btn" data-filter="done">Done</button>
+  <button class="f-btn" data-filter="urgent">Urgent</button>
+  <button class="f-btn" data-filter="work">Work</button>
+  <button class="f-btn" data-filter="personal">Personal</button>
+  <button class="f-btn" data-filter="health">Health</button>
+</div>
+
+<div id="taskArea"></div>
+
+<div id="installBanner">
+  <div class="install-text">
+    <strong>Install as an app</strong>
+    Add to your home screen for quick access — no App Store needed.
+  </div>
+  <div class="install-btns">
+    <button class="inst-btn inst-yes" id="installYes">Install</button>
+    <button class="inst-btn inst-no" id="installNo">Not now</button>
+  </div>
+</div>
+
+<script>
+  const CAT_LABEL = { work:'Work', personal:'Personal', urgent:'Urgent', health:'Health' };
+  const CAT_BADGE = { work:'badge-work', personal:'badge-personal', urgent:'badge-urgent', health:'badge-health' };
+
+  let tasks = JSON.parse(localStorage.getItem('sq_tasks') || '[]');
+  let nextId = parseInt(localStorage.getItem('sq_nextId') || '1');
+  let filter = 'all';
+  let selCat = 'work';
+
+  if (!tasks.length) {
+    [{ text:'Review weekly priorities', cat:'work' }, { text:'30-min walk', cat:'health' }, { text:'Respond to pending emails', cat:'urgent' }]
+      .forEach(t => tasks.push({ id: nextId++, text: t.text, cat: t.cat, done: false, ts: Date.now() }));
+    save();
+  }
+
+  function save() {
+    localStorage.setItem('sq_tasks', JSON.stringify(tasks));
+    localStorage.setItem('sq_nextId', nextId);
+  }
+
+  function addTask() {
+    const inp = document.getElementById('taskInput');
+    const text = inp.value.trim();
+    if (!text) return;
+    tasks.unshift({ id: nextId++, text, cat: selCat, done: false, ts: Date.now() });
+    inp.value = '';
+    save(); render();
+  }
+
+  document.getElementById('taskInput').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+
+  document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selCat = btn.dataset.cat;
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('.f-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      filter = btn.dataset.filter;
+      document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    });
+  });
+
+  function toggle(id) { const t = tasks.find(t => t.id === id); if (t) { t.done = !t.done; save(); render(); } }
+  function remove(id) { tasks = tasks.filter(t => t.id !== id); save(); render(); }
+  function clearDone() { tasks = tasks.filter(t => !t.done); save(); render(); }
+
+  function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function render() {
+    let vis = [...tasks];
+    if (filter === 'active') vis = tasks.filter(t => !t.done);
+    else if (filter === 'done') vis = tasks.filter(t => t.done);
+    else if (['work','personal','urgent','health'].includes(filter)) vis = tasks.filter(t => t.cat === filter);
+
+    const area = document.getElementById('taskArea');
+    area.innerHTML = '';
+
+    const active = vis.filter(t => !t.done);
+    const done = vis.filter(t => t.done);
+
+    if (!vis.length) {
+      area.innerHTML = '<div class="empty"><strong>All clear!</strong>Add a task above to get started.</div>';
+    } else {
+      const mkGroup = (items, label) => {
+        if (!items.length) return;
+        if (label) area.innerHTML += `<div class="section-label">${label}</div>`;
+        const list = document.createElement('div'); list.className = 'task-list';
+        items.forEach(t => {
+          list.innerHTML += `<div class="task${t.done?' done':''}">
+            <div class="check${t.done?' done':''}" onclick="toggle(${t.id})"></div>
+            <div class="task-body">
+              <div class="task-text">${esc(t.text)}</div>
+              <div class="task-meta"><span class="badge ${CAT_BADGE[t.cat]}">${CAT_LABEL[t.cat]}</span></div>
+            </div>
+            <button class="del-btn" onclick="remove(${t.id})">&#x2715;</button>
+          </div>`;
+        });
+        area.appendChild(list);
+      };
+      mkGroup(active, done.length && active.length ? 'To do' : null);
+      mkGroup(done, active.length && done.length ? 'Completed' : null);
+    }
+
+    if (done.length > 0) {
+      area.innerHTML += `<div class="clear-row"><button class="clear-btn" onclick="clearDone()">Clear completed (${done.length})</button></div>`;
+    }
+
+    document.getElementById('sTotal').textContent = tasks.length;
+    document.getElementById('sDone').textContent = tasks.filter(t=>t.done).length;
+    document.getElementById('sLeft').textContent = tasks.filter(t=>!t.done).length;
+  }
+
+  const hr = new Date().getHours();
+  document.getElementById('greeting').textContent = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); deferredPrompt = e;
+    document.getElementById('installBanner').style.display = 'block';
+  });
+  document.getElementById('installYes').onclick = () => {
+    deferredPrompt && deferredPrompt.prompt();
+    document.getElementById('installBanner').style.display = 'none';
+  };
+  document.getElementById('installNo').onclick = () => { document.getElementById('installBanner').style.display = 'none'; };
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
+  render();
+</script>
+</body>
+</html>
