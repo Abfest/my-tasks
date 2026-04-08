@@ -1,14 +1,13 @@
 {
-  "name": "My Tasks",
-  "short_name": "Tasks",
-  "description": "A smart personal task manager",
+  "name": "TaskFlow",
+  "short_name": "TaskFlow",
+  "description": "Smart task manager with Google Calendar sync",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f0f1a",
-  "theme_color": "#1a1a2e",
-  "orientation": "portrait-primary",
+  "background_color": "#0c0e16",
+  "theme_color": "#0c0e16",
   "icons": [
-    { "src": "icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
-    { "src": "icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "https://via.placeholder.com/192x192/5b7cfa/ffffff?text=TF", "sizes": "192x192", "type": "image/png" },
+    { "src": "https://via.placeholder.com/512x512/5b7cfa/ffffff?text=TF", "sizes": "512x512", "type": "image/png" }
   ]
 }
