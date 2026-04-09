@@ -337,6 +337,42 @@ input[type=time]{background:transparent;border:none;outline:none;color:#8892b0;f
 </div>
 
 <script>
+/* ── MIGRATE: pull old PWA data into new keys on first run ── */
+(function migrate(){
+  // Tasks: old key = sq_tasks3
+  if(!localStorage.getItem('tf6_tasks')){
+    const old = localStorage.getItem('sq_tasks3');
+    if(old){
+      try{
+        const oldTasks = JSON.parse(old);
+        // Normalise shape — old tasks may lack some new fields
+        const normalised = oldTasks.map(t=>({
+          id:        t.id        || Date.now()+Math.random(),
+          title:     t.title     || t.text || '',
+          tags:      t.tags      || (t.category?[t.category]:[]),
+          priority:  t.priority  || 'med',
+          startDate: t.startDate || '',
+          dueDate:   t.dueDate   || t.due || '',
+          done:      t.done      || t.completed || false,
+          synced:    false,
+          gcalId:    null,
+          calUrl:    null,
+          createdAt: t.createdAt || new Date().toISOString()
+        }));
+        localStorage.setItem('tf6_tasks', JSON.stringify(normalised));
+      }catch(e){ console.warn('Migration failed', e); }
+    }
+  }
+  // Calendar events: old key = cal_evts3
+  if(!localStorage.getItem('tf6_cal')){
+    const old = localStorage.getItem('cal_evts3');
+    if(old){
+      try{ localStorage.setItem('tf6_cal', old); }
+      catch(e){}
+    }
+  }
+})();
+
 /* ── STATE ─────────────────────────────────── */
 let tasks     = JSON.parse(localStorage.getItem('tf6_tasks') || '[]');
 let calEvs    = JSON.parse(localStorage.getItem('tf6_cal')   || '[]');
