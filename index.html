@@ -2,1311 +2,981 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>TaskFlow – Smart Task Manager</title>
-<meta name="description" content="Task manager with Google Calendar sync"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>TaskFlow</title>
 <meta name="theme-color" content="#0c0e16"/>
 <link rel="manifest" href="manifest.json"/>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
-
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
-/* ─── TOKENS ──────────────────────────────────────────── */
-:root {
-  --bg:       #0c0e16;
-  --s1:       #13161f;
-  --s2:       #1a1e2e;
-  --s3:       #1f2438;
-  --b1:       #222640;
-  --b2:       #2e3450;
-  --b3:       #3d4465;
-  --text:     #e2e6f3;
-  --muted:    #5a6280;
-  --faint:    #3a3f5a;
-  --accent:   #5b7cfa;
-  --accent2:  #7c9dff;
-  --green:    #34d399;
-  --yellow:   #fbbf24;
-  --red:      #f87171;
-  --sky:      #38bdf8;
-  --r:        12px;
-  --r2:       16px;
-  --shadow:   0 8px 32px rgba(0,0,0,.45);
+:root{
+  --bg:#0c0e16;--s1:#13161f;--s2:#1a1e2e;--s3:#1f2438;
+  --b1:#222640;--b2:#2e3450;--b3:#3d4465;
+  --text:#e2e6f3;--muted:#5a6280;--faint:#2e3450;
+  --accent:#5b7cfa;--a2:#7c9dff;
+  --green:#34d399;--yellow:#fbbf24;--red:#f87171;--sky:#38bdf8;
+  --r:11px;--r2:16px;
 }
-
-/* ─── RESET ───────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{
-  font-family:'DM Sans',sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-  overflow-x:hidden;
-}
-
-/* ─── BG AMBIANCE ─────────────────────────────────────── */
-body::before{
-  content:'';position:fixed;inset:0;pointer-events:none;
-  background:
-    radial-gradient(ellipse 70% 45% at 15% 5%,  rgba(91,124,250,.09) 0%,transparent 60%),
-    radial-gradient(ellipse 55% 40% at 85% 90%, rgba(56,189,248,.06) 0%,transparent 60%),
-    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(52,211,153,.03) 0%,transparent 70%);
-  z-index:0;
-}
-
-/* ─── LAYOUT ──────────────────────────────────────────── */
-.app{
-  position:relative;z-index:1;
-  max-width:860px;margin:0 auto;
-  padding:28px 20px 80px;
-}
-
-/* ─── HEADER ──────────────────────────────────────────── */
-.header{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:32px;
-}
-.logo{
-  font-family:'Syne',sans-serif;font-weight:800;
-  font-size:22px;letter-spacing:-.03em;
-}
-.logo span{
-  background:linear-gradient(135deg,var(--accent) 0%,var(--sky) 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-}
-.logo-sub{font-size:11px;color:var(--muted);font-weight:400;margin-top:1px;letter-spacing:.02em;}
-
-.header-right{display:flex;gap:10px;align-items:center;}
-
-.gcal-pill{
-  display:flex;align-items:center;gap:8px;
-  background:var(--s2);border:1.5px solid var(--b2);
-  border-radius:50px;padding:7px 16px;
-  font-size:12.5px;font-weight:500;color:var(--text);
-  cursor:pointer;transition:all .2s;
-  font-family:'DM Sans',sans-serif;white-space:nowrap;
-  user-select:none;
-}
-.gcal-pill:hover{border-color:var(--accent);color:var(--accent2);}
-.gcal-pill.connected{border-color:rgba(52,211,153,.4);color:var(--green);}
-.gcal-dot{
-  width:7px;height:7px;border-radius:50%;
-  background:var(--faint);transition:all .3s;flex-shrink:0;
-}
-.gcal-dot.on{background:var(--green);box-shadow:0 0 8px rgba(52,211,153,.6);}
-.gcal-icon{flex-shrink:0;opacity:.7;}
-.gcal-label{transition:color .2s;}
-.user-avatar{
-  width:32px;height:32px;border-radius:50%;
-  background:linear-gradient(135deg,var(--accent),var(--sky));
-  display:flex;align-items:center;justify-content:center;
-  font-size:13px;font-weight:700;color:#fff;flex-shrink:0;
-  display:none;
-}
-.user-avatar.show{display:flex;}
-
-/* ─── STATS ROW ───────────────────────────────────────── */
-.stats{
-  display:grid;grid-template-columns:repeat(4,1fr);
-  gap:10px;margin-bottom:24px;
-}
-.stat{
-  background:var(--s1);border:1.5px solid var(--b1);
-  border-radius:var(--r);padding:14px 16px;
-  transition:border-color .2s;
-}
-.stat:hover{border-color:var(--b2);}
-.stat-val{
-  font-family:'Syne',sans-serif;font-weight:800;
-  font-size:26px;line-height:1;margin-bottom:4px;
-}
-.stat-val.blue{color:var(--accent2);}
-.stat-val.green{color:var(--green);}
-.stat-val.yellow{color:var(--yellow);}
-.stat-val.red{color:var(--red);}
-.stat-lbl{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.04em;text-transform:uppercase;}
-
-/* ─── INPUT CARD ──────────────────────────────────────── */
-.input-card{
-  background:var(--s1);border:1.5px solid var(--b1);
-  border-radius:var(--r2);padding:22px;
-  margin-bottom:22px;transition:border-color .2s;
-  box-shadow:var(--shadow);
-}
-.input-card:focus-within{border-color:var(--b2);}
-.input-hint{
-  font-size:10.5px;color:var(--faint);font-weight:500;
-  letter-spacing:.07em;text-transform:uppercase;margin-bottom:11px;
-}
-
-.task-input{
-  width:100%;background:transparent;border:none;outline:none;
-  color:var(--text);font-size:17px;font-family:'Syne',sans-serif;
-  font-weight:700;caret-color:var(--accent);margin-bottom:16px;
-  line-height:1.3;
-}
-.task-input::placeholder{color:var(--faint);font-weight:700;}
-
-.chip-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
-.chip{
-  padding:5px 13px;border-radius:20px;font-size:12px;font-weight:500;
-  cursor:pointer;border:1.5px solid var(--b1);color:var(--muted);
-  background:transparent;transition:all .15s;font-family:'DM Sans',sans-serif;
-}
-.chip:hover{border-color:var(--accent);color:var(--accent2);}
+html,body{height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 70% 45% at 15% 5%,rgba(91,124,250,.08) 0%,transparent 60%),
+             radial-gradient(ellipse 55% 40% at 85% 90%,rgba(56,189,248,.05) 0%,transparent 60%);}
+/* HEADER */
+.hdr{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 18px 0;flex-shrink:0;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:19px;letter-spacing:-.03em;}
+.logo span{background:linear-gradient(135deg,var(--accent),var(--sky));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.gcal-pill{display:flex;align-items:center;gap:6px;background:var(--s2);border:1.5px solid var(--b2);border-radius:50px;padding:6px 13px;font-size:12px;font-weight:500;color:var(--text);cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;white-space:nowrap;user-select:none;}
+.gcal-pill:hover{border-color:var(--accent);}
+.gcal-pill.conn{border-color:rgba(52,211,153,.4);color:var(--green);}
+.gcal-dot{width:6px;height:6px;border-radius:50%;background:var(--faint);transition:all .3s;flex-shrink:0;}
+.gcal-dot.on{background:var(--green);box-shadow:0 0 7px rgba(52,211,153,.7);}
+/* TABS */
+.tabs{position:relative;z-index:10;display:flex;gap:2px;padding:12px 18px 0;flex-shrink:0;overflow-x:auto;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:8px 16px;border-radius:10px 10px 0 0;font-size:12.5px;font-weight:500;cursor:pointer;border:1.5px solid transparent;border-bottom:none;color:var(--muted);background:transparent;transition:all .18s;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0;}
+.tab:hover{color:var(--text);background:var(--s1);}
+.tab.on{color:var(--text);background:var(--s1);border-color:var(--b1);font-weight:600;}
+/* CONTENT */
+.content{position:relative;z-index:1;flex:1;overflow:hidden;background:var(--s1);border-top:1.5px solid var(--b1);margin:0 18px 18px;}
+.pane{display:none;height:100%;overflow-y:auto;padding:20px;}
+.pane.on{display:block;}
+.pane::-webkit-scrollbar{width:4px;}
+.pane::-webkit-scrollbar-track{background:transparent;}
+.pane::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px;}
+/* SHARED */
+.sep{height:1px;background:var(--b1);margin:13px 0;}
+.row{display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
+.chip{padding:5px 12px;border-radius:20px;font-size:11.5px;font-weight:500;cursor:pointer;border:1.5px solid var(--b1);color:var(--muted);background:transparent;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.chip:hover{border-color:var(--accent);color:var(--a2);}
 .chip.on{background:var(--accent);border-color:var(--accent);color:#fff;}
-
-.sep{height:1px;background:var(--b1);margin:14px 0;}
-
-.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-
-.pri{
-  padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;
-  cursor:pointer;border:1.5px solid transparent;background:transparent;
-  transition:all .15s;font-family:'DM Sans',sans-serif;
-}
+.pri{padding:5px 11px;border-radius:20px;font-size:11.5px;font-weight:600;cursor:pointer;border:1.5px solid transparent;background:transparent;transition:all .15s;font-family:'DM Sans',sans-serif;}
 .pri.hi{color:var(--red);border-color:#3a2020;}
 .pri.hi.on,.pri.hi:hover{background:#2e1a1a;border-color:var(--red);}
 .pri.med{color:var(--yellow);border-color:var(--yellow);background:#2a2010;}
 .pri.lo{color:var(--sky);border-color:#1e2a3a;}
 .pri.lo.on,.pri.lo:hover{background:#1a2535;border-color:var(--sky);}
-
-.date-group{display:flex;gap:7px;flex:1;min-width:220px;}
-.date-wrap{
-  display:flex;align-items:center;gap:6px;
-  background:#0f1219;border:1.5px solid var(--b1);
-  border-radius:9px;padding:6px 10px;flex:1;
-  transition:border-color .15s;
-}
+.date-wrap{display:flex;align-items:center;gap:5px;background:var(--bg);border:1.5px solid var(--b1);border-radius:8px;padding:5px 9px;flex:1;transition:border-color .15s;}
 .date-wrap:focus-within{border-color:var(--accent);}
-.date-lbl{
-  font-size:9.5px;color:var(--muted);font-weight:700;
-  letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;flex-shrink:0;
-}
-input[type=date]{
-  background:transparent;border:none;outline:none;
-  color:#8892b0;font-size:11.5px;font-family:'DM Sans',sans-serif;
-  width:100%;cursor:pointer;color-scheme:dark;padding:0;
-}
-input[type=date]::-webkit-calendar-picker-indicator{
-  filter:invert(.35);cursor:pointer;margin-left:2px;
-}
-
-.add-btn{
-  width:36px;height:36px;border-radius:10px;
-  background:var(--accent);border:none;color:#fff;
-  font-size:22px;cursor:pointer;display:flex;
-  align-items:center;justify-content:center;
-  flex-shrink:0;transition:all .15s;line-height:1;
-  padding-bottom:1px;font-family:'DM Sans',sans-serif;
-}
-.add-btn:hover{background:var(--accent2);transform:scale(1.06);}
-.add-btn:active{transform:scale(.96);}
-
-/* ─── TOOLBAR ─────────────────────────────────────────── */
-.toolbar{
-  display:flex;gap:8px;align-items:center;
-  margin-bottom:18px;flex-wrap:wrap;
-}
-.filter-btn{
-  padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;
-  cursor:pointer;border:1.5px solid var(--b1);color:var(--muted);
-  background:transparent;transition:all .15s;font-family:'DM Sans',sans-serif;
-}
-.filter-btn.on{border-color:var(--accent);color:var(--accent2);background:rgba(91,124,250,.1);}
-.filter-btn:hover:not(.on){border-color:var(--b2);color:var(--text);}
-
-.search-wrap{
-  display:flex;align-items:center;gap:8px;flex:1;min-width:160px;
-  background:var(--s1);border:1.5px solid var(--b1);
-  border-radius:9px;padding:6px 12px;transition:border-color .15s;
-}
-.search-wrap:focus-within{border-color:var(--b2);}
-.search-wrap svg{flex-shrink:0;opacity:.4;}
-.search-wrap input{
-  background:transparent;border:none;outline:none;
-  color:var(--text);font-size:12.5px;font-family:'DM Sans',sans-serif;
-  width:100%;
-}
-.search-wrap input::placeholder{color:var(--faint);}
-
-.sort-btn{
-  padding:6px 12px;border-radius:9px;font-size:12px;
-  background:var(--s1);border:1.5px solid var(--b1);
-  color:var(--muted);cursor:pointer;transition:all .15s;
-  font-family:'DM Sans',sans-serif;white-space:nowrap;
-}
-.sort-btn:hover{border-color:var(--b2);color:var(--text);}
-
-/* ─── TASK LIST ───────────────────────────────────────── */
-.section-title{
-  font-family:'Syne',sans-serif;font-size:11px;font-weight:700;
-  color:var(--faint);letter-spacing:.08em;text-transform:uppercase;
-  margin-bottom:11px;display:flex;align-items:center;gap:8px;
-}
-.section-title::after{content:'';flex:1;height:1px;background:var(--b1);}
-
-.task{
-  background:var(--s1);border:1.5px solid var(--b1);
-  border-radius:var(--r);padding:14px 16px;
-  margin-bottom:9px;display:flex;align-items:flex-start;gap:12px;
-  transition:all .2s;position:relative;overflow:hidden;
-  animation:fadeUp .22s ease;
-}
-.task::before{
-  content:'';position:absolute;left:0;top:0;bottom:0;
-  width:3px;border-radius:3px 0 0 3px;
-}
-.task.hi::before{background:var(--red);}
-.task.med::before{background:var(--yellow);}
-.task.lo::before{background:var(--sky);}
-.task:hover{border-color:var(--b2);}
-.task.done{opacity:.4;}
-.task.overdue{border-color:rgba(248,113,113,.25);}
-
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(-6px);}
-  to{opacity:1;transform:translateY(0);}
-}
-
-.check{
-  width:20px;height:20px;border-radius:6px;
-  border:2px solid var(--b2);background:transparent;
-  cursor:pointer;flex-shrink:0;margin-top:1px;
-  display:flex;align-items:center;justify-content:center;
-  transition:all .15s;color:#fff;font-size:11px;
-}
-.check:hover{border-color:var(--green);}
-.check.on{background:var(--green);border-color:var(--green);}
-
-.task-body{flex:1;min-width:0;}
-.task-title{
-  font-family:'Syne',sans-serif;font-weight:600;font-size:14px;
-  color:var(--text);margin-bottom:7px;line-height:1.4;
-  transition:color .15s;word-break:break-word;
-}
-.task.done .task-title{text-decoration:line-through;color:var(--muted);}
-
-.task-meta{display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
-.m-tag{
-  font-size:10.5px;font-weight:500;padding:2px 9px;border-radius:12px;
-  background:rgba(91,124,250,.12);color:var(--accent2);white-space:nowrap;
-}
-.m-date{
-  font-size:11px;color:var(--muted);
-  display:flex;align-items:center;gap:3px;white-space:nowrap;
-}
-.m-date.late{color:var(--red);}
-.synced-badge{
-  font-size:10px;color:var(--green);
-  display:flex;align-items:center;gap:3px;
-  background:rgba(52,211,153,.1);padding:2px 8px;border-radius:10px;
-  cursor:pointer;white-space:nowrap;
-}
-.synced-badge:hover{background:rgba(52,211,153,.2);}
-
-.task-actions{display:flex;gap:5px;align-items:center;flex-shrink:0;}
-.act{
-  width:28px;height:28px;border-radius:7px;border:none;
-  background:transparent;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  color:var(--muted);transition:all .15s;
-}
-.act:hover{background:var(--s2);}
+.date-lbl{font-size:9px;color:var(--muted);font-weight:700;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;}
+input[type=date]{background:transparent;border:none;outline:none;color:#8892b0;font-size:11px;font-family:'DM Sans',sans-serif;width:100%;cursor:pointer;color-scheme:dark;padding:0;}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.35);cursor:pointer;}
+input[type=time]{background:transparent;border:none;outline:none;color:#8892b0;font-size:11px;font-family:'DM Sans',sans-serif;width:100%;cursor:pointer;color-scheme:dark;padding:0;}
+.add-btn{width:34px;height:34px;border-radius:9px;background:var(--accent);border:none;color:#fff;font-size:21px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;padding-bottom:1px;}
+.add-btn:hover{background:var(--a2);transform:scale(1.06);}
+.act{width:26px;height:26px;border-radius:6px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .15s;}
+.act:hover{background:var(--s3);}
 .act.sync{color:var(--accent);}
 .act.sync:hover{background:rgba(91,124,250,.15);}
 .act.del:hover{background:#2e1a1a;color:var(--red);}
-.act.edit:hover{background:var(--s3);color:var(--text);}
-
-/* ─── EMPTY ───────────────────────────────────────────── */
-.empty{
-  text-align:center;padding:52px 20px;color:var(--muted);
-}
-.empty-icon{font-size:38px;margin-bottom:12px;opacity:.35;}
-.empty-text{font-size:14px;line-height:1.6;}
-
-/* ─── MODAL ───────────────────────────────────────────── */
-.overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.72);
-  z-index:100;display:flex;align-items:center;justify-content:center;
-  opacity:0;pointer-events:none;transition:opacity .22s;
-  padding:20px;
-}
-.overlay.show{opacity:1;pointer-events:all;}
-.modal{
-  background:var(--s1);border:1.5px solid var(--b2);
-  border-radius:20px;padding:28px;width:400px;max-width:100%;
-  transform:scale(.95) translateY(8px);transition:transform .22s;
-  max-height:90vh;overflow-y:auto;
-}
-.overlay.show .modal{transform:scale(1) translateY(0);}
-.modal-head{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
-.modal-head-icon{font-size:28px;}
-.modal-head-title{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;}
-.modal-desc{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:22px;}
-
-/* GCal setup steps */
-.steps{display:flex;flex-direction:column;gap:12px;margin-bottom:22px;}
-.step{
-  background:var(--s2);border:1.5px solid var(--b1);
-  border-radius:10px;padding:14px 16px;
-  display:flex;gap:12px;align-items:flex-start;
-}
-.step-num{
-  width:22px;height:22px;border-radius:50%;
-  background:var(--accent);color:#fff;
-  font-size:11px;font-weight:700;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;margin-top:1px;
-}
-.step-body{}
-.step-title{font-size:13px;font-weight:600;margin-bottom:3px;}
-.step-desc{font-size:12px;color:var(--muted);line-height:1.5;}
-.step-code{
-  background:#0f1219;border:1px solid var(--b2);
-  border-radius:6px;padding:6px 10px;font-size:11px;
-  color:var(--accent2);font-family:monospace;margin-top:6px;
-  word-break:break-all;
-}
-
-.modal-input{
-  width:100%;background:var(--s2);border:1.5px solid var(--b2);
-  border-radius:10px;padding:10px 14px;
-  color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;
-  outline:none;margin-bottom:12px;transition:border-color .15s;
-}
-.modal-input:focus{border-color:var(--accent);}
-.modal-input::placeholder{color:var(--faint);}
-
-.modal-actions{display:flex;gap:10px;}
-.mbtn{
-  flex:1;padding:11px;border-radius:11px;font-size:14px;font-weight:500;
-  cursor:pointer;border:1.5px solid var(--b2);font-family:'DM Sans',sans-serif;
-  transition:all .15s;
-}
-.mbtn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
-.mbtn.primary:hover{background:var(--accent2);}
-.mbtn.danger{background:#2e1a1a;border-color:var(--red);color:var(--red);}
-.mbtn.danger:hover{background:#3a2020;}
-.mbtn.ghost{background:transparent;color:var(--muted);}
-.mbtn.ghost:hover{color:var(--text);border-color:var(--b2);}
-
-/* Edit modal fields */
-.edit-field{margin-bottom:14px;}
-.edit-label{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;}
-
-/* ─── TOAST ───────────────────────────────────────────── */
-.toast{
-  position:fixed;bottom:24px;left:50%;
-  transform:translateX(-50%) translateY(16px);
-  background:var(--s2);border:1.5px solid var(--b2);
-  border-radius:13px;padding:11px 20px;
-  font-size:13px;color:var(--text);
-  box-shadow:0 8px 32px rgba(0,0,0,.5);
-  opacity:0;transition:all .28s;pointer-events:none;
-  z-index:200;white-space:nowrap;
-  display:flex;align-items:center;gap:8px;
-}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.toast.ok{border-color:var(--green);}
-.toast.warn{border-color:var(--yellow);}
-.toast.err{border-color:var(--red);}
-
-/* ─── PROGRESS BAR ────────────────────────────────────── */
-.progress-wrap{margin-bottom:22px;}
-.progress-meta{
-  display:flex;justify-content:space-between;
-  font-size:12px;color:var(--muted);margin-bottom:7px;
-}
-.progress-bar{
-  height:4px;background:var(--b1);border-radius:2px;overflow:hidden;
-}
-.progress-fill{
-  height:100%;background:linear-gradient(90deg,var(--accent),var(--sky));
-  border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1);
-}
-
-/* ─── SYNC PANEL ──────────────────────────────────────── */
-.sync-panel{
-  background:var(--s1);border:1.5px solid rgba(52,211,153,.25);
-  border-radius:var(--r);padding:14px 16px;margin-bottom:20px;
-  display:none;
-}
-.sync-panel.show{display:block;}
-.sync-panel-head{
-  display:flex;align-items:center;gap:10px;margin-bottom:10px;
-}
-.sync-panel-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--green);}
-.sync-actions{display:flex;gap:8px;flex-wrap:wrap;}
-.sync-act-btn{
-  padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;
-  cursor:pointer;border:1.5px solid rgba(52,211,153,.3);
-  color:var(--green);background:rgba(52,211,153,.08);
-  transition:all .15s;font-family:'DM Sans',sans-serif;
-}
-.sync-act-btn:hover{background:rgba(52,211,153,.15);}
-
-/* ─── RESPONSIVE ──────────────────────────────────────── */
+.slbl{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.slbl::after{content:'';flex:1;height:1px;background:var(--b1);}
+.empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.nbtn{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--b1);background:transparent;color:var(--muted);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.nbtn:hover{border-color:var(--b2);color:var(--text);}
+.fbtn{padding:5px 13px;border-radius:20px;font-size:11.5px;font-weight:500;cursor:pointer;border:1.5px solid var(--b1);color:var(--muted);background:transparent;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.fbtn.on{border-color:var(--accent);color:var(--a2);background:rgba(91,124,250,.1);}
+.fbtn:hover:not(.on){border-color:var(--b2);color:var(--text);}
+/* TASKS */
+.tinput-card{background:var(--s2);border:1.5px solid var(--b1);border-radius:var(--r2);padding:18px;margin-bottom:16px;transition:border-color .2s;}
+.tinput-card:focus-within{border-color:var(--b2);}
+.hint{font-size:10px;color:var(--faint);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+.main-input{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-size:16px;font-family:'Syne',sans-serif;font-weight:700;caret-color:var(--accent);margin-bottom:13px;}
+.main-input::placeholder{color:var(--faint);}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.stat{background:var(--s2);border:1.5px solid var(--b1);border-radius:var(--r);padding:11px 13px;}
+.stat-v{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;line-height:1;margin-bottom:2px;}
+.stat-v.blue{color:var(--a2)}.stat-v.green{color:var(--green)}.stat-v.red{color:var(--red)}.stat-v.yellow{color:var(--yellow)}
+.stat-l{font-size:9.5px;color:var(--muted);font-weight:500;letter-spacing:.04em;text-transform:uppercase;}
+.prog{height:3px;background:var(--b1);border-radius:2px;overflow:hidden;margin-bottom:16px;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--sky));border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.task-item{background:var(--s2);border:1.5px solid var(--b1);border-radius:var(--r);padding:11px 13px;margin-bottom:7px;display:flex;align-items:flex-start;gap:10px;transition:all .2s;position:relative;overflow:hidden;animation:fadeUp .2s ease;}
+.task-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
+.task-item.hi::before{background:var(--red)}.task-item.med::before{background:var(--yellow)}.task-item.lo::before{background:var(--sky)}
+.task-item:hover{border-color:var(--b2)}.task-item.done{opacity:.38}.task-item.overdue{border-color:rgba(248,113,113,.2)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.chk{width:19px;height:19px;border-radius:5px;border:2px solid var(--b2);background:transparent;cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s;color:#fff;font-size:10px;}
+.chk:hover{border-color:var(--green)}.chk.on{background:var(--green);border-color:var(--green)}
+.task-body{flex:1;min-width:0;}
+.task-title{font-family:'Syne',sans-serif;font-weight:600;font-size:13px;color:var(--text);margin-bottom:5px;line-height:1.4;word-break:break-word;}
+.task-item.done .task-title{text-decoration:line-through;color:var(--muted)}
+.task-meta{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.m-tag{font-size:10px;font-weight:500;padding:2px 7px;border-radius:9px;background:rgba(91,124,250,.12);color:var(--a2);}
+.m-date{font-size:10.5px;color:var(--muted);display:flex;align-items:center;gap:2px;white-space:nowrap;}
+.m-date.late{color:var(--red)}
+.syn-badge{font-size:10px;color:var(--green);display:flex;align-items:center;gap:3px;background:rgba(52,211,153,.1);padding:2px 7px;border-radius:9px;cursor:pointer;}
+.syn-badge:hover{background:rgba(52,211,153,.2)}
+.task-actions{display:flex;gap:3px;align-items:center;flex-shrink:0;}
+/* WEEK */
+.week-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.week-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:14px;}
+.dcol{background:var(--s2);border:1.5px solid var(--b1);border-radius:var(--r);padding:9px 7px;min-height:140px;cursor:pointer;transition:border-color .15s;position:relative;}
+.dcol:hover{border-color:var(--b2)}.dcol.today{border-color:var(--accent)}.dcol.sel{border-color:var(--a2);background:rgba(91,124,250,.06)}
+.dname{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px;}
+.dnum{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;margin-bottom:6px;}
+.dcol.today .dnum{color:var(--accent)}
+.dev{font-size:9.5px;padding:2px 5px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
+.dev.task-hi{background:rgba(248,113,113,.13);color:var(--red)}
+.dev.task-med{background:rgba(251,191,36,.13);color:var(--yellow)}
+.dev.task-lo{background:rgba(56,189,248,.13);color:var(--sky)}
+.dev.cal-ev{background:rgba(52,211,153,.13);color:var(--green)}
+.dmore{font-size:9px;color:var(--muted);padding:1px 5px;}
+.dadd{position:absolute;bottom:5px;right:5px;width:18px;height:18px;border-radius:4px;background:var(--accent);border:none;color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;}
+.dcol:hover .dadd{opacity:1}
+.day-detail{background:var(--s2);border:1.5px solid var(--b2);border-radius:var(--r2);padding:14px;margin-bottom:14px;}
+.day-detail-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;}
+.ev-row{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;background:var(--bg);border:1.5px solid var(--b1);margin-bottom:5px;}
+.ev-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.ev-title-t{font-size:12.5px;font-weight:500;flex:1;}
+.ev-time-t{font-size:10.5px;color:var(--muted);}
+/* MONTH */
+.month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.month-title{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;}
+.dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px;}
+.dow{font-size:9.5px;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;text-align:center;padding:3px 0;}
+.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.mcell{background:var(--s2);border:1.5px solid var(--b1);border-radius:7px;min-height:72px;padding:5px;cursor:pointer;transition:border-color .15s;position:relative;}
+.mcell:hover{border-color:var(--b2)}.mcell.today{border-color:var(--accent)}.mcell.other{opacity:.32}.mcell.sel{border-color:var(--a2);background:rgba(91,124,250,.07)}
+.mcn{font-family:'Syne',sans-serif;font-weight:700;font-size:11.5px;margin-bottom:3px;}
+.mcell.today .mcn{color:var(--accent)}
+.mcev{font-size:9px;padding:1px 4px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mcev.task{background:rgba(91,124,250,.15);color:var(--a2)}.mcev.cal{background:rgba(52,211,153,.12);color:var(--green)}
+.sdp{background:var(--s2);border:1.5px solid var(--b2);border-radius:var(--r2);padding:14px;margin-top:12px;}
+.sdp-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;}
+.sdp-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;}
+/* PLANNER */
+.top3-title{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;margin-bottom:12px;}
+.t3slot{display:flex;align-items:center;gap:9px;background:var(--s2);border:1.5px solid var(--b1);border-radius:var(--r);padding:11px 13px;margin-bottom:7px;}
+.t3n{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--faint);width:22px;flex-shrink:0;}
+.t3n.filled{color:var(--accent)}
+.t3in{background:transparent;border:none;outline:none;color:var(--text);font-size:13.5px;font-family:'DM Sans',sans-serif;font-weight:500;width:100%;caret-color:var(--accent);}
+.t3in::placeholder{color:var(--faint)}
+.t3chk{width:17px;height:17px;border-radius:4px;border:2px solid var(--b2);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;color:#fff;font-size:9px;}
+.t3chk:hover{border-color:var(--green)}.t3chk.on{background:var(--green);border-color:var(--green)}
+/* POMO */
+.pomo{background:var(--s2);border:1.5px solid var(--b1);border-radius:var(--r2);padding:20px;text-align:center;margin-top:16px;}
+.pom-lbl{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px;}
+.pom-modes{display:flex;gap:6px;justify-content:center;margin-bottom:14px;}
+.pom-mode{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1.5px solid var(--b1);color:var(--muted);background:transparent;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.pom-mode.on{border-color:var(--accent);color:var(--accent);background:rgba(91,124,250,.1)}
+.pom-ring{position:relative;width:130px;height:130px;margin:0 auto 16px;}
+.pom-ring svg{position:absolute;top:0;left:0;transform:rotate(-90deg);}
+.pom-ring circle{fill:none;stroke-width:7;stroke-linecap:round;}
+.pom-track{stroke:var(--b1)}.pom-prog{stroke:var(--accent);transition:stroke-dashoffset .5s linear;}
+.pom-time{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:26px;}
+.pom-sub{font-size:11px;color:var(--muted);margin-bottom:13px;letter-spacing:.03em;}
+.pom-btns{display:flex;gap:9px;justify-content:center;}
+.pom-btn{padding:7px 20px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;border:1.5px solid var(--b2);background:transparent;color:var(--text);transition:all .15s;font-family:'DM Sans',sans-serif;}
+.pom-btn.start{background:var(--accent);border-color:var(--accent);color:#fff;}
+.pom-btn.start:hover{background:var(--a2)}
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s;}
+.overlay.show{opacity:1;pointer-events:all}
+.modal{background:var(--s1);border:1.5px solid var(--b2);border-radius:20px;padding:24px;width:420px;max-width:100%;max-height:88vh;overflow-y:auto;transform:scale(.95) translateY(8px);transition:transform .2s;}
+.overlay.show .modal{transform:scale(1) translateY(0)}
+.mhd{display:flex;align-items:center;gap:10px;margin-bottom:17px;}
+.mhd-title{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;}
+.mf{margin-bottom:12px;}
+.ml{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px;}
+.mi{width:100%;background:var(--s2);border:1.5px solid var(--b2);border-radius:9px;padding:9px 12px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s;}
+.mi:focus{border-color:var(--accent)}.mi::placeholder{color:var(--faint)}
+.mac{display:flex;gap:8px;margin-top:17px;}
+.mbtn{flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid var(--b2);font-family:'DM Sans',sans-serif;transition:all .15s;}
+.mbtn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.mbtn.primary:hover{background:var(--a2)}
+.mbtn.ghost{background:transparent;color:var(--muted)}.mbtn.ghost:hover{color:var(--text)}
+.mbtn.danger{background:#2e1a1a;border-color:var(--red);color:var(--red)}
+.steps{display:flex;flex-direction:column;gap:9px;margin-bottom:16px;}
+.step{background:var(--s2);border:1.5px solid var(--b1);border-radius:9px;padding:11px 13px;display:flex;gap:9px;}
+.stn{width:19px;height:19px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.stt{font-size:12.5px;font-weight:600;margin-bottom:2px;}
+.std{font-size:11.5px;color:var(--muted);line-height:1.5}
+.stc{background:var(--bg);border:1px solid var(--b2);border-radius:5px;padding:4px 8px;font-size:10.5px;color:var(--a2);font-family:monospace;margin-top:4px;word-break:break-all;}
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--s2);border:1.5px solid var(--b2);border-radius:12px;padding:10px 18px;font-size:12.5px;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,.5);opacity:0;transition:all .28s;pointer-events:none;z-index:200;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:var(--green)}.toast.warn{border-color:var(--yellow)}.toast.err{border-color:var(--red)}
 @media(max-width:600px){
-  .stats{grid-template-columns:repeat(2,1fr);}
-  .header{flex-direction:column;gap:12px;align-items:flex-start;}
-  .date-group{min-width:100%;margin-top:8px;}
-  .controls{flex-wrap:wrap;}
-  .toolbar{gap:6px;}
+  .hdr{padding:12px 12px 0}.tabs{padding:10px 12px 0}.content{margin:0 12px 12px}.pane{padding:13px}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .week-grid{gap:2px}.dcol{min-height:100px;padding:6px 3px}.dname{font-size:8px}.dnum{font-size:13px}
 }
 </style>
 </head>
 <body>
-<div class="app">
 
-  <!-- ── HEADER ─────────────────────────────────────── -->
-  <div class="header">
-    <div>
-      <div class="logo">Task<span>Flow</span></div>
-      <div class="logo-sub">Smart Task Manager</div>
-    </div>
-    <div class="header-right">
-      <div class="user-avatar" id="avatar"></div>
-      <button class="gcal-pill" id="gcalPill" onclick="openGCalModal()">
-        <div class="gcal-dot" id="gcalDot"></div>
-        <svg class="gcal-icon" width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="1.6"/>
-          <path d="M3 9h18" stroke="currentColor" stroke-width="1.6"/>
-          <path d="M8 2v4M16 2v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-        </svg>
-        <span id="gcalLabel">Connect Calendar</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- ── STATS ──────────────────────────────────────── -->
-  <div class="stats" id="statsRow"></div>
-
-  <!-- ── PROGRESS ───────────────────────────────────── -->
-  <div class="progress-wrap" id="progressWrap">
-    <div class="progress-meta">
-      <span id="progressLabel">Today's progress</span>
-      <span id="progressPct">0%</span>
-    </div>
-    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-  </div>
-
-  <!-- ── SYNC PANEL ─────────────────────────────────── -->
-  <div class="sync-panel" id="syncPanel">
-    <div class="sync-panel-head">
-      <span>🗓</span>
-      <span class="sync-panel-title">Google Calendar Connected</span>
-      <span style="font-size:11px;color:var(--muted);margin-left:auto" id="syncUser"></span>
-    </div>
-    <div class="sync-actions">
-      <button class="sync-act-btn" onclick="syncAllToGCal()">↑ Sync all unsynced</button>
-      <button class="sync-act-btn" onclick="importFromGCal()">↓ Import from Calendar</button>
-      <button class="sync-act-btn" onclick="refreshGCalTokens()">⟳ Refresh auth</button>
-    </div>
-  </div>
-
-  <!-- ── INPUT CARD ─────────────────────────────────── -->
-  <div class="input-card">
-    <div class="input-hint">What needs to get done?</div>
-    <input class="task-input" id="taskInput" placeholder="Add a new task…" onkeydown="if(event.key==='Enter')addTask()"/>
-
-    <div class="chip-row" id="tagChips">
-      <button class="chip" onclick="toggleTag(this,'Work')">Work</button>
-      <button class="chip" onclick="toggleTag(this,'Personal')">Personal</button>
-      <button class="chip" onclick="toggleTag(this,'Urgent')">Urgent</button>
-      <button class="chip" onclick="toggleTag(this,'Health')">Health</button>
-      <button class="chip" onclick="toggleTag(this,'Finance')">Finance</button>
-      <button class="chip" onclick="toggleTag(this,'Learning')">Learning</button>
-    </div>
-
-    <div class="sep"></div>
-
-    <div class="controls">
-      <button class="pri hi" onclick="setPri('hi')">● Hi</button>
-      <button class="pri med on" onclick="setPri('med')">● Med</button>
-      <button class="pri lo" onclick="setPri('lo')">● Lo</button>
-
-      <div class="date-group">
-        <div class="date-wrap">
-          <span class="date-lbl">Start</span>
-          <input type="date" id="startDate"/>
-        </div>
-        <div class="date-wrap">
-          <span class="date-lbl">Due</span>
-          <input type="date" id="dueDate"/>
-        </div>
-      </div>
-      <button class="add-btn" onclick="addTask()" title="Add task (Enter)">+</button>
-    </div>
-  </div>
-
-  <!-- ── TOOLBAR ─────────────────────────────────────── -->
-  <div class="toolbar">
-    <button class="filter-btn on" onclick="setFilter('all',this)">All</button>
-    <button class="filter-btn" onclick="setFilter('active',this)">Active</button>
-    <button class="filter-btn" onclick="setFilter('done',this)">Done</button>
-    <button class="filter-btn" onclick="setFilter('overdue',this)">⚠ Overdue</button>
-    <button class="filter-btn" onclick="setFilter('synced',this)">🗓 Synced</button>
-
-    <div class="search-wrap">
-      <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-        <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5"/>
-        <path d="M10 10l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      <input id="searchInput" placeholder="Search tasks…" oninput="render()"/>
-    </div>
-
-    <button class="sort-btn" onclick="cycleSort()">Sort: <span id="sortLabel">Newest</span></button>
-  </div>
-
-  <!-- ── TASK LIST ──────────────────────────────────── -->
-  <div class="section-title" id="sectionTitle">Tasks</div>
-  <div id="taskList"></div>
+<div class="hdr">
+  <div class="logo">Task<span>Flow</span></div>
+  <button class="gcal-pill" id="gcalPill" onclick="openGCalModal()">
+    <div class="gcal-dot" id="gcalDot"></div>
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="opacity:.7"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.6"/><path d="M8 2v4M16 2v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <span id="gcalLabel">Connect Calendar</span>
+  </button>
 </div>
 
-<!-- ── TOAST ────────────────────────────────────────── -->
+<div class="tabs">
+  <button class="tab on" onclick="switchTab('tasks',this)">✦ Tasks</button>
+  <button class="tab" onclick="switchTab('weekly',this)">📅 Weekly</button>
+  <button class="tab" onclick="switchTab('monthly',this)">🗓 Monthly</button>
+  <button class="tab" onclick="switchTab('planner',this)">🎯 Planner</button>
+</div>
+
+<div class="content">
+
+  <!-- TASKS -->
+  <div class="pane on" id="pane-tasks">
+    <div class="stats-row" id="statsRow"></div>
+    <div class="prog"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    <div class="tinput-card">
+      <div class="hint">What needs to get done?</div>
+      <input class="main-input" id="taskInput" placeholder="Add a task…" onkeydown="if(event.key==='Enter')addTask()"/>
+      <div class="row" id="tagChips" style="margin-bottom:12px">
+        <button class="chip" onclick="toggleTag(this,'Work')">Work</button>
+        <button class="chip" onclick="toggleTag(this,'Personal')">Personal</button>
+        <button class="chip" onclick="toggleTag(this,'Urgent')">Urgent</button>
+        <button class="chip" onclick="toggleTag(this,'Health')">Health</button>
+        <button class="chip" onclick="toggleTag(this,'Finance')">Finance</button>
+        <button class="chip" onclick="toggleTag(this,'Learning')">Learning</button>
+      </div>
+      <div class="sep"></div>
+      <div class="row">
+        <button class="pri hi" onclick="setPri('hi')">● Hi</button>
+        <button class="pri med on" onclick="setPri('med')">● Med</button>
+        <button class="pri lo" onclick="setPri('lo')">● Lo</button>
+        <div class="date-wrap"><span class="date-lbl">Start</span><input type="date" id="startDate"/></div>
+        <div class="date-wrap"><span class="date-lbl">Due</span><input type="date" id="dueDate"/></div>
+        <button class="add-btn" onclick="addTask()">+</button>
+      </div>
+    </div>
+    <div class="row" style="margin-bottom:13px;flex-wrap:wrap;gap:5px">
+      <button class="fbtn on" onclick="setFilter('all',this)">All</button>
+      <button class="fbtn" onclick="setFilter('active',this)">Active</button>
+      <button class="fbtn" onclick="setFilter('done',this)">Done</button>
+      <button class="fbtn" onclick="setFilter('overdue',this)">⚠ Overdue</button>
+      <button class="fbtn" onclick="setFilter('synced',this)">🗓 Synced</button>
+      <div style="display:flex;align-items:center;gap:6px;background:var(--s2);border:1.5px solid var(--b1);border-radius:8px;padding:5px 10px;flex:1;min-width:120px">
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" style="opacity:.4;flex-shrink:0"><circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10 10l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <input id="searchQ" style="background:transparent;border:none;outline:none;color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;width:100%" placeholder="Search…" oninput="renderTasks()"/>
+      </div>
+    </div>
+    <div class="slbl" id="taskCountLbl">Tasks</div>
+    <div id="taskList"></div>
+  </div>
+
+  <!-- WEEKLY -->
+  <div class="pane" id="pane-weekly">
+    <div class="week-nav">
+      <button class="nbtn" onclick="wkOff--;renderWeekly()">‹</button>
+      <div class="week-title" id="weekTitle"></div>
+      <button class="nbtn" onclick="wkOff++;renderWeekly()">›</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+      <button class="fbtn" onclick="wkOff=0;renderWeekly()">Today</button>
+      <button class="fbtn on" onclick="openNewEvent(todayStr())">+ Add Event</button>
+      <span style="font-size:11px;color:var(--muted);margin-left:auto" id="wkSync"></span>
+    </div>
+    <div class="week-grid" id="weekGrid"></div>
+    <div id="weekDetail"></div>
+  </div>
+
+  <!-- MONTHLY -->
+  <div class="pane" id="pane-monthly">
+    <div class="month-nav">
+      <button class="nbtn" onclick="moOff--;renderMonthly()">‹</button>
+      <div class="month-title" id="monthTitle"></div>
+      <button class="nbtn" onclick="moOff++;renderMonthly()">›</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="fbtn" onclick="moOff=0;renderMonthly()">Today</button>
+      <button class="fbtn on" onclick="openNewEvent(todayStr())">+ Add Event</button>
+    </div>
+    <div class="dow-row" id="dowRow"></div>
+    <div class="month-grid" id="monthGrid"></div>
+    <div id="monthDetail"></div>
+  </div>
+
+  <!-- PLANNER -->
+  <div class="pane" id="pane-planner">
+    <div class="top3-title">🎯 Today's Top 3</div>
+    <div id="top3Slots"></div>
+    <button class="fbtn on" style="margin-top:6px" onclick="saveTop3()">Save priorities</button>
+    <div class="sep" style="margin:18px 0"></div>
+    <div class="pomo">
+      <div class="pom-lbl">Pomodoro Timer</div>
+      <div class="pom-modes">
+        <button class="pom-mode on" onclick="setPomMode('work',this)">Focus 25m</button>
+        <button class="pom-mode" onclick="setPomMode('short',this)">Break 5m</button>
+        <button class="pom-mode" onclick="setPomMode('long',this)">Long 15m</button>
+      </div>
+      <div class="pom-ring">
+        <svg width="130" height="130" viewBox="0 0 130 130">
+          <circle class="pom-track" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="0"/>
+          <circle class="pom-prog" id="pomCircle" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="0"/>
+        </svg>
+        <div class="pom-time" id="pomTime">25:00</div>
+      </div>
+      <div class="pom-sub" id="pomSub">Ready to focus</div>
+      <div class="pom-btns">
+        <button class="pom-btn start" id="pomBtn" onclick="togglePom()">Start</button>
+        <button class="pom-btn" onclick="resetPom()">Reset</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
-<!-- ── GCAL SETUP MODAL ──────────────────────────────── -->
-<div class="overlay" id="gcalOverlay" onclick="if(event.target===this)closeGCalModal()">
-  <div class="modal" id="gcalModal">
-    <!-- content injected dynamically -->
-  </div>
+<!-- EVENT MODAL -->
+<div class="overlay" id="evOv" onclick="if(event.target===this)closeEvModal()">
+  <div class="modal" id="evModal"></div>
 </div>
 
-<!-- ── EDIT MODAL ────────────────────────────────────── -->
-<div class="overlay" id="editOverlay" onclick="if(event.target===this)closeEdit()">
-  <div class="modal">
-    <div class="modal-head">
-      <span class="modal-head-icon">✏️</span>
-      <span class="modal-head-title">Edit Task</span>
-    </div>
-    <div class="edit-field">
-      <div class="edit-label">Task name</div>
-      <input class="modal-input" id="editTitle" placeholder="Task name"/>
-    </div>
-    <div class="edit-field">
-      <div class="edit-label">Tags</div>
-      <div class="chip-row" id="editTags">
-        <button class="chip" onclick="toggleEditTag(this,'Work')">Work</button>
-        <button class="chip" onclick="toggleEditTag(this,'Personal')">Personal</button>
-        <button class="chip" onclick="toggleEditTag(this,'Urgent')">Urgent</button>
-        <button class="chip" onclick="toggleEditTag(this,'Health')">Health</button>
-        <button class="chip" onclick="toggleEditTag(this,'Finance')">Finance</button>
-        <button class="chip" onclick="toggleEditTag(this,'Learning')">Learning</button>
-      </div>
-    </div>
-    <div class="edit-field">
-      <div class="edit-label">Priority</div>
-      <div style="display:flex;gap:8px">
-        <button class="pri hi" id="eHi" onclick="editPri('hi')">● Hi</button>
-        <button class="pri med" id="eMed" onclick="editPri('med')">● Med</button>
-        <button class="pri lo" id="eLo" onclick="editPri('lo')">● Lo</button>
-      </div>
-    </div>
-    <div class="edit-field">
-      <div class="edit-label">Dates</div>
-      <div style="display:flex;gap:8px">
-        <div class="date-wrap" style="flex:1">
-          <span class="date-lbl">Start</span>
-          <input type="date" id="editStart"/>
-        </div>
-        <div class="date-wrap" style="flex:1">
-          <span class="date-lbl">Due</span>
-          <input type="date" id="editDue"/>
-        </div>
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="mbtn ghost" onclick="closeEdit()">Cancel</button>
-      <button class="mbtn primary" onclick="saveEdit()">Save changes</button>
-    </div>
-  </div>
+<!-- GCAL MODAL -->
+<div class="overlay" id="gcalOv" onclick="if(event.target===this)closeGCalModal()">
+  <div class="modal" id="gcalModal"></div>
 </div>
 
 <script>
-/* ═══════════════════════════════════════════════════════
-   STATE
-═══════════════════════════════════════════════════════ */
-let tasks    = JSON.parse(localStorage.getItem('tf_tasks4') || '[]');
-let gcal     = JSON.parse(localStorage.getItem('tf_gcal4')  || 'null'); // {accessToken,refreshToken,expiry,email,clientId,clientSecret}
-let filter   = 'all';
-let sortMode = 'newest'; // newest | oldest | priority | due
-let selTags  = [];
-let selPri   = 'med';
-let editId   = null;
-let editTags = [];
-let editPri  = 'med';
+/* ── STATE ─────────────────────────────────── */
+let tasks     = JSON.parse(localStorage.getItem('tf6_tasks') || '[]');
+let calEvs    = JSON.parse(localStorage.getItem('tf6_cal')   || '[]');
+let top3      = JSON.parse(localStorage.getItem('tf6_top3')  || '[{"text":"","done":false},{"text":"","done":false},{"text":"","done":false}]');
+let gcal      = JSON.parse(localStorage.getItem('tf6_gcal')  || 'null');
+let selTags=[],selPri='med',taskFilter='all';
+let wkOff=0,moOff=0,selWkDay=null,selMoDay=null;
+let pomMode='work',pomRun=false,pomRemain=1500,pomTotal=1500,pomTmr=null;
 let toastTmr;
+const CIRC=339.3;
+const POM={work:1500,short:300,long:900};
 
-const SORT_CYCLE = ['newest','oldest','priority','due'];
-const PRI_ORDER  = {hi:0,med:1,lo:2};
-
-/* ═══════════════════════════════════════════════════════
-   PERSIST
-═══════════════════════════════════════════════════════ */
 function save(){
-  localStorage.setItem('tf_tasks4', JSON.stringify(tasks));
-  localStorage.setItem('tf_gcal4',  JSON.stringify(gcal));
+  localStorage.setItem('tf6_tasks',JSON.stringify(tasks));
+  localStorage.setItem('tf6_cal',JSON.stringify(calEvs));
+  localStorage.setItem('tf6_top3',JSON.stringify(top3));
+  localStorage.setItem('tf6_gcal',JSON.stringify(gcal));
 }
 
-/* ═══════════════════════════════════════════════════════
-   INIT
-═══════════════════════════════════════════════════════ */
-window.addEventListener('DOMContentLoaded', () => {
-  updateGCalUI();
-  render();
-
-  // Handle OAuth callback from popup
-  window.addEventListener('message', handleOAuthMessage);
-});
-
-/* ═══════════════════════════════════════════════════════
-   TAG / PRIORITY
-═══════════════════════════════════════════════════════ */
-function toggleTag(el, tag){
-  if(selTags.includes(tag)){
-    selTags = selTags.filter(t=>t!==tag);
-    el.classList.remove('on');
-  } else {
-    selTags.push(tag);
-    el.classList.add('on');
-  }
+/* ── DATE HELPERS ─────────────────────────── */
+function localStr(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
-function setPri(p){
-  selPri = p;
-  document.querySelectorAll('.input-card .pri').forEach(b=>b.classList.remove('on'));
-  document.querySelector('.input-card .pri.'+p).classList.add('on');
-}
-
-/* ═══════════════════════════════════════════════════════
-   ADD TASK
-═══════════════════════════════════════════════════════ */
-function addTask(){
-  const inp = document.getElementById('taskInput');
-  const title = inp.value.trim();
-  if(!title){ inp.focus(); toast('Type a task first','warn'); return; }
-
-  const startDate = document.getElementById('startDate').value;
-  const dueDate   = document.getElementById('dueDate').value;
-
-  const task = {
-    id:        Date.now(),
-    title,
-    tags:      [...selTags],
-    priority:  selPri,
-    startDate,
-    dueDate,
-    done:      false,
-    synced:    false,
-    gcalId:    null,
-    calUrl:    null,
-    createdAt: new Date().toISOString()
-  };
-
-  tasks.unshift(task);
-
-  // Auto-sync if connected
-  if(gcal && dueDate){
-    pushToGCal(task).then(()=>{ save(); render(); });
-  } else {
-    save(); render();
-  }
-
-  // Reset
-  inp.value = '';
-  document.getElementById('startDate').value = '';
-  document.getElementById('dueDate').value   = '';
-  selTags = [];
-  document.querySelectorAll('#tagChips .chip').forEach(c=>c.classList.remove('on'));
-  setPri('med');
-
-  toast('✓ Task added' + (gcal&&dueDate ? ' & synced' : ''), 'ok');
-  inp.focus();
-}
-
-/* ═══════════════════════════════════════════════════════
-   EDIT
-═══════════════════════════════════════════════════════ */
-function openEdit(id){
-  editId = id;
-  const t = tasks.find(t=>t.id===id);
-  if(!t) return;
-
-  document.getElementById('editTitle').value = t.title;
-  document.getElementById('editStart').value = t.startDate||'';
-  document.getElementById('editDue').value   = t.dueDate||'';
-
-  editTags = [...t.tags];
-  document.querySelectorAll('#editTags .chip').forEach(c=>{
-    c.classList.toggle('on', editTags.includes(c.textContent.trim()));
-  });
-
-  editPri = t.priority;
-  ['hi','med','lo'].forEach(p=>{
-    document.getElementById('e'+p.charAt(0).toUpperCase()+p.slice(1)).classList.toggle('on',p===editPri);
-  });
-
-  document.getElementById('editOverlay').classList.add('show');
-}
-function toggleEditTag(el,tag){
-  if(editTags.includes(tag)){ editTags=editTags.filter(t=>t!==tag); el.classList.remove('on'); }
-  else { editTags.push(tag); el.classList.add('on'); }
-}
-function editPri(p){
-  editPri = p;
-  ['hi','med','lo'].forEach(q=>{
-    document.getElementById('e'+q.charAt(0).toUpperCase()+q.slice(1)).classList.toggle('on',q===p);
-  });
-}
-function closeEdit(){ document.getElementById('editOverlay').classList.remove('show'); }
-function saveEdit(){
-  const t = tasks.find(t=>t.id===editId);
-  if(!t) return;
-  t.title     = document.getElementById('editTitle').value.trim() || t.title;
-  t.tags      = [...editTags];
-  t.priority  = editPri;
-  t.startDate = document.getElementById('editStart').value;
-  t.dueDate   = document.getElementById('editDue').value;
-  t.synced    = false; // mark dirty
-  save(); render(); closeEdit();
-  toast('Task updated','ok');
-}
-
-/* ═══════════════════════════════════════════════════════
-   DONE / DELETE
-═══════════════════════════════════════════════════════ */
-function toggleDone(id){
-  const t = tasks.find(t=>t.id===id);
-  if(t){ t.done=!t.done; save(); render(); }
-}
-function deleteTask(id){
-  if(!confirm('Delete this task?')) return;
-  tasks = tasks.filter(t=>t.id!==id);
-  save(); render();
-  toast('Task deleted','');
-}
-
-/* ═══════════════════════════════════════════════════════
-   FILTER / SORT / SEARCH
-═══════════════════════════════════════════════════════ */
-function setFilter(f,btn){
-  filter = f;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  render();
-}
-function cycleSort(){
-  const idx = SORT_CYCLE.indexOf(sortMode);
-  sortMode = SORT_CYCLE[(idx+1)%SORT_CYCLE.length];
-  const labels = {newest:'Newest',oldest:'Oldest',priority:'Priority',due:'Due Date'};
-  document.getElementById('sortLabel').textContent = labels[sortMode];
-  render();
-}
-function getFiltered(){
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  let out = tasks.filter(t=>{
-    if(q && !t.title.toLowerCase().includes(q) && !t.tags.join(' ').toLowerCase().includes(q)) return false;
-    if(filter==='active')  return !t.done;
-    if(filter==='done')    return t.done;
-    if(filter==='overdue') return !t.done && isOverdue(t);
-    if(filter==='synced')  return t.synced;
-    return true;
-  });
-  // Sort
-  if(sortMode==='oldest')   out.sort((a,b)=>a.id-b.id);
-  if(sortMode==='priority') out.sort((a,b)=>(PRI_ORDER[a.priority]||1)-(PRI_ORDER[b.priority]||1));
-  if(sortMode==='due')      out.sort((a,b)=>{
-    if(!a.dueDate) return 1; if(!b.dueDate) return -1;
-    return new Date(a.dueDate)-new Date(b.dueDate);
-  });
-  return out;
-}
-function isOverdue(t){
-  if(!t.dueDate||t.done) return false;
-  return new Date(t.dueDate+'T00:00:00') < new Date(new Date().toDateString());
-}
-function fmtDate(s){
-  if(!s) return null;
-  const d = new Date(s+'T00:00:00');
+function todayStr(){return localStr(new Date());}
+function fmtD(s){
+  if(!s)return'';
+  const d=new Date(s+'T00:00:00');
   return d.toLocaleDateString('en-SG',{day:'numeric',month:'short'});
 }
-
-/* ═══════════════════════════════════════════════════════
-   RENDER
-═══════════════════════════════════════════════════════ */
-function render(){
-  renderStats();
-  renderProgress();
-  renderList();
+function isOverdue(t){
+  if(!t.dueDate||t.done)return false;
+  return new Date(t.dueDate+'T00:00:00')<new Date(new Date().toDateString());
 }
+function eventsOn(ds){
+  const te=tasks.filter(t=>t.dueDate===ds||t.startDate===ds);
+  const ce=calEvs.filter(e=>e.date===ds||(e.endDate&&e.date<=ds&&e.endDate>=ds));
+  return{te,ce};
+}
+
+/* ── INIT ─────────────────────────────────── */
+window.addEventListener('DOMContentLoaded',()=>{
+  updateGCalUI();renderAll();renderTop3();updatePomUI();
+  window.addEventListener('message',handleOAuthMsg);
+});
+function renderAll(){renderStats();renderTasks();renderWeekly();renderMonthly();}
+
+/* ── TABS ─────────────────────────────────── */
+function switchTab(id,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('pane-'+id).classList.add('on');
+  if(id==='weekly')renderWeekly();
+  if(id==='monthly')renderMonthly();
+}
+
+/* ── TAG/PRI ──────────────────────────────── */
+function toggleTag(el,tag){
+  if(selTags.includes(tag)){selTags=selTags.filter(t=>t!==tag);el.classList.remove('on');}
+  else{selTags.push(tag);el.classList.add('on');}
+}
+function setPri(p){
+  selPri=p;
+  document.querySelectorAll('.tinput-card .pri').forEach(b=>b.classList.remove('on'));
+  document.querySelector('.tinput-card .pri.'+p).classList.add('on');
+}
+
+/* ── TASK CRUD ────────────────────────────── */
+function addTask(){
+  const inp=document.getElementById('taskInput');
+  const title=inp.value.trim();
+  if(!title){inp.focus();toast('Type a task first','warn');return;}
+  const sd=document.getElementById('startDate').value;
+  const dd=document.getElementById('dueDate').value;
+  const t={id:Date.now(),title,tags:[...selTags],priority:selPri,startDate:sd,dueDate:dd,
+    done:false,synced:false,gcalId:null,calUrl:null,createdAt:new Date().toISOString()};
+  tasks.unshift(t);
+  if(gcal&&(dd||sd)){pushTask(t).then(()=>{save();renderAll();});}
+  else{save();renderAll();}
+  inp.value='';
+  document.getElementById('startDate').value='';
+  document.getElementById('dueDate').value='';
+  selTags=[];
+  document.querySelectorAll('#tagChips .chip').forEach(c=>c.classList.remove('on'));
+  setPri('med');inp.focus();
+  toast('✓ Task added'+(gcal&&(dd||sd)?' & synced':''),'ok');
+}
+function toggleDone(id){
+  const t=tasks.find(t=>t.id===id);if(t){t.done=!t.done;save();renderAll();}
+}
+function deleteTask(id){
+  if(!confirm('Delete this task?'))return;
+  tasks=tasks.filter(t=>t.id!==id);save();renderAll();toast('Deleted','');
+}
+function setFilter(f,btn){
+  taskFilter=f;
+  document.querySelectorAll('#pane-tasks .fbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');renderTasks();
+}
+function getFiltered(){
+  const q=(document.getElementById('searchQ').value||'').toLowerCase();
+  return tasks.filter(t=>{
+    if(q&&!t.title.toLowerCase().includes(q)&&!t.tags.join(' ').toLowerCase().includes(q))return false;
+    if(taskFilter==='active')return!t.done;
+    if(taskFilter==='done')return t.done;
+    if(taskFilter==='overdue')return!t.done&&isOverdue(t);
+    if(taskFilter==='synced')return t.synced;
+    return true;
+  });
+}
+
+/* ── RENDER TASKS ─────────────────────────── */
 function renderStats(){
-  const total   = tasks.length;
-  const done    = tasks.filter(t=>t.done).length;
-  const overdue = tasks.filter(t=>isOverdue(t)).length;
-  const synced  = tasks.filter(t=>t.synced).length;
-  document.getElementById('statsRow').innerHTML = `
-    <div class="stat"><div class="stat-val blue">${total}</div><div class="stat-lbl">Total</div></div>
-    <div class="stat"><div class="stat-val green">${done}</div><div class="stat-lbl">Done</div></div>
-    <div class="stat"><div class="stat-val red">${overdue}</div><div class="stat-lbl">Overdue</div></div>
-    <div class="stat"><div class="stat-val yellow">${synced}</div><div class="stat-lbl">Synced</div></div>
-  `;
+  const total=tasks.length,done=tasks.filter(t=>t.done).length;
+  const ov=tasks.filter(t=>isOverdue(t)).length,syn=tasks.filter(t=>t.synced).length;
+  document.getElementById('statsRow').innerHTML=`
+    <div class="stat"><div class="stat-v blue">${total}</div><div class="stat-l">Total</div></div>
+    <div class="stat"><div class="stat-v green">${done}</div><div class="stat-l">Done</div></div>
+    <div class="stat"><div class="stat-v red">${ov}</div><div class="stat-l">Overdue</div></div>
+    <div class="stat"><div class="stat-v yellow">${syn}</div><div class="stat-l">Synced</div></div>`;
+  const pct=total?Math.round((done/total)*100):0;
+  document.getElementById('progFill').style.width=pct+'%';
 }
-function renderProgress(){
-  const active = tasks.filter(t=>!t.done).length;
-  const done   = tasks.filter(t=>t.done).length;
-  const total  = tasks.length;
-  const pct    = total ? Math.round((done/total)*100) : 0;
-  document.getElementById('progressFill').style.width = pct+'%';
-  document.getElementById('progressPct').textContent  = pct+'%';
-  document.getElementById('progressLabel').textContent = `${done} of ${total} tasks complete`;
-}
-function renderList(){
-  const list = document.getElementById('taskList');
-  const data = getFiltered();
-  document.getElementById('sectionTitle').textContent = data.length+' task'+(data.length!==1?'s':'');
-
-  if(!data.length){
-    list.innerHTML = `<div class="empty"><div class="empty-icon">✦</div><div class="empty-text">No tasks here.<br>Add one above to get started.</div></div>`;
-    return;
-  }
-
-  list.innerHTML = data.map(t=>`
-    <div class="task ${t.priority} ${t.done?'done':''} ${isOverdue(t)?'overdue':''}">
-      <button class="check ${t.done?'on':''}" onclick="toggleDone(${t.id})">${t.done?'✓':''}</button>
+function renderTasks(){
+  const list=document.getElementById('taskList');
+  const data=getFiltered();
+  document.getElementById('taskCountLbl').textContent=data.length+' task'+(data.length!==1?'s':'');
+  if(!data.length){list.innerHTML='<div class="empty"><div style="font-size:32px;opacity:.25;margin-bottom:8px">✦</div>No tasks here.</div>';return;}
+  list.innerHTML=data.map(t=>`
+    <div class="task-item ${t.priority} ${t.done?'done':''} ${isOverdue(t)?'overdue':''}">
+      <button class="chk ${t.done?'on':''}" onclick="toggleDone(${t.id})">${t.done?'✓':''}</button>
       <div class="task-body">
         <div class="task-title">${esc(t.title)}</div>
         <div class="task-meta">
           ${t.tags.map(g=>`<span class="m-tag">${g}</span>`).join('')}
-          ${t.startDate?`<span class="m-date">▶ ${fmtDate(t.startDate)}</span>`:''}
-          ${t.dueDate?`<span class="m-date ${isOverdue(t)?'late':''}">⬛ ${fmtDate(t.dueDate)}${isOverdue(t)?' ⚠':''}</span>`:''}
-          ${t.synced?`<span class="synced-badge" onclick="openSyncedEvent(${t.id})" title="View in Google Calendar">🗓 Calendar</span>`:''}
+          ${t.startDate?`<span class="m-date">▶ ${fmtD(t.startDate)}</span>`:''}
+          ${t.dueDate?`<span class="m-date ${isOverdue(t)?'late':''}">⬛ ${fmtD(t.dueDate)}${isOverdue(t)?' ⚠':''}</span>`:''}
+          ${t.synced?`<span class="syn-badge" onclick="if(tasks.find(t=>t.id===${t.id})?.calUrl)window.open(tasks.find(t=>t.id===${t.id}).calUrl,'_blank')">🗓</span>`:''}
         </div>
       </div>
       <div class="task-actions">
-        <button class="act sync" onclick="manualSync(${t.id})" title="${t.synced?'Re-sync':'Sync to Calendar'}">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-            <rect x="1" y="3" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.4"/>
-            <path d="M1 7h14" stroke="currentColor" stroke-width="1.4"/>
-            <path d="M5 1v3M11 1v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-          </svg>
+        <button class="act sync" onclick="manualSyncTask(${t.id})" title="Sync to Calendar">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M1 7h14" stroke="currentColor" stroke-width="1.4"/><path d="M5 1v3M11 1v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
         </button>
-        <button class="act edit" onclick="openEdit(${t.id})" title="Edit">
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-            <path d="M11 2l3 3L5 14H2v-3L11 2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
-          </svg>
+        <button class="act" onclick="openTaskEdit(${t.id})" title="Edit">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M11 2l3 3L5 14H2v-3L11 2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
         </button>
         <button class="act del" onclick="deleteTask(${t.id})" title="Delete">
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-            <path d="M2 4h12M6 4V2h4v2M5 4l.5 10h5L11 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4l.5 10h5L11 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
+    </div>`).join('');
+}
+
+/* ── WEEKLY VIEW ──────────────────────────── */
+function getWeekDays(off){
+  const now=new Date();
+  const mon=new Date(now);
+  mon.setDate(now.getDate()-((now.getDay()+6)%7)+off*7);
+  return Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
+}
+function renderWeekly(){
+  const days=getWeekDays(wkOff);
+  const ts=localStr(new Date());
+  const DOW=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  document.getElementById('weekTitle').textContent=
+    days[0].toLocaleDateString('en-SG',{day:'numeric',month:'short'})+' – '+
+    days[6].toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
+  document.getElementById('wkSync').textContent=gcal?'🟢 Calendar synced':'';
+  document.getElementById('weekGrid').innerHTML=days.map((d,i)=>{
+    const ds=localStr(d);
+    const{te,ce}=eventsOn(ds);
+    const all=[...te.slice(0,2).map(t=>({lbl:t.title,cls:'task-'+t.priority,id:t.id,type:'task'})),
+               ...ce.slice(0,2).map(c=>({lbl:c.title,cls:'cal-ev',id:c.id,type:'cal'}))];
+    const extra=te.length+ce.length-all.length;
+    return`<div class="dcol ${ds===ts?'today':''} ${ds===selWkDay?'sel':''}" onclick="selWkDay='${ds}';renderWeekly()">
+      <div class="dname">${DOW[i]}</div>
+      <div class="dnum">${d.getDate()}</div>
+      ${all.map(ev=>`<div class="dev ${ev.cls}" onclick="event.stopPropagation();openEvDetail('${ev.id}','${ev.type}')" title="${esc(ev.lbl)}">${esc(ev.lbl)}</div>`).join('')}
+      ${extra>0?`<div class="dmore">+${extra}</div>`:''}
+      <button class="dadd" onclick="event.stopPropagation();openNewEvent('${ds}')">+</button>
+    </div>`;
+  }).join('');
+  renderWeekDetail();
+}
+function renderWeekDetail(){
+  const c=document.getElementById('weekDetail');
+  if(!selWkDay){c.innerHTML='';return;}
+  const{te,ce}=eventsOn(selWkDay);
+  const d=new Date(selWkDay+'T00:00:00');
+  const lbl=d.toLocaleDateString('en-SG',{weekday:'long',day:'numeric',month:'long'});
+  c.innerHTML=`
+    <div class="day-detail">
+      <div class="day-detail-title">${lbl}</div>
+      ${te.length===0&&ce.length===0?`<div style="color:var(--muted);font-size:12.5px;margin-bottom:8px">No events.</div>`:''}
+      ${te.map(t=>`
+        <div class="ev-row">
+          <div class="ev-dot" style="background:${t.priority==='hi'?'var(--red)':t.priority==='med'?'var(--yellow)':'var(--sky)'}"></div>
+          <div class="ev-title-t">${esc(t.title)}</div>
+          <span class="m-tag">${t.priority}</span>
+          ${t.synced?'<span class="syn-badge">🗓</span>':''}
+          <button class="act sync" onclick="manualSyncTask(${t.id})" title="Sync">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M1 7h14" stroke="currentColor" stroke-width="1.4"/></svg>
+          </button>
+        </div>`).join('')}
+      ${ce.map(c=>`
+        <div class="ev-row">
+          <div class="ev-dot" style="background:${c.color||'var(--green)'}"></div>
+          <div class="ev-title-t">${esc(c.title)}</div>
+          ${c.time?`<span class="ev-time-t">${c.time}</span>`:''}
+          ${c.source==='gcal'?'<span class="syn-badge">🗓</span>':''}
+          <button class="act del" onclick="deleteCalEv('${c.id}')">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4l.5 10h5L11 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>`).join('')}
+      <button class="fbtn on" style="margin-top:8px" onclick="openNewEvent('${selWkDay}')">+ Add event</button>
+    </div>`;
+}
+
+/* ── MONTHLY VIEW ─────────────────────────── */
+function renderMonthly(){
+  const now=new Date();
+  const yr=now.getFullYear(),mo=now.getMonth()+moOff;
+  const tgt=new Date(yr,mo,1);
+  const ts=localStr(new Date());
+  document.getElementById('monthTitle').textContent=tgt.toLocaleDateString('en-SG',{month:'long',year:'numeric'});
+  const DOW=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  document.getElementById('dowRow').innerHTML=DOW.map(d=>`<div class="dow">${d}</div>`).join('');
+  const firstDow=(tgt.getDay()+6)%7;
+  const dim=new Date(tgt.getFullYear(),tgt.getMonth()+1,0).getDate();
+  const cells=[];
+  for(let i=0;i<firstDow;i++){const d=new Date(tgt);d.setDate(d.getDate()-(firstDow-i));cells.push({d,cur:false});}
+  for(let i=1;i<=dim;i++)cells.push({d:new Date(tgt.getFullYear(),tgt.getMonth(),i),cur:true});
+  while(cells.length%7!==0){const last=cells[cells.length-1].d;const d=new Date(last);d.setDate(last.getDate()+1);cells.push({d,cur:false});}
+  document.getElementById('monthGrid').innerHTML=cells.map(({d,cur})=>{
+    const ds=localStr(d);
+    const{te,ce}=eventsOn(ds);
+    const vis=[...te.slice(0,1).map(t=>({lbl:t.title,cls:'task'})),...ce.slice(0,1).map(c=>({lbl:c.title,cls:'cal'}))];
+    const extra=te.length+ce.length-vis.length;
+    return`<div class="mcell ${ds===ts?'today':''} ${!cur?'other':''} ${ds===selMoDay?'sel':''}" onclick="selMoDay='${ds}';renderMonthly()">
+      <div class="mcn">${d.getDate()}</div>
+      ${vis.map(ev=>`<div class="mcev ${ev.cls}">${esc(ev.lbl)}</div>`).join('')}
+      ${extra>0?`<div style="font-size:8.5px;color:var(--muted)">+${extra}</div>`:''}
+    </div>`;
+  }).join('');
+  renderMonthDetail();
+}
+function renderMonthDetail(){
+  const c=document.getElementById('monthDetail');
+  if(!selMoDay){c.innerHTML='';return;}
+  const{te,ce}=eventsOn(selMoDay);
+  const d=new Date(selMoDay+'T00:00:00');
+  const lbl=d.toLocaleDateString('en-SG',{weekday:'long',day:'numeric',month:'long'});
+  c.innerHTML=`
+    <div class="sdp">
+      <div class="sdp-hd">
+        <span class="sdp-title">${lbl}</span>
+        <button class="fbtn on" onclick="openNewEvent('${selMoDay}')">+ Add</button>
+      </div>
+      ${te.length===0&&ce.length===0?`<div style="color:var(--muted);font-size:12.5px">No events on this day.</div>`:''}
+      ${te.map(t=>`
+        <div class="ev-row">
+          <div class="ev-dot" style="background:${t.priority==='hi'?'var(--red)':t.priority==='med'?'var(--yellow)':'var(--sky)'}"></div>
+          <div class="ev-title-t">${esc(t.title)}</div>
+          ${t.synced?'<span class="syn-badge">🗓</span>':''}
+          <button class="act sync" onclick="manualSyncTask(${t.id})">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M1 7h14" stroke="currentColor" stroke-width="1.4"/></svg>
+          </button>
+        </div>`).join('')}
+      ${ce.map(c=>`
+        <div class="ev-row">
+          <div class="ev-dot" style="background:${c.color||'var(--green)'}"></div>
+          <div class="ev-title-t">${esc(c.title)}</div>
+          ${c.time?`<span class="ev-time-t">${c.time}</span>`:''}
+          ${c.source==='gcal'?'<span class="syn-badge">🗓</span>':''}
+          <button class="act del" onclick="deleteCalEv('${c.id}')">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4l.5 10h5L11 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>`).join('')}
+    </div>`;
+}
+
+/* ── EVENT MODAL ──────────────────────────── */
+function openNewEvent(dateStr){
+  document.getElementById('evModal').innerHTML=`
+    <div class="mhd"><span style="font-size:22px">🗓</span><span class="mhd-title">New Event</span></div>
+    <div class="mf"><div class="ml">Title</div><input class="mi" id="evTitle" placeholder="Event name…"/></div>
+    <div class="mf"><div class="ml">Date</div><input type="date" class="mi" id="evDate" value="${dateStr||''}"/></div>
+    <div class="mf"><div class="ml">End date</div><input type="date" class="mi" id="evEnd"/></div>
+    <div style="display:flex;gap:8px">
+      <div class="mf" style="flex:1"><div class="ml">Start time</div><div class="date-wrap"><input type="time" id="evTime"/></div></div>
+      <div class="mf" style="flex:1"><div class="ml">End time</div><div class="date-wrap"><input type="time" id="evEndTime"/></div></div>
     </div>
-  `).join('');
+    <div class="mf"><div class="ml">Color</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${['#5b7cfa','#34d399','#f87171','#fbbf24','#f472b6','#38bdf8'].map((c,i)=>
+          `<div onclick="window._ec='${c}';document.querySelectorAll('.csw').forEach(s=>s.style.outline='none');this.style.outline='2px solid #fff'"
+            class="csw" style="width:22px;height:22px;border-radius:50%;background:${c};cursor:pointer;${i===0?'outline:2px solid #fff':''}"></div>`).join('')}
+      </div>
+    </div>
+    <div class="mac">
+      <button class="mbtn ghost" onclick="closeEvModal()">Cancel</button>
+      <button class="mbtn primary" onclick="saveNewEvent()">Add Event</button>
+    </div>`;
+  window._ec='#5b7cfa';
+  document.getElementById('evOv').classList.add('show');
 }
-function esc(s){
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function saveNewEvent(){
+  const title=document.getElementById('evTitle').value.trim();
+  const date=document.getElementById('evDate').value;
+  if(!title||!date){toast('Title and date required','warn');return;}
+  const ev={id:'ev_'+Date.now(),title,date,
+    endDate:document.getElementById('evEnd').value||date,
+    time:document.getElementById('evTime').value,
+    endTime:document.getElementById('evEndTime').value,
+    color:window._ec||'#5b7cfa',gcalId:null,calUrl:null,source:'local',synced:false};
+  calEvs.push(ev);
+  if(gcal){pushCalEv(ev).then(()=>{save();renderAll();});}
+  else{save();renderAll();}
+  closeEvModal();
+  toast('Event added'+(gcal?' & synced':''),'ok');
 }
-
-/* ═══════════════════════════════════════════════════════
-   GOOGLE CALENDAR — UI
-═══════════════════════════════════════════════════════ */
-function updateGCalUI(){
-  const dot   = document.getElementById('gcalDot');
-  const label = document.getElementById('gcalLabel');
-  const pill  = document.getElementById('gcalPill');
-  const panel = document.getElementById('syncPanel');
-  const avatar= document.getElementById('avatar');
-
-  if(gcal && gcal.accessToken){
-    dot.classList.add('on');
-    label.textContent = gcal.email || 'Calendar';
-    pill.classList.add('connected');
-    panel.classList.add('show');
-    document.getElementById('syncUser').textContent = gcal.email || '';
-    if(gcal.email){
-      avatar.textContent = gcal.email.charAt(0).toUpperCase();
-      avatar.classList.add('show');
-    }
+function openEvDetail(id,type){
+  const modal=document.getElementById('evModal');
+  if(type==='task'){
+    const t=tasks.find(t=>t.id==id);if(!t)return;
+    modal.innerHTML=`
+      <div class="mhd"><span style="font-size:22px">📋</span><span class="mhd-title">Task</span></div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:9px">${esc(t.title)}</div>
+      <div class="task-meta" style="margin-bottom:10px">
+        ${t.tags.map(g=>`<span class="m-tag">${g}</span>`).join('')}
+        <span class="m-tag">${t.priority}</span>
+      </div>
+      ${t.startDate?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px">Start: ${fmtD(t.startDate)}</div>`:''}
+      ${t.dueDate?`<div style="font-size:12px;color:var(--muted)">Due: ${fmtD(t.dueDate)}</div>`:''}
+      <div class="mac">
+        <button class="mbtn ghost" onclick="closeEvModal()">Close</button>
+        <button class="mbtn primary" onclick="closeEvModal();manualSyncTask(${t.id})">Sync to Calendar</button>
+      </div>`;
   } else {
-    dot.classList.remove('on');
-    label.textContent = 'Connect Calendar';
-    pill.classList.remove('connected');
-    panel.classList.remove('show');
-    avatar.classList.remove('show');
+    const c=calEvs.find(e=>e.id===id);if(!c)return;
+    modal.innerHTML=`
+      <div class="mhd"><span style="font-size:22px">🗓</span><span class="mhd-title">Event</span></div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:9px">${esc(c.title)}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Date: ${fmtD(c.date)}${c.endDate&&c.endDate!==c.date?' → '+fmtD(c.endDate):''}</div>
+      ${c.time?`<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Time: ${c.time}${c.endTime?' – '+c.endTime:''}</div>`:''}
+      ${c.source==='gcal'?'<span class="syn-badge" style="display:inline-flex;margin-bottom:10px">🗓 From Google Calendar</span>':''}
+      <div class="mac">
+        <button class="mbtn ghost" onclick="closeEvModal()">Close</button>
+        ${c.calUrl?`<button class="mbtn primary" onclick="window.open('${c.calUrl}','_blank')">Open in Calendar</button>`:''}
+        <button class="mbtn danger" onclick="deleteCalEv('${c.id}');closeEvModal()">Delete</button>
+      </div>`;
+  }
+  document.getElementById('evOv').classList.add('show');
+}
+function openTaskEdit(id){
+  const t=tasks.find(t=>t.id===id);if(!t)return;
+  document.getElementById('evModal').innerHTML=`
+    <div class="mhd"><span style="font-size:20px">✏️</span><span class="mhd-title">Edit Task</span></div>
+    <div class="mf"><div class="ml">Title</div><input class="mi" id="etTitle" value="${esc(t.title)}"/></div>
+    <div class="mf"><div class="ml">Priority</div>
+      <div style="display:flex;gap:7px">
+        <button class="pri hi ${t.priority==='hi'?'on':''}" onclick="window._ep='hi';this.parentElement.querySelectorAll('.pri').forEach(b=>b.classList.remove('on'));this.classList.add('on')">● Hi</button>
+        <button class="pri med ${t.priority==='med'?'on':''}" onclick="window._ep='med';this.parentElement.querySelectorAll('.pri').forEach(b=>b.classList.remove('on'));this.classList.add('on')">● Med</button>
+        <button class="pri lo ${t.priority==='lo'?'on':''}" onclick="window._ep='lo';this.parentElement.querySelectorAll('.pri').forEach(b=>b.classList.remove('on'));this.classList.add('on')">● Lo</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <div class="date-wrap" style="flex:1"><span class="date-lbl">Start</span><input type="date" id="etStart" value="${t.startDate||''}"/></div>
+      <div class="date-wrap" style="flex:1"><span class="date-lbl">Due</span><input type="date" id="etDue" value="${t.dueDate||''}"/></div>
+    </div>
+    <div class="mac">
+      <button class="mbtn ghost" onclick="closeEvModal()">Cancel</button>
+      <button class="mbtn primary" onclick="saveTaskEdit(${id})">Save</button>
+    </div>`;
+  window._ep=t.priority;
+  document.getElementById('evOv').classList.add('show');
+}
+function saveTaskEdit(id){
+  const t=tasks.find(t=>t.id===id);if(!t)return;
+  t.title=document.getElementById('etTitle').value.trim()||t.title;
+  t.priority=window._ep||t.priority;
+  t.startDate=document.getElementById('etStart').value;
+  t.dueDate=document.getElementById('etDue').value;
+  t.synced=false;save();renderAll();closeEvModal();toast('Updated','ok');
+}
+function deleteCalEv(id){
+  calEvs=calEvs.filter(e=>e.id!==id);save();renderAll();toast('Event deleted','');
+}
+function closeEvModal(){document.getElementById('evOv').classList.remove('show');}
+
+/* ── PLANNER ──────────────────────────────── */
+function renderTop3(){
+  document.getElementById('top3Slots').innerHTML=top3.map((s,i)=>`
+    <div class="t3slot">
+      <div class="t3n ${s.text?'filled':''}">${i+1}</div>
+      <input class="t3in" value="${esc(s.text||'')}" placeholder="Priority ${i+1}…" oninput="top3[${i}].text=this.value" onblur="save()"/>
+      <button class="t3chk ${s.done?'on':''}" onclick="top3[${i}].done=!top3[${i}].done;save();renderTop3()">${s.done?'✓':''}</button>
+    </div>`).join('');
+}
+function saveTop3(){
+  document.querySelectorAll('.t3in').forEach((el,i)=>{top3[i].text=el.value;});
+  save();renderTop3();toast('Top 3 saved','ok');
+}
+
+/* ── POMODORO ─────────────────────────────── */
+function setPomMode(m,btn){
+  if(pomRun)return;
+  pomMode=m;pomRemain=pomTotal=POM[m];
+  document.querySelectorAll('.pom-mode').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');updatePomUI();
+}
+function togglePom(){
+  if(pomRun){clearInterval(pomTmr);pomRun=false;document.getElementById('pomBtn').textContent='Resume';}
+  else{
+    pomRun=true;document.getElementById('pomBtn').textContent='Pause';
+    pomTmr=setInterval(()=>{
+      pomRemain--;
+      if(pomRemain<=0){
+        clearInterval(pomTmr);pomRun=false;pomRemain=0;
+        document.getElementById('pomBtn').textContent='Start';
+        toast('⏰ Pomodoro done!','ok');
+        if('vibrate'in navigator)navigator.vibrate([200,100,200]);
+      }
+      updatePomUI();
+    },1000);
   }
 }
+function resetPom(){
+  clearInterval(pomTmr);pomRun=false;
+  pomRemain=pomTotal=POM[pomMode];
+  document.getElementById('pomBtn').textContent='Start';
+  updatePomUI();
+}
+function updatePomUI(){
+  const m=String(Math.floor(pomRemain/60)).padStart(2,'0');
+  const s=String(pomRemain%60).padStart(2,'0');
+  document.getElementById('pomTime').textContent=`${m}:${s}`;
+  document.getElementById('pomCircle').style.strokeDashoffset=CIRC*(1-pomRemain/pomTotal);
+  const lbl={work:'Focus session',short:'Short break',long:'Long break'};
+  document.getElementById('pomSub').textContent=pomRun?lbl[pomMode]+(pomRemain<60?' — almost done!':''):'Ready to focus';
+}
 
+/* ── GCAL ─────────────────────────────────── */
+const SCOPES='https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/userinfo.email';
+
+function updateGCalUI(){
+  const dot=document.getElementById('gcalDot');
+  const lbl=document.getElementById('gcalLabel');
+  const pill=document.getElementById('gcalPill');
+  if(gcal&&gcal.accessToken){
+    dot.classList.add('on');lbl.textContent=gcal.email||'Calendar';pill.classList.add('conn');
+  } else {
+    dot.classList.remove('on');lbl.textContent='Connect Calendar';pill.classList.remove('conn');
+  }
+}
 function openGCalModal(){
-  const modal = document.getElementById('gcalModal');
-  if(gcal && gcal.accessToken){
-    modal.innerHTML = `
-      <div class="modal-head"><span class="modal-head-icon">🗓</span><span class="modal-head-title">Google Calendar</span></div>
-      <div class="modal-desc">Connected as <strong>${gcal.email||'your Google account'}</strong>.<br>Tasks with due dates sync automatically.</div>
-      <div class="modal-actions">
+  const modal=document.getElementById('gcalModal');
+  if(gcal&&gcal.accessToken){
+    modal.innerHTML=`
+      <div class="mhd"><span style="font-size:24px">🗓</span><span class="mhd-title">Google Calendar</span></div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">Connected as <strong style="color:var(--text)">${gcal.email||'your account'}</strong></div>
+      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:16px">
+        <button class="fbtn on" onclick="syncAllPending()">↑ Sync all unsynced items</button>
+        <button class="fbtn on" onclick="importFromGCal()">↓ Import from Google Calendar</button>
+        <button class="fbtn" onclick="ensureFresh().then(ok=>{if(ok)toast('Auth refreshed','ok')})">⟳ Refresh auth token</button>
+      </div>
+      <div class="mac">
         <button class="mbtn ghost" onclick="closeGCalModal()">Close</button>
         <button class="mbtn danger" onclick="disconnectGCal()">Disconnect</button>
       </div>`;
   } else {
-    modal.innerHTML = `
-      <div class="modal-head"><span class="modal-head-icon">🗓</span><span class="modal-head-title">Connect Google Calendar</span></div>
-      <div class="modal-desc">Sync tasks with due dates directly to your Google Calendar using the official Google API. You'll need to set up OAuth credentials once.</div>
-
+    modal.innerHTML=`
+      <div class="mhd"><span style="font-size:24px">🗓</span><span class="mhd-title">Connect Google Calendar</span></div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">Full two-way sync — tasks & calendar events sync automatically.</div>
       <div class="steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-body">
-            <div class="step-title">Create OAuth credentials</div>
-            <div class="step-desc">Go to <strong>console.cloud.google.com</strong> → APIs & Services → Credentials → Create OAuth 2.0 Client ID. Set type to <em>Web application</em>.</div>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-body">
-            <div class="step-title">Add redirect URI</div>
-            <div class="step-desc">In your OAuth client, add this exact URI to "Authorised redirect URIs":</div>
-            <div class="step-code" id="redirectUriBox">${window.location.origin}/oauth-callback.html</div>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <div class="step-body">
-            <div class="step-title">Enable Google Calendar API</div>
-            <div class="step-desc">In your project, go to APIs & Services → Library → search "Google Calendar API" → Enable.</div>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">4</div>
-          <div class="step-body">
-            <div class="step-title">Enter your credentials below</div>
-            <div class="step-desc">Paste your Client ID and Client Secret from step 1.</div>
-          </div>
-        </div>
+        <div class="step"><div class="stn">1</div><div><div class="stt">Create OAuth credentials</div><div class="std">console.cloud.google.com → APIs & Services → Credentials → Create OAuth 2.0 Client ID (Web application)</div></div></div>
+        <div class="step"><div class="stn">2</div><div><div class="stt">Add redirect URI</div><div class="stc">${window.location.origin}/oauth-callback.html</div></div></div>
+        <div class="step"><div class="stn">3</div><div><div class="stt">Enable Google Calendar API</div><div class="std">APIs & Services → Library → Google Calendar API → Enable</div></div></div>
       </div>
-
-      <div class="edit-field">
-        <div class="edit-label">Client ID</div>
-        <input class="modal-input" id="clientIdInput" placeholder="xxxxxxxx.apps.googleusercontent.com" value="${(gcal&&gcal.clientId)||''}"/>
-      </div>
-      <div class="edit-field">
-        <div class="edit-label">Client Secret</div>
-        <input class="modal-input" id="clientSecretInput" type="password" placeholder="GOCSPX-…" value="${(gcal&&gcal.clientSecret)||''}"/>
-      </div>
-
-      <div class="modal-actions">
+      <div class="mf"><div class="ml">Client ID</div><input class="mi" id="cid" placeholder="xxxxxxxx.apps.googleusercontent.com" value="${gcal&&gcal.clientId||''}"/></div>
+      <div class="mf"><div class="ml">Client Secret</div><input class="mi" id="csec" type="password" placeholder="GOCSPX-…" value="${gcal&&gcal.clientSecret||''}"/></div>
+      <div class="mac">
         <button class="mbtn ghost" onclick="closeGCalModal()">Cancel</button>
-        <button class="mbtn primary" onclick="startGCalOAuth()">Authorize with Google</button>
+        <button class="mbtn primary" onclick="startOAuth()">Authorize with Google</button>
       </div>`;
   }
-  document.getElementById('gcalOverlay').classList.add('show');
+  document.getElementById('gcalOv').classList.add('show');
 }
+function closeGCalModal(){document.getElementById('gcalOv').classList.remove('show');}
 
-function closeGCalModal(){
-  document.getElementById('gcalOverlay').classList.remove('show');
+function genV(){const a=new Uint8Array(32);crypto.getRandomValues(a);return btoa(String.fromCharCode(...a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
+async function pkce(v){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));return btoa(String.fromCharCode(...new Uint8Array(d))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
+
+async function startOAuth(){
+  const cid=document.getElementById('cid').value.trim();
+  const csec=document.getElementById('csec').value.trim();
+  if(!cid){toast('Enter Client ID','warn');return;}
+  if(!csec){toast('Enter Client Secret','warn');return;}
+  gcal={clientId:cid,clientSecret:csec};save();
+  const v=genV(),ch=await pkce(v);
+  sessionStorage.setItem('gcv',v);
+  const st=Math.random().toString(36).slice(2);
+  sessionStorage.setItem('gcs',st);
+  const p=new URLSearchParams({client_id:cid,redirect_uri:window.location.origin+'/oauth-callback.html',
+    response_type:'code',scope:SCOPES,access_type:'offline',prompt:'consent',
+    state:st,code_challenge:ch,code_challenge_method:'S256'});
+  const popup=window.open('https://accounts.google.com/o/oauth2/v2/auth?'+p,'gcal','width=520,height=620,menubar=no,toolbar=no');
+  if(!popup){toast('Allow popups for this site','warn');return;}
+  closeGCalModal();toast('Authorize in the popup window…','');
 }
-
-/* ═══════════════════════════════════════════════════════
-   GOOGLE CALENDAR — OAUTH PKCE FLOW
-═══════════════════════════════════════════════════════ */
-const GCAL_SCOPES = 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/userinfo.email';
-
-async function startGCalOAuth(){
-  const clientId = document.getElementById('clientIdInput').value.trim();
-  const clientSecret = document.getElementById('clientSecretInput').value.trim();
-  if(!clientId){ toast('Enter your Client ID','warn'); return; }
-  if(!clientSecret){ toast('Enter your Client Secret','warn'); return; }
-
-  gcal = { clientId, clientSecret };
-  save();
-
-  // PKCE code_verifier + code_challenge
-  const verifier  = generateVerifier();
-  const challenge = await pkceChallenge(verifier);
-  sessionStorage.setItem('gcal_verifier', verifier);
-
-  const redirectUri = window.location.origin + '/oauth-callback.html';
-  const state = Math.random().toString(36).slice(2);
-  sessionStorage.setItem('gcal_state', state);
-
-  const params = new URLSearchParams({
-    client_id:             clientId,
-    redirect_uri:          redirectUri,
-    response_type:         'code',
-    scope:                 GCAL_SCOPES,
-    access_type:           'offline',
-    prompt:                'consent',
-    state:                 state,
-    code_challenge:        challenge,
-    code_challenge_method: 'S256'
-  });
-
-  const authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString();
-
-  // Open popup
-  const popup = window.open(authUrl, 'gcal_oauth', 'width=520,height=620,menubar=no,toolbar=no');
-  if(!popup){ toast('Allow popups for this site','warn'); return; }
-
-  closeGCalModal();
-  toast('Authorize in the popup window…','');
+function handleOAuthMsg(e){
+  if(e.origin!==window.location.origin)return;
+  if(!e.data||e.data.type!=='gcal_oauth')return;
+  const{code,state,error}=e.data;
+  if(error){toast('Auth failed: '+error,'err');return;}
+  if(state!==sessionStorage.getItem('gcs')){toast('State mismatch','err');return;}
+  exchangeCode(code,sessionStorage.getItem('gcv'));
 }
-
-function generateVerifier(){
-  const arr = new Uint8Array(32);
-  crypto.getRandomValues(arr);
-  return btoa(String.fromCharCode(...arr)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-}
-async function pkceChallenge(verifier){
-  const enc = new TextEncoder();
-  const data = enc.encode(verifier);
-  const digest = await crypto.subtle.digest('SHA-256', data);
-  return btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-}
-
-async function handleOAuthMessage(e){
-  if(e.origin !== window.location.origin) return;
-  if(!e.data || e.data.type !== 'gcal_oauth') return;
-
-  const { code, state, error } = e.data;
-  if(error){ toast('Auth failed: '+error,'err'); return; }
-
-  const savedState = sessionStorage.getItem('gcal_state');
-  if(state !== savedState){ toast('State mismatch – retry','err'); return; }
-
-  const verifier = sessionStorage.getItem('gcal_verifier');
-  await exchangeCodeForToken(code, verifier);
-}
-
-async function exchangeCodeForToken(code, verifier){
+async function exchangeCode(code,v){
   toast('Connecting to Google…','');
-  const redirectUri = window.location.origin + '/oauth-callback.html';
-
-  try {
-    const res = await fetch('https://oauth2.googleapis.com/token', {
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body: new URLSearchParams({
-        code,
-        client_id:     gcal.clientId,
-        client_secret: gcal.clientSecret,
-        redirect_uri:  redirectUri,
-        grant_type:    'authorization_code',
-        code_verifier: verifier
-      })
-    });
-    const data = await res.json();
-    if(data.error) throw new Error(data.error_description || data.error);
-
-    gcal.accessToken  = data.access_token;
-    gcal.refreshToken = data.refresh_token || gcal.refreshToken;
-    gcal.expiry       = Date.now() + (data.expires_in - 60) * 1000;
-
-    // Get user email
-    const info = await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{
-      headers:{ Authorization: 'Bearer '+gcal.accessToken }
-    });
-    const user = await info.json();
-    gcal.email = user.email;
-
-    save();
-    updateGCalUI();
-    render();
-
-    // Auto-sync unsynced tasks with due dates
-    let count = 0;
-    for(const t of tasks){ if(!t.synced && t.dueDate){ await pushToGCal(t); count++; } }
-    save(); render();
-    toast(`🗓 Connected as ${gcal.email}${count?' — '+count+' task(s) synced':''}`, 'ok');
-
-  } catch(err){
-    toast('Connection failed: '+err.message,'err');
-  }
+  try{
+    const r=await fetch('https://oauth2.googleapis.com/token',{
+      method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({code,client_id:gcal.clientId,client_secret:gcal.clientSecret,
+        redirect_uri:window.location.origin+'/oauth-callback.html',
+        grant_type:'authorization_code',code_verifier:v})});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error_description||d.error);
+    gcal.accessToken=d.access_token;
+    gcal.refreshToken=d.refresh_token||gcal.refreshToken;
+    gcal.expiry=Date.now()+(d.expires_in-60)*1000;
+    const ui=await(await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+gcal.accessToken}})).json();
+    gcal.email=ui.email;
+    save();updateGCalUI();
+    let cnt=0;
+    for(const t of tasks){if(!t.synced&&(t.dueDate||t.startDate)){await pushTask(t);cnt++;}}
+    for(const e of calEvs){if(!e.synced&&e.date){await pushCalEv(e);cnt++;}}
+    save();renderAll();
+    toast(`🗓 Connected as ${gcal.email}${cnt?' — '+cnt+' items synced':''}`, 'ok');
+  }catch(err){toast('Connection failed: '+err.message,'err');}
 }
-
-async function ensureFreshToken(){
-  if(!gcal) return false;
-  if(gcal.expiry && Date.now() < gcal.expiry) return true;
-  if(!gcal.refreshToken){ toast('Session expired — please reconnect','err'); gcal.accessToken=null; save(); updateGCalUI(); return false; }
-
-  try {
-    const res = await fetch('https://oauth2.googleapis.com/token',{
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body: new URLSearchParams({
-        refresh_token: gcal.refreshToken,
-        client_id:     gcal.clientId,
-        client_secret: gcal.clientSecret,
-        grant_type:    'refresh_token'
-      })
-    });
-    const data = await res.json();
-    if(data.error) throw new Error(data.error);
-    gcal.accessToken = data.access_token;
-    gcal.expiry      = Date.now() + (data.expires_in - 60)*1000;
-    save();
-    return true;
-  } catch(err){
-    toast('Token refresh failed','err');
-    return false;
-  }
+async function ensureFresh(){
+  if(!gcal)return false;
+  if(gcal.expiry&&Date.now()<gcal.expiry)return true;
+  if(!gcal.refreshToken){toast('Session expired — reconnect','err');gcal.accessToken=null;save();updateGCalUI();return false;}
+  try{
+    const r=await fetch('https://oauth2.googleapis.com/token',{
+      method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({refresh_token:gcal.refreshToken,client_id:gcal.clientId,client_secret:gcal.clientSecret,grant_type:'refresh_token'})});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    gcal.accessToken=d.access_token;
+    gcal.expiry=Date.now()+(d.expires_in-60)*1000;
+    save();return true;
+  }catch(e){toast('Token refresh failed','err');return false;}
 }
-
 function disconnectGCal(){
-  if(!confirm('Disconnect Google Calendar?')) return;
-  gcal = null;
-  tasks.forEach(t=>{ t.synced=false; t.gcalId=null; t.calUrl=null; });
-  save(); updateGCalUI(); render(); closeGCalModal();
-  toast('Disconnected from Google Calendar','');
+  if(!confirm('Disconnect Google Calendar?'))return;
+  gcal=null;
+  tasks.forEach(t=>{t.synced=false;t.gcalId=null;t.calUrl=null;});
+  calEvs.forEach(e=>{e.synced=false;e.gcalId=null;e.calUrl=null;});
+  save();updateGCalUI();renderAll();closeGCalModal();toast('Disconnected','');
 }
 
-function refreshGCalTokens(){ ensureFreshToken().then(ok=>{ if(ok) toast('Auth refreshed','ok'); }); }
-
-/* ═══════════════════════════════════════════════════════
-   GOOGLE CALENDAR — CRUD
-═══════════════════════════════════════════════════════ */
-async function pushToGCal(task){
-  const ok = await ensureFreshToken();
-  if(!ok) return;
-
-  const startDate = task.startDate || task.dueDate;
-  const endDate   = task.dueDate   || task.startDate;
-
-  const nextDay = d => {
-    const dt = new Date(d+'T00:00:00');
-    dt.setDate(dt.getDate()+1);
-    return dt.toISOString().split('T')[0];
-  };
-
-  const body = {
-    summary:     task.title,
-    description: [
-      task.tags.length ? 'Tags: '+task.tags.join(', ') : '',
-      'Priority: '+task.priority,
-      'Created by TaskFlow'
-    ].filter(Boolean).join('\n'),
-    start: { date: startDate },
-    end:   { date: nextDay(endDate) },
-    colorId: task.priority==='hi' ? '11' : task.priority==='med' ? '5' : '7'
-  };
-
-  try {
-    const method = task.gcalId ? 'PUT' : 'POST';
-    const url    = task.gcalId
-      ? `https://www.googleapis.com/calendar/v3/calendars/primary/events/${task.gcalId}`
-      : `https://www.googleapis.com/calendar/v3/calendars/primary/events`;
-
-    const res = await fetch(url, {
-      method,
-      headers:{
-        'Authorization':'Bearer '+gcal.accessToken,
-        'Content-Type':'application/json'
-      },
-      body: JSON.stringify(body)
-    });
-
-    if(res.status===401){ gcal.expiry=0; return pushToGCal(task); }
-    if(!res.ok) throw new Error('HTTP '+res.status);
-
-    const ev = await res.json();
-    task.synced = true;
-    task.gcalId = ev.id;
-    task.calUrl = ev.htmlLink;
-
-  } catch(err){
-    console.error('GCal push error',err);
-  }
+/* ── GCAL PUSH ────────────────────────────── */
+async function pushTask(task){
+  const ok=await ensureFresh();if(!ok)return;
+  const sd=task.startDate||task.dueDate;const ed=task.dueDate||task.startDate;if(!sd)return;
+  const nxt=d=>{const dt=new Date(d+'T00:00:00');dt.setDate(dt.getDate()+1);return dt.toISOString().split('T')[0];};
+  const body={summary:task.title,description:['Tags:'+task.tags.join(','),'Priority:'+task.priority,'From TaskFlow'].join('\n'),
+    start:{date:sd},end:{date:nxt(ed)},colorId:task.priority==='hi'?'11':task.priority==='med'?'5':'7'};
+  try{
+    const method=task.gcalId?'PUT':'POST';
+    const url=task.gcalId?`https://www.googleapis.com/calendar/v3/calendars/primary/events/${task.gcalId}`:'https://www.googleapis.com/calendar/v3/calendars/primary/events';
+    const r=await fetch(url,{method,headers:{Authorization:'Bearer '+gcal.accessToken,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(r.status===401){gcal.expiry=0;return pushTask(task);}
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const ev=await r.json();task.synced=true;task.gcalId=ev.id;task.calUrl=ev.htmlLink;
+  }catch(e){console.error('Task push',e);}
 }
-
-async function deleteFromGCal(task){
-  if(!task.gcalId || !gcal) return;
-  const ok = await ensureFreshToken();
-  if(!ok) return;
-  await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${task.gcalId}`,{
-    method:'DELETE',
-    headers:{ 'Authorization':'Bearer '+gcal.accessToken }
-  });
+async function pushCalEv(ev){
+  const ok=await ensureFresh();if(!ok)return;
+  const nxt=d=>{const dt=new Date(d+'T00:00:00');dt.setDate(dt.getDate()+1);return dt.toISOString().split('T')[0];};
+  const start=ev.time?{dateTime:ev.date+'T'+ev.time+':00',timeZone:'Asia/Singapore'}:{date:ev.date};
+  const end=ev.endTime?{dateTime:(ev.endDate||ev.date)+'T'+ev.endTime+':00',timeZone:'Asia/Singapore'}:{date:nxt(ev.endDate||ev.date)};
+  const body={summary:ev.title,start,end};
+  try{
+    const method=ev.gcalId?'PUT':'POST';
+    const url=ev.gcalId?`https://www.googleapis.com/calendar/v3/calendars/primary/events/${ev.gcalId}`:'https://www.googleapis.com/calendar/v3/calendars/primary/events';
+    const r=await fetch(url,{method,headers:{Authorization:'Bearer '+gcal.accessToken,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(r.status===401){gcal.expiry=0;return pushCalEv(ev);}
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const res=await r.json();ev.synced=true;ev.gcalId=res.id;ev.calUrl=res.htmlLink;ev.source='gcal';
+  }catch(e){console.error('Cal push',e);}
 }
-
-async function manualSync(id){
-  const t = tasks.find(t=>t.id===id);
-  if(!t) return;
-  if(!gcal){ openGCalModal(); return; }
-  if(!t.dueDate && !t.startDate){ toast('Add a date first','warn'); return; }
-
+async function manualSyncTask(id){
+  const t=tasks.find(t=>t.id===id);if(!t)return;
+  if(!gcal){openGCalModal();return;}
+  if(!t.dueDate&&!t.startDate){toast('Add a date to this task first','warn');return;}
   toast('Syncing…','');
-  await pushToGCal(t);
-  save(); render();
-  toast(t.synced ? '🗓 Synced to Google Calendar' : 'Sync failed – check console','ok');
+  await pushTask(t);save();renderAll();
+  toast(t.synced?'🗓 Synced to Google Calendar!':'Sync failed','ok');
 }
-
-async function syncAllToGCal(){
-  if(!gcal){ toast('Connect Google Calendar first','warn'); return; }
-  const unsynced = tasks.filter(t=>!t.synced && (t.dueDate||t.startDate));
-  if(!unsynced.length){ toast('All tasks already synced','ok'); return; }
-
-  toast(`Syncing ${unsynced.length} task(s)…`,'');
-  for(const t of unsynced) await pushToGCal(t);
-  save(); render();
-  toast(`🗓 Synced ${unsynced.length} task(s)`,'ok');
+async function syncAllPending(){
+  if(!gcal){toast('Connect Calendar first','warn');return;}
+  let cnt=0;
+  for(const t of tasks){if(!t.synced&&(t.dueDate||t.startDate)){await pushTask(t);cnt++;}}
+  for(const e of calEvs){if(!e.synced&&e.date){await pushCalEv(e);cnt++;}}
+  save();renderAll();closeGCalModal();toast(`🗓 Synced ${cnt} item(s)`,'ok');
 }
-
 async function importFromGCal(){
-  const ok = await ensureFreshToken();
-  if(!ok) return;
+  const ok=await ensureFresh();if(!ok)return;
   toast('Importing from Google Calendar…','');
-
-  try {
-    const now  = new Date();
-    const min  = now.toISOString();
-    const max  = new Date(now.setMonth(now.getMonth()+3)).toISOString();
-
-    const res  = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(min)}&timeMax=${encodeURIComponent(max)}&singleEvents=true&maxResults=50`,{
-      headers:{ 'Authorization':'Bearer '+gcal.accessToken }
-    });
-    const data = await res.json();
-    if(!data.items) throw new Error('No items');
-
-    let added = 0;
-    for(const ev of data.items){
-      if(tasks.some(t=>t.gcalId===ev.id)) continue;
-      if(!ev.summary) continue;
-
-      tasks.unshift({
-        id:        Date.now()+Math.random(),
-        title:     ev.summary,
-        tags:      [],
-        priority:  'med',
-        startDate: ev.start?.date || ev.start?.dateTime?.split('T')[0] || '',
-        dueDate:   ev.end?.date   || ev.end?.dateTime?.split('T')[0]   || '',
-        done:      false,
-        synced:    true,
-        gcalId:    ev.id,
-        calUrl:    ev.htmlLink,
-        createdAt: ev.created || new Date().toISOString()
-      });
+  try{
+    const now=new Date(),max=new Date(now);max.setMonth(max.getMonth()+3);
+    const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(now.toISOString())}&timeMax=${encodeURIComponent(max.toISOString())}&singleEvents=true&maxResults=100`,
+      {headers:{Authorization:'Bearer '+gcal.accessToken}});
+    const d=await r.json();if(!d.items)throw new Error('No items');
+    let added=0;
+    for(const ev of d.items){
+      if(calEvs.some(e=>e.gcalId===ev.id)||!ev.summary)continue;
+      calEvs.push({id:'gcal_'+ev.id,title:ev.summary,
+        date:ev.start?.date||ev.start?.dateTime?.split('T')[0]||'',
+        endDate:ev.end?.date||ev.end?.dateTime?.split('T')[0]||'',
+        time:ev.start?.dateTime?.split('T')[1]?.slice(0,5)||'',
+        endTime:ev.end?.dateTime?.split('T')[1]?.slice(0,5)||'',
+        color:'#34d399',gcalId:ev.id,calUrl:ev.htmlLink,source:'gcal',synced:true});
       added++;
     }
-    save(); render();
-    toast(`↓ Imported ${added} event(s) from Calendar`, 'ok');
-  } catch(err){
-    toast('Import failed: '+err.message,'err');
-  }
+    save();renderAll();closeGCalModal();toast(`↓ Imported ${added} event(s)`,'ok');
+  }catch(e){toast('Import failed: '+e.message,'err');}
 }
 
-function openSyncedEvent(id){
-  const t = tasks.find(t=>t.id===id);
-  if(t&&t.calUrl) window.open(t.calUrl,'_blank');
-}
-
-/* ═══════════════════════════════════════════════════════
-   TOAST
-═══════════════════════════════════════════════════════ */
-function toast(msg, type){
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast show' + (type?' '+type:'');
-  clearTimeout(toastTmr);
-  toastTmr = setTimeout(()=>el.classList.remove('show'), 3200);
+/* ── HELPERS ──────────────────────────────── */
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg,type){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='toast show'+(type?' '+type:'');
+  clearTimeout(toastTmr);toastTmr=setTimeout(()=>el.classList.remove('show'),3000);
 }
 </script>
 </body>
