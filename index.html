@@ -94,19 +94,14 @@ tbody tr:hover td{background:#f7fafc;}
 .week-title-txt{font-size:15px;font-weight:700;color:#1a202c;}
 .nav-arrow{width:30px;height:30px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#718096;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
 .nav-arrow:hover{background:#f7fafc;border-color:#cbd5e0;color:#2d3748;}
-.week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:16px;}
-.dcol{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 8px;min-height:130px;cursor:pointer;transition:all .15s;position:relative;}
+.week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:16px;position:relative;}
+.dcol{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 8px 10px 8px;min-height:150px;cursor:pointer;transition:all .15s;position:relative;}
 .dcol:hover{border-color:#90cdf4;box-shadow:0 1px 4px rgba(0,0,0,.06);}
 .dcol.today{border-color:#1a3a5c;border-width:2px;}
 .dcol.sel{border-color:#2b6cb0;background:#ebf8ff;}
 .dow-lbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#a0aec0;margin-bottom:3px;}
-.day-num{font-size:17px;font-weight:700;color:#2d3748;margin-bottom:7px;}
+.day-num{font-size:17px;font-weight:700;color:#2d3748;margin-bottom:30px;}
 .dcol.today .day-num{color:#1a3a5c;}
-.dev{font-size:9.5px;padding:2px 5px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.dev.hi{background:#fff5f5;color:#9b2c2c;}
-.dev.med{background:#fffaf0;color:#744210;}
-.dev.lo{background:#f0fff4;color:#276749;}
-.dev.cal{background:#ebf8ff;color:#2c5282;}
 .dmore{font-size:9px;color:#a0aec0;padding:1px 5px;}
 .dadd-btn{position:absolute;bottom:5px;right:5px;width:18px;height:18px;border-radius:4px;background:#1a3a5c;border:none;color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;}
 .dcol:hover .dadd-btn{opacity:1;}
@@ -681,25 +676,103 @@ function renderWeekly(){
   const days=getWeekDays(wkOff);
   const ts=localStr(new Date());
   const DOW=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const wsStr=localStr(days[0]);
+  const weStr=localStr(days[6]);
+
   document.getElementById('weekTitle').textContent=
     days[0].toLocaleDateString('en-SG',{day:'numeric',month:'short'})+' – '+
     days[6].toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
   document.getElementById('wkGcalStatus').textContent=gcal?'🟢 Calendar connected':'';
-  document.getElementById('weekGrid').innerHTML=days.map((d,i)=>{
+
+  const gridEl=document.getElementById('weekGrid');
+  if(window._wkBarsEl){window._wkBarsEl.remove();window._wkBarsEl=null;}
+
+  // Render cell backgrounds only
+  gridEl.innerHTML=days.map((d,i)=>{
     const ds=localStr(d);
-    const{te,ce}=eventsOn(ds);
-    const all=[...te.slice(0,2).map(t=>({lbl:t.title,cls:t.priority==='Hi'?'hi':t.priority==='Med'?'med':'lo',id:t.id,type:'task'})),
-               ...ce.slice(0,2).map(c=>({lbl:c.title,cls:'cal',id:c.id,type:'cal'}))];
-    const extra=te.length+ce.length-all.length;
     return`<div class="dcol ${ds===ts?'today':''} ${ds===selWkDay?'sel':''}" onclick="selWkDay='${ds}';renderWeekly()">
       <div class="dow-lbl">${DOW[i]}</div>
       <div class="day-num">${d.getDate()}</div>
-      ${all.map(ev=>`<div class="dev ${ev.cls}" onclick="event.stopPropagation();openEvDetail('${ev.id}','${ev.type}')" title="${esc(ev.lbl)}">${esc(ev.lbl)}</div>`).join('')}
-      ${extra>0?`<div class="dmore">+${extra} more</div>`:''}
       <button class="dadd-btn" onclick="event.stopPropagation();openNewCalEvent('${ds}')">+</button>
     </div>`;
   }).join('');
-  renderWeekDetail();
+
+  // Colour palette (same as monthly)
+  const TASK_COLORS=['#2b6cb0','#9b2c2c','#276749','#744210','#553c9a','#0e7490','#1a3a5c'];
+  const taskColorMap={};
+  tasks.forEach((t,i)=>{taskColorMap[t.id]=TASK_COLORS[i%TASK_COLORS.length];});
+
+  // Collect spanning bars for this week
+  const allBars=[];
+  tasks.forEach(t=>{
+    const sd=t.startDate||t.dueDate;
+    const ed=t.dueDate||t.startDate;
+    if(!sd||!ed||ed<wsStr||sd>weStr) return;
+    allBars.push({id:t.id,type:'task',label:t.title,sd,ed,color:taskColorMap[t.id]||'#2b6cb0'});
+  });
+  calEvs.forEach(e=>{
+    const sd=e.date;
+    const ed=e.endDate||e.date;
+    if(!sd||ed<wsStr||sd>weStr) return;
+    allBars.push({id:e.id,type:'cal',label:e.title,sd,ed,color:e.color||'#276749'});
+  });
+
+  // Assign vertical track slots so bars don't overlap
+  const trackSlots=[];
+  allBars.forEach(bar=>{
+    const clipSd=bar.sd<wsStr?wsStr:bar.sd;
+    const clipEd=bar.ed>weStr?weStr:bar.ed;
+    const cs=days.findIndex(d=>localStr(d)===clipSd);
+    const ce=days.findIndex(d=>localStr(d)===clipEd);
+    bar.cs=cs<0?0:cs;
+    bar.ce=ce<0?6:ce;
+    let slot=0;
+    while(trackSlots.some(s=>s.slot===slot&&!(s.ce<bar.cs||s.cs>bar.ce))) slot++;
+    trackSlots.push({slot,cs:bar.cs,ce:bar.ce});
+    bar.slot=slot;
+  });
+
+  if(!allBars.length){renderWeekDetail();return;}
+
+  // Use requestAnimationFrame so cell positions are available
+  requestAnimationFrame(()=>{
+    const grid=document.getElementById('weekGrid');
+    const cells=grid.querySelectorAll('.dcol');
+    if(!cells.length){renderWeekDetail();return;}
+    const gridRect=grid.getBoundingClientRect();
+
+    const overlayWrap=document.createElement('div');
+    overlayWrap.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:3;';
+
+    allBars.forEach(bar=>{
+      const startCell=cells[bar.cs];
+      const endCell=cells[bar.ce];
+      if(!startCell||!endCell) return;
+      const sr=startCell.getBoundingClientRect();
+      const er=endCell.getBoundingClientRect();
+      const left=sr.left-gridRect.left;
+      const width=er.right-sr.left;
+      const top=sr.top-gridRect.top+36+bar.slot*20;
+
+      const barEl=document.createElement('div');
+      barEl.style.cssText=`position:absolute;left:${left}px;width:${width}px;top:${top}px;height:17px;`+
+        `background:${bar.color};`+
+        `border-radius:${bar.cs>0?'0':'4px'} ${bar.ce<6?'0':'4px'} ${bar.ce<6?'0':'4px'} ${bar.cs>0?'0':'4px'};`+
+        `display:flex;align-items:center;padding:0 6px;`+
+        `font-size:10px;font-weight:600;color:#fff;`+
+        `white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`+
+        `pointer-events:all;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.15);`;
+      barEl.textContent=bar.cs===0&&bar.sd<wsStr?'\u21a9 '+bar.label.substring(0,20):bar.label.substring(0,24);
+      barEl.title=bar.label;
+      barEl.onclick=(e)=>{e.stopPropagation();openEvDetail(bar.id,bar.type);};
+      overlayWrap.appendChild(barEl);
+    });
+
+    grid.style.position='relative';
+    grid.appendChild(overlayWrap);
+    window._wkBarsEl=overlayWrap;
+    renderWeekDetail();
+  });
 }
 function renderWeekDetail(){
   const c=document.getElementById('weekDetail');
