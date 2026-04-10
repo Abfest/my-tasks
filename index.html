@@ -247,112 +247,199 @@ tbody tr:hover td{background:#f7fafc;}
 .ai-quick-btn:last-child{margin-bottom:0;}
 .ai-quick-btn:hover{background:#ebf8ff;border-color:#90cdf4;color:#2b6cb0;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-@media(max-width:700px){
-  /* ── LAYOUT ── */
-  html,body{overflow:auto;}
-  .content{overflow:visible;height:auto;}
-  .pane{height:auto;overflow:visible;padding:12px 12px 32px;}
+@media(max-width:768px){
+  /* ── GLOBAL LAYOUT ── */
+  html,body{overflow-x:hidden;overflow-y:auto;height:auto;min-height:100%;}
+  .content{overflow:visible;height:auto;flex:none;}
+  .pane{height:auto;overflow:visible;padding:14px 14px 40px;}
 
-  /* ── HEADER ── */
-  .hdr{padding:10px 14px;height:auto;flex-wrap:wrap;gap:8px;}
-  .hdr-title{font-size:14px;}
-  .hdr-sub{font-size:11px;}
-  .hdr-right{gap:7px;}
+  /* ── HEADER — single compact row ── */
+  .hdr{
+    padding:10px 14px;height:auto;
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:8px;align-items:center;
+  }
+  .hdr-left{min-width:0;}
+  .hdr-title{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .hdr-sub{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .hdr-right{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+  /* Hide the date and pill to save space — shown in overview stats instead */
   .hdr-date{display:none;}
-  .phase-pill{font-size:11px;padding:3px 9px;}
-  .gcal-btn{padding:5px 10px;font-size:11px;}
-  .gcal-btn span{display:none;}
-  .gcal-btn::after{content:'Calendar';}
-  .gcal-btn.conn::after{content:'Connected';}
+  .phase-pill{display:none;}
+  /* Shrink calendar button to icon + short label */
+  .gcal-btn{padding:5px 10px;font-size:11.5px;gap:5px;}
+  .gcal-btn svg{flex-shrink:0;}
 
-  /* ── NAV TABS ── */
-  .nav{padding:0 10px;gap:0;}
-  .ntab{padding:10px 10px;font-size:12px;}
+  /* ── NAV TABS — scrollable single row ── */
+  .nav{
+    padding:0;
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x mandatory;
+    white-space:nowrap;
+    display:flex;
+    /* Hide scrollbar visually */
+    scrollbar-width:none;
+  }
+  .nav::-webkit-scrollbar{display:none;}
+  .ntab{
+    padding:11px 14px;
+    font-size:12.5px;
+    flex-shrink:0;
+    scroll-snap-align:start;
+    display:inline-flex;align-items:center;
+  }
 
-  /* ── STAT CARDS ── */
-  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:14px;}
-  .scard{padding:12px 13px;}
-  .scard-val{font-size:22px;}
+  /* ── STAT CARDS — 2×2 grid ── */
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:16px;}
+  .scard{padding:12px 14px;}
+  .scard-val{font-size:24px;}
   .scard-lbl{font-size:10px;}
   .scard-sub{font-size:10.5px;}
 
-  /* ── TABLES ── */
-  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  table{min-width:520px;}
-  thead th{padding:8px 10px;font-size:10px;}
-  tbody td{padding:9px 10px;font-size:12px;}
+  /* ── SECTION HEADERS ── */
+  .sec-hdr{flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+  .sec-title{font-size:10px;}
+
+  /* ── TABLES — horizontal scroll with readable columns ── */
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;}
+  /* Show only essential columns on mobile via column widths */
+  table{
+    width:100%;
+    min-width:0;
+    border-collapse:collapse;
+    table-layout:fixed;
+  }
+  /* Overview table — show Task, Priority, Status, Actions only */
+  #overviewTbl td:nth-child(2),#overviewTbl th:nth-child(2){display:none;} /* Tags */
+  #overviewTbl td:nth-child(6),#overviewTbl th:nth-child(6){display:none;} /* Calendar col */
+  /* Tasks table — hide less important columns */
+  #tasksTbl td:nth-child(3),#tasksTbl th:nth-child(3){display:none;} /* Tags */
+  #tasksTbl td:nth-child(5),#tasksTbl th:nth-child(5){display:none;} /* Start */
+  #tasksTbl td:nth-child(7),#tasksTbl th:nth-child(7){display:none;} /* Owner */
+  #tasksTbl td:nth-child(9),#tasksTbl th:nth-child(9){display:none;} /* Calendar */
+  thead th{padding:8px 10px;font-size:10.5px;white-space:nowrap;}
+  tbody td{padding:10px 10px;font-size:12.5px;white-space:normal;}
+  /* Action buttons inside table cells */
+  tbody td:last-child{display:flex;flex-wrap:wrap;gap:4px;}
 
   /* ── BUTTONS ── */
-  .btn{padding:6px 11px;font-size:12px;}
-  .btn.sm{padding:4px 9px;font-size:11px;}
-  .sec-hdr{flex-wrap:wrap;gap:7px;margin-bottom:10px;}
+  .btn{padding:7px 12px;font-size:12.5px;}
+  .btn.sm{padding:5px 10px;font-size:11.5px;}
 
   /* ── FILTERS ── */
-  #fStatus,#fPri,#fSearch{font-size:12px;padding:6px 9px;}
+  #pane-tasks > div:nth-child(2){flex-direction:column;align-items:stretch;}
+  #fStatus,#fPri{width:100%;}
+  #fSearch{width:100%;}
 
   /* ── WEEKLY CALENDAR ── */
   .week-nav{margin-bottom:10px;}
   .week-title-txt{font-size:13px;}
-  .week-grid{grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;margin-bottom:12px;}
-  .dcol{min-height:80px;padding:5px 3px;border-radius:7px;}
-  .dow-lbl{font-size:8px;letter-spacing:.02em;}
-  .day-num{font-size:13px;margin-bottom:24px;}
-  .dadd-btn{width:14px;height:14px;font-size:10px;bottom:3px;right:3px;}
+  .week-grid{
+    grid-template-columns:repeat(7,minmax(0,1fr));
+    gap:2px;margin-bottom:14px;
+  }
+  .dcol{min-height:90px;padding:6px 3px 6px 3px;border-radius:8px;}
+  .dow-lbl{font-size:8px;letter-spacing:0;}
+  .day-num{font-size:14px;margin-bottom:22px;}
+  .dadd-btn{width:16px;height:16px;font-size:11px;bottom:3px;right:3px;}
 
   /* ── MONTHLY CALENDAR ── */
   .month-nav{margin-bottom:10px;}
-  .month-title-txt{font-size:14px;}
-  .dow-hdr{font-size:8.5px;padding:3px 0;}
-  .mcell{min-height:58px;padding:4px 3px;border-radius:6px;}
-  .mcn{font-size:10.5px;margin-bottom:16px;}
+  .month-title-txt{font-size:15px;}
+  .dow-hdr{font-size:9px;padding:3px 0;}
+  .mcell{min-height:64px;padding:5px 4px;border-radius:7px;}
+  .mcn{font-size:11px;margin-bottom:18px;}
 
   /* ── QUALITY ── */
-  .two-col{grid-template-columns:1fr;gap:10px;}
+  .two-col{grid-template-columns:1fr;gap:12px;}
+  .qpanel{padding:14px;}
 
-  /* ── SCHEDULE timeline ── */
-  .tl-name{min-width:100px;font-size:11.5px;}
-  .tl-dates{min-width:100px;font-size:10px;}
+  /* ── SCHEDULE ── */
+  .tl-wrap{padding:12px;}
+  .tl-row{flex-direction:column;gap:6px;align-items:flex-start;}
+  .tl-name{min-width:0;width:100%;font-size:12.5px;font-weight:600;}
+  .tl-bar-bg{width:100%;height:18px;}
+  .tl-dates{min-width:0;font-size:11px;text-align:left;}
 
   /* ── PLANNER ── */
-  .planner-week{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
-  .plan-card{padding:11px 12px;}
-  .pomo-wrap{padding:16px 12px;}
-  .pom-ring{width:120px;height:120px;}
-  .pom-time{font-size:24px;}
+  .planner-week{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .plan-card{padding:12px;}
+  .pomo-wrap{padding:20px 16px;}
+  .pom-ring{width:130px;height:130px;}
+  .pom-time{font-size:26px;}
+  .pom-modes{flex-wrap:wrap;gap:6px;}
 
   /* ── TOP 3 ── */
-  .t3-slot{padding:10px 11px;}
-  .t3-in{font-size:13px;}
+  .t3-slot{padding:10px 12px;}
+  .t3-num{font-size:16px;}
+  .t3-in{font-size:13.5px;}
 
-  /* ── AI ASSISTANT ── */
-  .ai-layout{flex-direction:column;}
-  #pane-ai > div > div:last-child{width:100%;display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;}
-  .ai-ctx-card{flex:1;min-width:140px;}
-  #aiMessages{min-height:300px;max-height:45vh;}
-  .ai-bubble{font-size:12.5px;padding:9px 11px;}
-  #aiSuggestions{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;-webkit-overflow-scrolling:touch;}
-  .ai-sugg{flex-shrink:0;}
+  /* ── AI ASSISTANT — full stack ── */
+  .ai-layout{
+    flex-direction:column !important;
+    height:auto !important;
+    gap:14px;
+  }
+  /* Chat column takes full width */
+  .ai-layout > div:first-child{width:100%;}
+  /* Sidebar becomes a 2-col grid below chat */
+  .ai-layout > div:last-child{
+    width:100% !important;
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+  }
+  #aiMessages{
+    min-height:260px;
+    max-height:40vh;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .ai-bubble{font-size:13px;padding:10px 12px;max-width:88%;}
+  #aiSuggestions{
+    overflow-x:auto;
+    flex-wrap:nowrap;
+    padding-bottom:6px;
+    -webkit-overflow-scrolling:touch;
+    gap:6px;
+  }
+  .ai-sugg{flex-shrink:0;font-size:12px;padding:7px 12px;}
+  #aiInput{font-size:14px;}
+  .ai-quick-btn{font-size:12px;padding:9px 10px;}
+  .ai-ctx-card{padding:12px;}
+  .ai-ctx-row{font-size:12px;}
 
   /* ── MODAL ── */
-  .modal{padding:20px 16px;border-radius:14px;}
+  .overlay{padding:12px;}
+  .modal{padding:20px 16px;border-radius:14px;max-height:92vh;}
   .modal-title{font-size:16px;margin-bottom:16px;}
   .form-grid{grid-template-columns:1fr;gap:12px;}
-  .ff input,.ff select,.ff textarea{font-size:14px;padding:10px 12px;}
-  .mac{flex-direction:column;}
-  .mbtn{width:100%;text-align:center;}
+  .ff input,.ff select,.ff textarea{font-size:15px;padding:10px 12px;}
+  .mac{flex-direction:column;gap:8px;}
+  .mbtn{width:100%;text-align:center;padding:12px;}
 
   /* ── TOAST ── */
-  .toast{font-size:12px;padding:9px 16px;bottom:16px;max-width:90vw;white-space:normal;text-align:center;}
+  .toast{
+    font-size:12.5px;padding:10px 18px;
+    bottom:20px;max-width:88vw;
+    white-space:normal;text-align:center;
+    left:50%;transform:translateX(-50%) translateY(0);
+  }
+  .toast.show{transform:translateX(-50%) translateY(0);}
 }
 
-/* ── Extra small (iPhone SE etc) ── */
-@media(max-width:390px){
-  .ntab{padding:10px 7px;font-size:11px;}
-  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-  .week-grid{gap:1px;}
-  .dcol{min-height:70px;padding:4px 2px;}
-  .dow-lbl{font-size:7.5px;}
+/* ── iPhone SE / very small screens ── */
+@media(max-width:375px){
+  .ntab{padding:10px 10px;font-size:11.5px;}
+  .hdr-title{font-size:12px;}
+  .dcol{min-height:78px;}
+  .dow-lbl{font-size:7px;}
   .day-num{font-size:12px;}
+  .scard-val{font-size:20px;}
+  .ai-layout > div:last-child{grid-template-columns:1fr;}
 }
 </style>
 </head>
