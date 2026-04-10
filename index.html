@@ -122,13 +122,13 @@ tbody tr:hover td{background:#f7fafc;}
 .month-title-txt{font-size:16px;font-weight:700;color:#1a202c;}
 .dow-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin-bottom:3px;}
 .dow-hdr{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#a0aec0;text-align:center;padding:4px 0;}
-.month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;}
-.mcell{background:#fff;border:1px solid #e2e8f0;border-radius:8px;min-height:78px;padding:6px;cursor:pointer;transition:all .15s;}
+.month-grid{display:none;}
+.mcell{background:#fff;border:1px solid #e2e8f0;border-radius:8px;min-height:88px;padding:6px;cursor:pointer;transition:all .15s;position:relative;}
 .mcell:hover{border-color:#90cdf4;}
 .mcell.today{border-color:#1a3a5c;border-width:2px;}
 .mcell.other{opacity:.38;}
 .mcell.sel{border-color:#2b6cb0;background:#ebf8ff;}
-.mcn{font-size:12px;font-weight:700;color:#2d3748;margin-bottom:3px;}
+.mcn{font-size:12px;font-weight:700;color:#2d3748;margin-bottom:22px;}
 .mcell.today .mcn{color:#1a3a5c;}
 .mcev{font-size:9px;padding:1px 4px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mcev.task{background:#ebf8ff;color:#2c5282;}
@@ -731,7 +731,7 @@ function renderWeekDetail(){
 }
 
 /* ════════════════════════════════════════════
-   MONTHLY
+   MONTHLY  — with multi-day spanning bars
 ════════════════════════════════════════════ */
 function renderMonthly(){
   const now=new Date();
@@ -740,23 +740,167 @@ function renderMonthly(){
   document.getElementById('monthTitle').textContent=tgt.toLocaleDateString('en-SG',{month:'long',year:'numeric'});
   const DOW=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   document.getElementById('dowRow').innerHTML=DOW.map(d=>`<div class="dow-hdr">${d}</div>`).join('');
+
+  // Build cells array
   const firstDow=(tgt.getDay()+6)%7;
   const dim=new Date(tgt.getFullYear(),tgt.getMonth()+1,0).getDate();
   const cells=[];
   for(let i=0;i<firstDow;i++){const d=new Date(tgt);d.setDate(d.getDate()-(firstDow-i));cells.push({d,cur:false});}
   for(let i=1;i<=dim;i++) cells.push({d:new Date(tgt.getFullYear(),tgt.getMonth(),i),cur:true});
   while(cells.length%7!==0){const last=cells[cells.length-1].d;const d=new Date(last);d.setDate(last.getDate()+1);cells.push({d,cur:false});}
-  document.getElementById('monthGrid').innerHTML=cells.map(({d,cur})=>{
-    const ds=localStr(d);
-    const{te,ce}=eventsOn(ds);
-    const vis=[...te.slice(0,1).map(t=>({lbl:t.title,cls:'task'})),...ce.slice(0,1).map(c=>({lbl:c.title,cls:'cal'}))];
-    const extra=te.length+ce.length-vis.length;
-    return`<div class="mcell ${ds===ts?'today':''} ${!cur?'other':''} ${ds===selMoDay?'sel':''}" onclick="selMoDay='${ds}';renderMonthly()">
-      <div class="mcn">${d.getDate()}</div>
-      ${vis.map(ev=>`<div class="mcev ${ev.cls}">${esc(ev.lbl)}</div>`).join('')}
-      ${extra>0?`<div style="font-size:9px;color:#a0aec0">+${extra}</div>`:''}
-    </div>`;
-  }).join('');
+
+  const weeks=[];
+  for(let i=0;i<cells.length;i+=7) weeks.push(cells.slice(i,i+7));
+
+  // Colour palette for tasks (cycle by index)
+  const TASK_COLORS=['#2b6cb0','#9b2c2c','#276749','#744210','#553c9a','#0e7490','#1a3a5c'];
+  const taskColorMap={};
+  tasks.forEach((t,i)=>{ taskColorMap[t.id]=TASK_COLORS[i%TASK_COLORS.length]; });
+
+  // Build the grid — each week is a relative-positioned row
+  // We render cell backgrounds first, then absolutely-position spanning bars on top
+  const gridEl=document.getElementById('monthGrid');
+  gridEl.innerHTML=''; // clear
+
+  // We need a container that holds both the cell grid AND the overlay bars
+  // Use a wrapping div per week row
+  const container=document.createElement('div');
+  container.style.cssText='display:flex;flex-direction:column;gap:3px;';
+
+  weeks.forEach((week,wi)=>{
+    const weekWrap=document.createElement('div');
+    weekWrap.style.cssText='position:relative;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;';
+
+    // Render cell backgrounds
+    week.forEach(({d,cur})=>{
+      const ds=localStr(d);
+      const cell=document.createElement('div');
+      cell.className=`mcell ${ds===ts?'today':''} ${!cur?'other':''} ${ds===selMoDay?'sel':''}`;
+      cell.style.minHeight='82px';
+      cell.style.paddingTop='6px';
+      cell.innerHTML=`<div class="mcn" style="margin-bottom:22px">${d.getDate()}</div>`;
+      cell.onclick=()=>{ selMoDay=ds; renderMonthly(); };
+      weekWrap.appendChild(cell);
+    });
+
+    // ── Collect spanning task bars for this week ──
+    const weekStart=week[0].d;
+    const weekEnd=week[6].d;
+    const wsStr=localStr(weekStart);
+    const weStr=localStr(weekEnd);
+
+    // Find tasks that overlap this week and have a date range
+    const spanning=[];
+    tasks.forEach(t=>{
+      const sd=t.startDate||t.dueDate;
+      const ed=t.dueDate||t.startDate;
+      if(!sd||!ed) return;
+      if(ed<wsStr||sd>weStr) return; // no overlap
+      spanning.push(t);
+    });
+
+    // Also collect single-day cal events
+    const calSpanning=[];
+    calEvs.forEach(e=>{
+      const sd=e.date;
+      const ed=e.endDate||e.date;
+      if(!sd) return;
+      if(ed<wsStr||sd>weStr) return;
+      calSpanning.push(e);
+    });
+
+    // Render bars as absolute overlays — stacked vertically
+    // We compute col index (0-6) for start/end clipped to this week
+    const allBars=[
+      ...spanning.map((t,i)=>({
+        id:t.id, type:'task',
+        label:t.title,
+        sd:t.startDate||t.dueDate,
+        ed:t.dueDate||t.startDate,
+        color:taskColorMap[t.id]||'#2b6cb0',
+        track:i
+      })),
+      ...calSpanning.map((e,i)=>({
+        id:e.id, type:'cal',
+        label:e.title,
+        sd:e.date,
+        ed:e.endDate||e.date,
+        color:e.color||'#276749',
+        track:spanning.length+i
+      }))
+    ];
+
+    // Assign vertical track slots (so bars don't overlap)
+    const trackSlots=[];
+    allBars.forEach(bar=>{
+      const clipSd=bar.sd<wsStr?wsStr:bar.sd;
+      const clipEd=bar.ed>weStr?weStr:bar.ed;
+      const colStart=week.findIndex(({d})=>localStr(d)===clipSd);
+      const colEnd=week.findIndex(({d})=>localStr(d)===clipEd);
+      const cs=colStart<0?0:colStart;
+      const ce=colEnd<0?6:colEnd;
+
+      // Find first free track slot that doesn't conflict
+      let slot=0;
+      while(true){
+        const conflict=trackSlots.some(s=>s.slot===slot&&!(s.ce<cs||s.cs>ce));
+        if(!conflict) break;
+        slot++;
+      }
+      trackSlots.push({slot,cs,ce});
+      bar.slot=slot;
+      bar.cs=cs;
+      bar.ce=ce;
+    });
+
+    // Create bar overlay container (absolutely positioned over the week row)
+    // We need to position bars inside each cell — we use a JS-computed approach
+    // Each cell is 1/7 of the row width; gap is 3px
+    // We render bars as an absolutely-positioned div that sits just below the date number
+
+    allBars.forEach(bar=>{
+      const barEl=document.createElement('div');
+      // Position using left/width % calculated from column indices
+      // Account for 3px gap between 7 columns
+      const totalGap=3*6; // 18px total gap
+      const colW=`calc((100% - ${totalGap}px) / 7)`;
+      const leftPx=`calc(${bar.cs} * (${colW} + 3px))`;
+      const widthPx=`calc(${bar.ce-bar.cs+1} * (${colW} + 3px) - 3px)`;
+      const topPx=28+bar.slot*20; // 28px = below date number
+
+      barEl.style.cssText=`
+        position:absolute;
+        left:${leftPx};
+        width:${widthPx};
+        top:${topPx}px;
+        height:17px;
+        background:${bar.color};
+        border-radius:${bar.cs===0?'3px':'0 3px 3px 0'} ${bar.ce===6?'3px':'0 3px 3px 0'};
+        border-radius:${bar.cs>0?'0':'3px'} ${bar.ce<6?'0':'3px'} ${bar.ce<6?'0':'3px'} ${bar.cs>0?'0':'3px'};
+        display:flex;align-items:center;
+        padding:0 6px;
+        font-size:10px;font-weight:600;color:#fff;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+        cursor:pointer;z-index:2;
+        opacity:${bar.type==='task'?'1':'0.85'};
+        box-shadow:0 1px 3px rgba(0,0,0,.15);
+      `;
+      // Only show label on the first cell of this week (or start of bar)
+      barEl.textContent=bar.cs===0&&bar.sd<wsStr?'↩ '+bar.label.substring(0,18):bar.label.substring(0,22);
+      barEl.title=bar.label;
+      barEl.onclick=(e)=>{ e.stopPropagation(); openEvDetail(bar.id,bar.type); };
+      weekWrap.appendChild(barEl);
+    });
+
+    container.appendChild(weekWrap);
+  });
+
+  gridEl.parentElement.insertBefore(container,gridEl);
+  gridEl.style.display='none'; // hide old grid, use new container
+  // Keep reference for cleanup next render
+  if(window._moContainer) window._moContainer.remove();
+  window._moContainer=container;
+
   renderMonthDetail();
 }
 function renderMonthDetail(){
