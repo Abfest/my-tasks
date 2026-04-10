@@ -725,36 +725,69 @@ tbody tr:hover td{background:#f7fafc;}
 
 <script>
 /* ════════════════════════════════════════════
-   MIGRATE old PWA data
+   UNIVERSAL STORAGE — reads/writes ALL keys
+   so old PWA (sq_tasks3) and new dashboard
+   (tf6_tasks) always share the same data.
 ════════════════════════════════════════════ */
-(function(){
-  if(!localStorage.getItem('tf6_tasks')){
-    const old=localStorage.getItem('sq_tasks3');
-    if(old){try{
-      const ot=JSON.parse(old);
-      localStorage.setItem('tf6_tasks',JSON.stringify(ot.map(t=>({
-        id:t.id||Date.now()+Math.random(),title:t.title||t.text||'',
-        tags:t.tags||(t.category?[t.category]:[]),
-        priority:t.priority||'Med',startDate:t.startDate||'',
-        dueDate:t.dueDate||t.due||'',done:t.done||false,
-        status:t.status||'On track',owner:t.owner||'',notes:t.notes||'',
-        synced:false,gcalId:null,calUrl:null,createdAt:t.createdAt||new Date().toISOString()
-      }))));
-    }catch(e){}}
+const TASK_KEYS = ['tf6_tasks','sq_tasks3'];
+const CAL_KEYS  = ['tf6_cal','cal_evts3'];
+const TOP3_KEYS = ['tf6_top3'];
+const GCAL_KEYS = ['tf6_gcal'];
+
+function readLatest(keys, fallback){
+  /* Return the value from whichever key has the most items */
+  let best = null, bestLen = -1;
+  for(const k of keys){
+    try{
+      const raw = localStorage.getItem(k);
+      if(!raw) continue;
+      const parsed = JSON.parse(raw);
+      const len = Array.isArray(parsed) ? parsed.length : (parsed ? 1 : 0);
+      if(len > bestLen){ best = parsed; bestLen = len; }
+    }catch(e){}
   }
-  if(!localStorage.getItem('tf6_cal')){
-    const old=localStorage.getItem('cal_evts3');
-    if(old){try{localStorage.setItem('tf6_cal',old);}catch(e){}}
+  return best !== null ? best : (typeof fallback === 'string' ? JSON.parse(fallback) : fallback);
+}
+
+function saveAll(keys, value){
+  const str = JSON.stringify(value);
+  for(const k of keys){
+    try{ localStorage.setItem(k, str); }catch(e){}
   }
-})();
+}
+
+/* Normalise a raw task from any version into the current shape */
+function normaliseTask(t){
+  return {
+    id:        t.id        || Date.now()+Math.random(),
+    title:     t.title     || t.text || '',
+    tags:      t.tags      || (t.category ? [t.category] : []),
+    priority:  t.priority  || 'Med',
+    startDate: t.startDate || '',
+    dueDate:   t.dueDate   || t.due || '',
+    done:      t.done      || t.completed || false,
+    status:    t.status    || 'On track',
+    owner:     t.owner     || '',
+    notes:     t.notes     || '',
+    synced:    t.synced    || false,
+    gcalId:    t.gcalId    || null,
+    calUrl:    t.calUrl    || null,
+    createdAt: t.createdAt || new Date().toISOString()
+  };
+}
 
 /* ════════════════════════════════════════════
-   STATE
+   STATE — loaded from whichever key has data
 ════════════════════════════════════════════ */
-let tasks   = JSON.parse(localStorage.getItem('tf6_tasks') || '[]');
-let calEvs  = JSON.parse(localStorage.getItem('tf6_cal')   || '[]');
-let top3    = JSON.parse(localStorage.getItem('tf6_top3')  || '[{"text":"","done":false},{"text":"","done":false},{"text":"","done":false}]');
-let gcal    = JSON.parse(localStorage.getItem('tf6_gcal')  || 'null');
+let tasks  = readLatest(TASK_KEYS, '[]').map(normaliseTask);
+let calEvs = readLatest(CAL_KEYS,  '[]');
+let top3   = readLatest(TOP3_KEYS, '[{"text":"","done":false},{"text":"","done":false},{"text":"","done":false}]');
+let gcal   = readLatest(GCAL_KEYS, 'null');
+
+/* Write back to ALL keys immediately so both app versions are in sync */
+saveAll(TASK_KEYS, tasks);
+saveAll(CAL_KEYS,  calEvs);
+
 let wkOff=0, moOff=0, selWkDay=null, selMoDay=null;
 let editId=null;
 let pomMode='work', pomRun=false, pomRemain=1500, pomTotal=1500, pomTmr=null;
@@ -763,11 +796,25 @@ const CIRC=364.4;
 const POM={work:1500,short:300,long:900};
 
 function save(){
-  localStorage.setItem('tf6_tasks',JSON.stringify(tasks));
-  localStorage.setItem('tf6_cal',JSON.stringify(calEvs));
-  localStorage.setItem('tf6_top3',JSON.stringify(top3));
-  localStorage.setItem('tf6_gcal',JSON.stringify(gcal));
+  /* Write to all keys every time so every version of the app sees the update */
+  saveAll(TASK_KEYS, tasks);
+  saveAll(CAL_KEYS,  calEvs);
+  saveAll(TOP3_KEYS, top3);
+  saveAll(GCAL_KEYS, gcal);
 }
+
+/* Poll for external changes (e.g. PWA updated a key in a different tab) */
+window.addEventListener('storage', e => {
+  if(TASK_KEYS.includes(e.key) && e.newValue){
+    try{
+      const incoming = JSON.parse(e.newValue).map(normaliseTask);
+      if(incoming.length >= tasks.length){ tasks = incoming; save(); refreshActive(); }
+    }catch(err){}
+  }
+  if(CAL_KEYS.includes(e.key) && e.newValue){
+    try{ calEvs = JSON.parse(e.newValue); refreshActive(); }catch(err){}
+  }
+});
 
 /* ════════════════════════════════════════════
    DATE HELPERS
