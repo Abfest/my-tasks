@@ -3,386 +3,488 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>TaskFlow</title>
-<meta name="theme-color" content="#0c0e16"/>
+<title>TaskFlow Dashboard</title>
+<meta name="theme-color" content="#1a3a5c"/>
 <link rel="manifest" href="manifest.json"/>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
-:root{
-  --bg:#0c0e16;--s1:#13161f;--s2:#1a1e2e;--s3:#1f2438;
-  --b1:#222640;--b2:#2e3450;--b3:#3d4465;
-  --text:#e2e6f3;--muted:#5a6280;--faint:#2e3450;
-  --accent:#5b7cfa;--a2:#7c9dff;
-  --green:#34d399;--yellow:#fbbf24;--red:#f87171;--sky:#38bdf8;
-  --r:11px;--r2:16px;
-}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;}
-body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:radial-gradient(ellipse 70% 45% at 15% 5%,rgba(91,124,250,.08) 0%,transparent 60%),
-             radial-gradient(ellipse 55% 40% at 85% 90%,rgba(56,189,248,.05) 0%,transparent 60%);}
-/* HEADER */
-.hdr{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 18px 0;flex-shrink:0;}
-.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:19px;letter-spacing:-.03em;}
-.logo span{background:linear-gradient(135deg,var(--accent),var(--sky));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.gcal-pill{display:flex;align-items:center;gap:6px;background:var(--s2);border:1.5px solid var(--b2);border-radius:50px;padding:6px 13px;font-size:12px;font-weight:500;color:var(--text);cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;white-space:nowrap;user-select:none;}
-.gcal-pill:hover{border-color:var(--accent);}
-.gcal-pill.conn{border-color:rgba(52,211,153,.4);color:var(--green);}
-.gcal-dot{width:6px;height:6px;border-radius:50%;background:var(--faint);transition:all .3s;flex-shrink:0;}
-.gcal-dot.on{background:var(--green);box-shadow:0 0 7px rgba(52,211,153,.7);}
-/* TABS */
-.tabs{position:relative;z-index:10;display:flex;gap:2px;padding:12px 18px 0;flex-shrink:0;overflow-x:auto;}
-.tabs::-webkit-scrollbar{display:none;}
-.tab{padding:8px 16px;border-radius:10px 10px 0 0;font-size:12.5px;font-weight:500;cursor:pointer;border:1.5px solid transparent;border-bottom:none;color:var(--muted);background:transparent;transition:all .18s;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0;}
-.tab:hover{color:var(--text);background:var(--s1);}
-.tab.on{color:var(--text);background:var(--s1);border-color:var(--b1);font-weight:600;}
-/* CONTENT */
-.content{position:relative;z-index:1;flex:1;overflow:hidden;background:var(--s1);border-top:1.5px solid var(--b1);margin:0 18px 18px;}
-.pane{display:none;height:100%;overflow-y:auto;padding:20px;}
+body{font-family:'Inter',system-ui,sans-serif;background:#f0f2f5;color:#1a202c;display:flex;flex-direction:column;font-size:14px;}
+
+/* ── HEADER ── */
+.hdr{background:#1a3a5c;color:#fff;padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative;z-index:20;}
+.hdr-left{display:flex;align-items:center;gap:16px;}
+.hdr-title{font-size:16px;font-weight:700;letter-spacing:-.01em;}
+.hdr-sub{font-size:12px;opacity:.65;margin-top:1px;}
+.hdr-right{display:flex;align-items:center;gap:12px;}
+.hdr-date{font-size:12.5px;opacity:.8;}
+.gcal-btn{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:500;color:#fff;cursor:pointer;transition:all .2s;white-space:nowrap;font-family:'Inter',sans-serif;}
+.gcal-btn:hover{background:rgba(255,255,255,.2);}
+.gcal-btn.conn{background:rgba(52,211,153,.18);border-color:rgba(52,211,153,.4);color:#6ee7b7;}
+.gcal-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.3);flex-shrink:0;transition:all .3s;}
+.gcal-dot.on{background:#34d399;box-shadow:0 0 6px rgba(52,211,153,.8);}
+.phase-pill{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;}
+
+/* ── NAV TABS ── */
+.nav{background:#fff;border-bottom:1px solid #e2e8f0;display:flex;padding:0 24px;flex-shrink:0;overflow-x:auto;position:relative;z-index:10;}
+.nav::-webkit-scrollbar{display:none;}
+.ntab{padding:13px 18px;font-size:13px;font-weight:500;color:#718096;cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;transition:all .18s;user-select:none;}
+.ntab:hover{color:#2d3748;}
+.ntab.on{color:#1a3a5c;border-bottom-color:#1a3a5c;font-weight:600;}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow:hidden;position:relative;}
+.pane{display:none;height:100%;overflow-y:auto;padding:22px 24px 32px;}
 .pane.on{display:block;}
-.pane::-webkit-scrollbar{width:4px;}
-.pane::-webkit-scrollbar-track{background:transparent;}
-.pane::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px;}
-/* SHARED */
-.sep{height:1px;background:var(--b1);margin:13px 0;}
-.row{display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
-.chip{padding:5px 12px;border-radius:20px;font-size:11.5px;font-weight:500;cursor:pointer;border:1.5px solid var(--b1);color:var(--muted);background:transparent;transition:all .15s;font-family:'DM Sans',sans-serif;}
-.chip:hover{border-color:var(--accent);color:var(--a2);}
-.chip.on{background:var(--accent);border-color:var(--accent);color:#fff;}
-.pri{padding:5px 11px;border-radius:20px;font-size:11.5px;font-weight:600;cursor:pointer;border:1.5px solid transparent;background:transparent;transition:all .15s;font-family:'DM Sans',sans-serif;}
-.pri.hi{color:var(--red);border-color:#3a2020;}
-.pri.hi.on,.pri.hi:hover{background:#2e1a1a;border-color:var(--red);}
-.pri.med{color:var(--yellow);border-color:var(--yellow);background:#2a2010;}
-.pri.lo{color:var(--sky);border-color:#1e2a3a;}
-.pri.lo.on,.pri.lo:hover{background:#1a2535;border-color:var(--sky);}
-.date-wrap{display:flex;align-items:center;gap:5px;background:var(--bg);border:1.5px solid var(--b1);border-radius:8px;padding:5px 9px;flex:1;transition:border-color .15s;}
-.date-wrap:focus-within{border-color:var(--accent);}
-.date-lbl{font-size:9px;color:var(--muted);font-weight:700;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;}
-input[type=date]{background:transparent;border:none;outline:none;color:#8892b0;font-size:11px;font-family:'DM Sans',sans-serif;width:100%;cursor:pointer;color-scheme:dark;padding:0;}
-input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.35);cursor:pointer;}
-input[type=time]{background:transparent;border:none;outline:none;color:#8892b0;font-size:11px;font-family:'DM Sans',sans-serif;width:100%;cursor:pointer;color-scheme:dark;padding:0;}
-.add-btn{width:34px;height:34px;border-radius:9px;background:var(--accent);border:none;color:#fff;font-size:21px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;padding-bottom:1px;}
-.add-btn:hover{background:var(--a2);transform:scale(1.06);}
-.act{width:26px;height:26px;border-radius:6px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .15s;}
-.act:hover{background:var(--s3);}
-.act.sync{color:var(--accent);}
-.act.sync:hover{background:rgba(91,124,250,.15);}
-.act.del:hover{background:#2e1a1a;color:var(--red);}
-.slbl{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
-.slbl::after{content:'';flex:1;height:1px;background:var(--b1);}
-.empty{text-align:center;padding:40px 20px;color:var(--muted);}
-.nbtn{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--b1);background:transparent;color:var(--muted);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
-.nbtn:hover{border-color:var(--b2);color:var(--text);}
-.fbtn{padding:5px 13px;border-radius:20px;font-size:11.5px;font-weight:500;cursor:pointer;border:1.5px solid var(--b1);color:var(--muted);background:transparent;transition:all .15s;font-family:'DM Sans',sans-serif;}
-.fbtn.on{border-color:var(--accent);color:var(--a2);background:rgba(91,124,250,.1);}
-.fbtn:hover:not(.on){border-color:var(--b2);color:var(--text);}
-/* TASKS */
-.tinput-card{background:var(--s2);border:1.5px solid var(--b1);border-radius:var(--r2);padding:18px;margin-bottom:16px;transition:border-color .2s;}
-.tinput-card:focus-within{border-color:var(--b2);}
-.hint{font-size:10px;color:var(--faint);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
-.main-input{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-size:16px;font-family:'Syne',sans-serif;font-weight:700;caret-color:var(--accent);margin-bottom:13px;}
-.main-input::placeholder{color:var(--faint);}
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
-.stat{background:var(--s2);border:1.5px solid var(--b1);border-radius:var(--r);padding:11px 13px;}
-.stat-v{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;line-height:1;margin-bottom:2px;}
-.stat-v.blue{color:var(--a2)}.stat-v.green{color:var(--green)}.stat-v.red{color:var(--red)}.stat-v.yellow{color:var(--yellow)}
-.stat-l{font-size:9.5px;color:var(--muted);font-weight:500;letter-spacing:.04em;text-transform:uppercase;}
-.prog{height:3px;background:var(--b1);border-radius:2px;overflow:hidden;margin-bottom:16px;}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--sky));border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1);}
-.task-item{background:var(--s2);border:1.5px solid var(--b1);border-radius:var(--r);padding:11px 13px;margin-bottom:7px;display:flex;align-items:flex-start;gap:10px;transition:all .2s;position:relative;overflow:hidden;animation:fadeUp .2s ease;}
-.task-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
-.task-item.hi::before{background:var(--red)}.task-item.med::before{background:var(--yellow)}.task-item.lo::before{background:var(--sky)}
-.task-item:hover{border-color:var(--b2)}.task-item.done{opacity:.38}.task-item.overdue{border-color:rgba(248,113,113,.2)}
-@keyframes fadeUp{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
-.chk{width:19px;height:19px;border-radius:5px;border:2px solid var(--b2);background:transparent;cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s;color:#fff;font-size:10px;}
-.chk:hover{border-color:var(--green)}.chk.on{background:var(--green);border-color:var(--green)}
-.task-body{flex:1;min-width:0;}
-.task-title{font-family:'Syne',sans-serif;font-weight:600;font-size:13px;color:var(--text);margin-bottom:5px;line-height:1.4;word-break:break-word;}
-.task-item.done .task-title{text-decoration:line-through;color:var(--muted)}
-.task-meta{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
-.m-tag{font-size:10px;font-weight:500;padding:2px 7px;border-radius:9px;background:rgba(91,124,250,.12);color:var(--a2);}
-.m-date{font-size:10.5px;color:var(--muted);display:flex;align-items:center;gap:2px;white-space:nowrap;}
-.m-date.late{color:var(--red)}
-.syn-badge{font-size:10px;color:var(--green);display:flex;align-items:center;gap:3px;background:rgba(52,211,153,.1);padding:2px 7px;border-radius:9px;cursor:pointer;}
-.syn-badge:hover{background:rgba(52,211,153,.2)}
-.task-actions{display:flex;gap:3px;align-items:center;flex-shrink:0;}
-/* WEEK */
+.pane::-webkit-scrollbar{width:5px;}
+.pane::-webkit-scrollbar-thumb{background:#cbd5e0;border-radius:3px;}
+
+/* ── STAT CARDS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px;}
+.scard{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px;}
+.scard-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#a0aec0;margin-bottom:8px;}
+.scard-val{font-size:28px;font-weight:700;line-height:1;color:#1a202c;margin-bottom:4px;}
+.scard-sub{font-size:11.5px;color:#a0aec0;}
+.scard-val.blue{color:#2b6cb0;}.scard-val.green{color:#276749;}.scard-val.red{color:#9b2c2c;}.scard-val.amber{color:#744210;}
+.prog-bar{height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-top:8px;}
+.prog-fill{height:100%;background:linear-gradient(90deg,#1a3a5c,#2b6cb0);border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+
+/* ── SECTION HEADER ── */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;}
+.sec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#a0aec0;}
+.sec-actions{display:flex;gap:8px;align-items:center;}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 15px;border-radius:8px;font-size:12.5px;font-weight:500;cursor:pointer;border:1px solid #e2e8f0;background:#fff;color:#2d3748;transition:all .15s;font-family:'Inter',sans-serif;white-space:nowrap;}
+.btn:hover{background:#f7fafc;border-color:#cbd5e0;}
+.btn.primary{background:#1a3a5c;color:#fff;border-color:#1a3a5c;}
+.btn.primary:hover{background:#14304d;}
+.btn.success{background:#f0fff4;color:#276749;border-color:#c6f6d5;}
+.btn.success:hover{background:#c6f6d5;}
+.btn.danger{background:#fff5f5;color:#9b2c2c;border-color:#fed7d7;}
+.btn.danger:hover{background:#fed7d7;}
+.btn.sm{padding:4px 10px;font-size:11.5px;border-radius:6px;}
+.btn.amber-o{background:#fffaf0;color:#744210;border-color:#fbd38d;}
+
+/* ── TABLE ── */
+.tbl-wrap{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:20px;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:10px 16px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#a0aec0;background:#f7fafc;border-bottom:1px solid #e2e8f0;}
+tbody td{padding:11px 16px;border-bottom:1px solid #f0f4f8;color:#2d3748;vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:#f7fafc;}
+.empty-td{text-align:center;color:#a0aec0;padding:36px!important;font-size:13px;}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.b-track{background:#f0fff4;color:#276749;}.b-track .dot{background:#38a169;}
+.b-risk{background:#fffaf0;color:#744210;}.b-risk .dot{background:#d69e2e;}
+.b-delay{background:#fff5f5;color:#9b2c2c;}.b-delay .dot{background:#e53e3e;}
+.b-done{background:#ebf8ff;color:#2c5282;}.b-done .dot{background:#3182ce;}
+.b-hi{background:#fff5f5;color:#9b2c2c;}
+.b-med{background:#fffaf0;color:#744210;}
+.b-lo{background:#f0fff4;color:#276749;}
+.b-gcal{background:#ebf8ff;color:#2c5282;font-size:10.5px;}
+.tag-chip{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10.5px;background:#edf2f7;color:#4a5568;margin-right:3px;}
+
+/* ── WEEKLY ── */
 .week-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.week-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;}
-.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:14px;}
-.dcol{background:var(--s2);border:1.5px solid var(--b1);border-radius:var(--r);padding:9px 7px;min-height:140px;cursor:pointer;transition:border-color .15s;position:relative;}
-.dcol:hover{border-color:var(--b2)}.dcol.today{border-color:var(--accent)}.dcol.sel{border-color:var(--a2);background:rgba(91,124,250,.06)}
-.dname{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px;}
-.dnum{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;margin-bottom:6px;}
-.dcol.today .dnum{color:var(--accent)}
-.dev{font-size:9.5px;padding:2px 5px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
-.dev.task-hi{background:rgba(248,113,113,.13);color:var(--red)}
-.dev.task-med{background:rgba(251,191,36,.13);color:var(--yellow)}
-.dev.task-lo{background:rgba(56,189,248,.13);color:var(--sky)}
-.dev.cal-ev{background:rgba(52,211,153,.13);color:var(--green)}
-.dmore{font-size:9px;color:var(--muted);padding:1px 5px;}
-.dadd{position:absolute;bottom:5px;right:5px;width:18px;height:18px;border-radius:4px;background:var(--accent);border:none;color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;}
-.dcol:hover .dadd{opacity:1}
-.day-detail{background:var(--s2);border:1.5px solid var(--b2);border-radius:var(--r2);padding:14px;margin-bottom:14px;}
-.day-detail-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;}
-.ev-row{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;background:var(--bg);border:1.5px solid var(--b1);margin-bottom:5px;}
-.ev-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-.ev-title-t{font-size:12.5px;font-weight:500;flex:1;}
-.ev-time-t{font-size:10.5px;color:var(--muted);}
-/* MONTH */
+.week-title-txt{font-size:15px;font-weight:700;color:#1a202c;}
+.nav-arrow{width:30px;height:30px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#718096;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.nav-arrow:hover{background:#f7fafc;border-color:#cbd5e0;color:#2d3748;}
+.week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:16px;}
+.dcol{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 8px;min-height:130px;cursor:pointer;transition:all .15s;position:relative;}
+.dcol:hover{border-color:#90cdf4;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.dcol.today{border-color:#1a3a5c;border-width:2px;}
+.dcol.sel{border-color:#2b6cb0;background:#ebf8ff;}
+.dow-lbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#a0aec0;margin-bottom:3px;}
+.day-num{font-size:17px;font-weight:700;color:#2d3748;margin-bottom:7px;}
+.dcol.today .day-num{color:#1a3a5c;}
+.dev{font-size:9.5px;padding:2px 5px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dev.hi{background:#fff5f5;color:#9b2c2c;}
+.dev.med{background:#fffaf0;color:#744210;}
+.dev.lo{background:#f0fff4;color:#276749;}
+.dev.cal{background:#ebf8ff;color:#2c5282;}
+.dmore{font-size:9px;color:#a0aec0;padding:1px 5px;}
+.dadd-btn{position:absolute;bottom:5px;right:5px;width:18px;height:18px;border-radius:4px;background:#1a3a5c;border:none;color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;}
+.dcol:hover .dadd-btn{opacity:1;}
+.day-detail-panel{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;}
+.ddp-title{font-size:14px;font-weight:700;color:#1a202c;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.ev-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:#f7fafc;border:1px solid #e2e8f0;margin-bottom:6px;}
+.ev-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ev-title{font-size:12.5px;font-weight:500;flex:1;color:#2d3748;}
+.ev-time{font-size:11px;color:#a0aec0;}
+
+/* ── MONTHLY ── */
 .month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-.month-title{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;}
-.dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px;}
-.dow{font-size:9.5px;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;text-align:center;padding:3px 0;}
-.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
-.mcell{background:var(--s2);border:1.5px solid var(--b1);border-radius:7px;min-height:72px;padding:5px;cursor:pointer;transition:border-color .15s;position:relative;}
-.mcell:hover{border-color:var(--b2)}.mcell.today{border-color:var(--accent)}.mcell.other{opacity:.32}.mcell.sel{border-color:var(--a2);background:rgba(91,124,250,.07)}
-.mcn{font-family:'Syne',sans-serif;font-weight:700;font-size:11.5px;margin-bottom:3px;}
-.mcell.today .mcn{color:var(--accent)}
+.month-title-txt{font-size:16px;font-weight:700;color:#1a202c;}
+.dow-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin-bottom:3px;}
+.dow-hdr{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#a0aec0;text-align:center;padding:4px 0;}
+.month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;}
+.mcell{background:#fff;border:1px solid #e2e8f0;border-radius:8px;min-height:78px;padding:6px;cursor:pointer;transition:all .15s;}
+.mcell:hover{border-color:#90cdf4;}
+.mcell.today{border-color:#1a3a5c;border-width:2px;}
+.mcell.other{opacity:.38;}
+.mcell.sel{border-color:#2b6cb0;background:#ebf8ff;}
+.mcn{font-size:12px;font-weight:700;color:#2d3748;margin-bottom:3px;}
+.mcell.today .mcn{color:#1a3a5c;}
 .mcev{font-size:9px;padding:1px 4px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.mcev.task{background:rgba(91,124,250,.15);color:var(--a2)}.mcev.cal{background:rgba(52,211,153,.12);color:var(--green)}
-.sdp{background:var(--s2);border:1.5px solid var(--b2);border-radius:var(--r2);padding:14px;margin-top:12px;}
-.sdp-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;}
-.sdp-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;}
-/* PLANNER */
-.top3-title{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;margin-bottom:12px;}
-.t3slot{display:flex;align-items:center;gap:9px;background:var(--s2);border:1.5px solid var(--b1);border-radius:var(--r);padding:11px 13px;margin-bottom:7px;}
-.t3n{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--faint);width:22px;flex-shrink:0;}
-.t3n.filled{color:var(--accent)}
-.t3in{background:transparent;border:none;outline:none;color:var(--text);font-size:13.5px;font-family:'DM Sans',sans-serif;font-weight:500;width:100%;caret-color:var(--accent);}
-.t3in::placeholder{color:var(--faint)}
-.t3chk{width:17px;height:17px;border-radius:4px;border:2px solid var(--b2);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;color:#fff;font-size:9px;}
-.t3chk:hover{border-color:var(--green)}.t3chk.on{background:var(--green);border-color:var(--green)}
-/* POMO */
-.pomo{background:var(--s2);border:1.5px solid var(--b1);border-radius:var(--r2);padding:20px;text-align:center;margin-top:16px;}
-.pom-lbl{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px;}
-.pom-modes{display:flex;gap:6px;justify-content:center;margin-bottom:14px;}
-.pom-mode{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1.5px solid var(--b1);color:var(--muted);background:transparent;transition:all .15s;font-family:'DM Sans',sans-serif;}
-.pom-mode.on{border-color:var(--accent);color:var(--accent);background:rgba(91,124,250,.1)}
-.pom-ring{position:relative;width:130px;height:130px;margin:0 auto 16px;}
+.mcev.task{background:#ebf8ff;color:#2c5282;}
+.mcev.cal{background:#f0fff4;color:#276749;}
+.sdp{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-top:12px;}
+.sdp-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.sdp-title{font-size:14px;font-weight:700;color:#1a202c;}
+
+/* ── PLANNER ── */
+.planner-week{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:22px;}
+.plan-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;}
+.plan-card.today-card{border-color:#1a3a5c;border-width:2px;}
+.plan-card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#a0aec0;margin-bottom:10px;}
+.plan-card.today-card .plan-card-title{color:#1a3a5c;}
+.plan-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #f0f4f8;font-size:12.5px;color:#2d3748;}
+.plan-item:last-child{border-bottom:none;}
+.pchk{width:15px;height:15px;border-radius:4px;border:1.5px solid #cbd5e0;background:#fff;cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;}
+.pchk.done-c{background:#1a3a5c;border-color:#1a3a5c;color:#fff;}
+
+/* ── TOP 3 SLOTS ── */
+.t3-slot{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;margin-bottom:8px;}
+.t3-num{font-size:18px;font-weight:800;color:#e2e8f0;width:22px;flex-shrink:0;transition:color .2s;}
+.t3-num.filled{color:#1a3a5c;}
+.t3-in{background:transparent;border:none;outline:none;color:#2d3748;font-size:13.5px;font-family:'Inter',sans-serif;font-weight:500;width:100%;}
+.t3-in::placeholder{color:#cbd5e0;}
+.t3-chk{width:17px;height:17px;border-radius:4px;border:1.5px solid #cbd5e0;background:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .15s;}
+.t3-chk.done-c{background:#1a3a5c;border-color:#1a3a5c;color:#fff;}
+
+/* ── POMODORO ── */
+.pomo-wrap{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:24px;text-align:center;margin-top:18px;}
+.pom-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#a0aec0;margin-bottom:14px;}
+.pom-modes{display:flex;gap:6px;justify-content:center;margin-bottom:16px;}
+.pom-mode{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid #e2e8f0;color:#718096;background:#fff;transition:all .15s;font-family:'Inter',sans-serif;}
+.pom-mode.on{border-color:#1a3a5c;color:#1a3a5c;background:#ebf4ff;font-weight:600;}
+.pom-ring{position:relative;width:140px;height:140px;margin:0 auto 16px;}
 .pom-ring svg{position:absolute;top:0;left:0;transform:rotate(-90deg);}
 .pom-ring circle{fill:none;stroke-width:7;stroke-linecap:round;}
-.pom-track{stroke:var(--b1)}.pom-prog{stroke:var(--accent);transition:stroke-dashoffset .5s linear;}
-.pom-time{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:26px;}
-.pom-sub{font-size:11px;color:var(--muted);margin-bottom:13px;letter-spacing:.03em;}
-.pom-btns{display:flex;gap:9px;justify-content:center;}
-.pom-btn{padding:7px 20px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;border:1.5px solid var(--b2);background:transparent;color:var(--text);transition:all .15s;font-family:'DM Sans',sans-serif;}
-.pom-btn.start{background:var(--accent);border-color:var(--accent);color:#fff;}
-.pom-btn.start:hover{background:var(--a2)}
-/* MODAL */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s;}
-.overlay.show{opacity:1;pointer-events:all}
-.modal{background:var(--s1);border:1.5px solid var(--b2);border-radius:20px;padding:24px;width:420px;max-width:100%;max-height:88vh;overflow-y:auto;transform:scale(.95) translateY(8px);transition:transform .2s;}
-.overlay.show .modal{transform:scale(1) translateY(0)}
-.mhd{display:flex;align-items:center;gap:10px;margin-bottom:17px;}
-.mhd-title{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;}
-.mf{margin-bottom:12px;}
-.ml{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px;}
-.mi{width:100%;background:var(--s2);border:1.5px solid var(--b2);border-radius:9px;padding:9px 12px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s;}
-.mi:focus{border-color:var(--accent)}.mi::placeholder{color:var(--faint)}
-.mac{display:flex;gap:8px;margin-top:17px;}
-.mbtn{flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid var(--b2);font-family:'DM Sans',sans-serif;transition:all .15s;}
-.mbtn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.mbtn.primary:hover{background:var(--a2)}
-.mbtn.ghost{background:transparent;color:var(--muted)}.mbtn.ghost:hover{color:var(--text)}
-.mbtn.danger{background:#2e1a1a;border-color:var(--red);color:var(--red)}
-.steps{display:flex;flex-direction:column;gap:9px;margin-bottom:16px;}
-.step{background:var(--s2);border:1.5px solid var(--b1);border-radius:9px;padding:11px 13px;display:flex;gap:9px;}
-.stn{width:19px;height:19px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
-.stt{font-size:12.5px;font-weight:600;margin-bottom:2px;}
-.std{font-size:11.5px;color:var(--muted);line-height:1.5}
-.stc{background:var(--bg);border:1px solid var(--b2);border-radius:5px;padding:4px 8px;font-size:10.5px;color:var(--a2);font-family:monospace;margin-top:4px;word-break:break-all;}
-/* TOAST */
-.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--s2);border:1.5px solid var(--b2);border-radius:12px;padding:10px 18px;font-size:12.5px;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,.5);opacity:0;transition:all .28s;pointer-events:none;z-index:200;white-space:nowrap;}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.ok{border-color:var(--green)}.toast.warn{border-color:var(--yellow)}.toast.err{border-color:var(--red)}
-@media(max-width:600px){
-  .hdr{padding:12px 12px 0}.tabs{padding:10px 12px 0}.content{margin:0 12px 12px}.pane{padding:13px}
-  .stats-row{grid-template-columns:repeat(2,1fr)}
-  .week-grid{gap:2px}.dcol{min-height:100px;padding:6px 3px}.dname{font-size:8px}.dnum{font-size:13px}
+.pom-track{stroke:#e2e8f0;}.pom-prog{stroke:#1a3a5c;transition:stroke-dashoffset .5s linear;}
+.pom-time{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#1a202c;}
+.pom-sub{font-size:12px;color:#a0aec0;margin-bottom:14px;letter-spacing:.02em;}
+.pom-btns{display:flex;gap:10px;justify-content:center;}
+
+/* ── QUALITY PANEL ── */
+.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:20px;}
+.qpanel{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;}
+.qpanel-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#a0aec0;margin-bottom:14px;}
+.met-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f4f8;}
+.met-row:last-child{border-bottom:none;}
+.met-lbl{font-size:13px;color:#2d3748;}
+.met-val{font-size:14px;font-weight:700;}
+
+/* ── TIMELINE ── */
+.tl-wrap{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:20px;}
+.tl-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f0f4f8;}
+.tl-row:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+.tl-name{font-size:12.5px;color:#2d3748;min-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tl-bar-bg{flex:1;height:22px;background:#f7fafc;border-radius:5px;position:relative;overflow:hidden;}
+.tl-bar{height:100%;border-radius:5px;position:absolute;top:0;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:600;color:#fff;overflow:hidden;white-space:nowrap;}
+.tl-dates{font-size:11px;color:#a0aec0;min-width:150px;text-align:right;}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s;}
+.overlay.show{opacity:1;pointer-events:all;}
+.modal{background:#fff;border-radius:16px;padding:28px;width:560px;max-width:100%;max-height:88vh;overflow-y:auto;transform:scale(.96) translateY(6px);transition:transform .2s;box-shadow:0 20px 60px rgba(0,0,0,.15);}
+.overlay.show .modal{transform:scale(1) translateY(0);}
+.modal-title{font-size:18px;font-weight:700;color:#1a202c;margin-bottom:22px;}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+.ff{display:flex;flex-direction:column;gap:5px;}
+.ff.full{grid-column:1/-1;}
+.flbl{font-size:13px;font-weight:500;color:#2d3748;}
+.flbl .req{color:#e53e3e;margin-left:1px;}
+.ff input,.ff select,.ff textarea{font-size:13.5px;padding:9px 12px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;width:100%;outline:none;transition:border-color .15s;}
+.ff input:focus,.ff select:focus,.ff textarea:focus{border-color:#1a3a5c;box-shadow:0 0 0 3px rgba(26,58,92,.1);}
+.ff textarea{resize:vertical;min-height:80px;}
+.mac{display:flex;gap:10px;margin-top:22px;justify-content:flex-end;}
+.mbtn{padding:9px 22px;border-radius:8px;font-size:13.5px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;border:1px solid #e2e8f0;}
+.mbtn.cancel{background:#fff;color:#718096;}.mbtn.cancel:hover{background:#f7fafc;}
+.mbtn.save{background:#1a3a5c;color:#fff;border-color:#1a3a5c;}.mbtn.save:hover{background:#14304d;}
+
+/* GCal setup steps */
+.steps{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+.step{background:#f7fafc;border:1px solid #e2e8f0;border-radius:9px;padding:12px 14px;display:flex;gap:10px;}
+.stn{width:20px;height:20px;border-radius:50%;background:#1a3a5c;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.stt{font-size:12.5px;font-weight:600;color:#2d3748;margin-bottom:2px;}
+.std{font-size:11.5px;color:#718096;line-height:1.5;}
+.stc{background:#fff;border:1px solid #e2e8f0;border-radius:5px;padding:5px 9px;font-size:10.5px;color:#2b6cb0;font-family:monospace;margin-top:5px;word-break:break-all;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(14px);background:#1a202c;border-radius:10px;padding:10px 20px;font-size:13px;color:#fff;box-shadow:0 8px 30px rgba(0,0,0,.25);opacity:0;transition:all .28s;pointer-events:none;z-index:200;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.ok{background:#276749;}.toast.warn{background:#744210;}.toast.err{background:#9b2c2c;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .week-grid{grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;}
+  .dcol{min-height:90px;padding:6px 3px;}
+  .planner-week{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .two-col{grid-template-columns:1fr;}
+  .hdr{padding:0 14px;}
+  .pane{padding:14px 14px 24px;}
 }
 </style>
 </head>
 <body>
 
+<!-- HEADER -->
 <div class="hdr">
-  <div class="logo">Task<span>Flow</span></div>
-  <button class="gcal-pill" id="gcalPill" onclick="openGCalModal()">
-    <div class="gcal-dot" id="gcalDot"></div>
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="opacity:.7"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.6"/><path d="M8 2v4M16 2v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-    <span id="gcalLabel">Connect Calendar</span>
-  </button>
+  <div class="hdr-left">
+    <div>
+      <div class="hdr-title">TaskFlow Dashboard</div>
+      <div class="hdr-sub">Smart Quality Systems · Singapore</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <span class="hdr-date" id="hdrDate"></span>
+    <span class="phase-pill" id="phasePill">—</span>
+    <button class="gcal-btn" id="gcalBtn" onclick="openGCalModal()">
+      <div class="gcal-dot" id="gcalDot"></div>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="opacity:.8"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.6"/><path d="M8 2v4M16 2v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span id="gcalLabel">Connect Calendar</span>
+    </button>
+  </div>
 </div>
 
-<div class="tabs">
-  <button class="tab on" onclick="switchTab('tasks',this)">✦ Tasks</button>
-  <button class="tab" onclick="switchTab('weekly',this)">📅 Weekly</button>
-  <button class="tab" onclick="switchTab('monthly',this)">🗓 Monthly</button>
-  <button class="tab" onclick="switchTab('planner',this)">🎯 Planner</button>
+<!-- NAV -->
+<div class="nav">
+  <div class="ntab on" onclick="switchTab('overview',this)">Overview</div>
+  <div class="ntab" onclick="switchTab('tasks',this)">Tasks & Actions</div>
+  <div class="ntab" onclick="switchTab('schedule',this)">Schedule</div>
+  <div class="ntab" onclick="switchTab('weekly',this)">Weekly Calendar</div>
+  <div class="ntab" onclick="switchTab('monthly',this)">Monthly Calendar</div>
+  <div class="ntab" onclick="switchTab('quality',this)">Quality & Risk</div>
+  <div class="ntab" onclick="switchTab('planner',this)">Planner</div>
 </div>
 
 <div class="content">
 
-  <!-- TASKS -->
-  <div class="pane on" id="pane-tasks">
-    <div class="stats-row" id="statsRow"></div>
-    <div class="prog"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
-    <div class="tinput-card">
-      <div class="hint">What needs to get done?</div>
-      <input class="main-input" id="taskInput" placeholder="Add a task…" onkeydown="if(event.key==='Enter')addTask()"/>
-      <div class="row" id="tagChips" style="margin-bottom:12px">
-        <button class="chip" onclick="toggleTag(this,'Work')">Work</button>
-        <button class="chip" onclick="toggleTag(this,'Personal')">Personal</button>
-        <button class="chip" onclick="toggleTag(this,'Urgent')">Urgent</button>
-        <button class="chip" onclick="toggleTag(this,'Health')">Health</button>
-        <button class="chip" onclick="toggleTag(this,'Finance')">Finance</button>
-        <button class="chip" onclick="toggleTag(this,'Learning')">Learning</button>
-      </div>
-      <div class="sep"></div>
-      <div class="row">
-        <button class="pri hi" onclick="setPri('hi')">● Hi</button>
-        <button class="pri med on" onclick="setPri('med')">● Med</button>
-        <button class="pri lo" onclick="setPri('lo')">● Lo</button>
-        <div class="date-wrap"><span class="date-lbl">Start</span><input type="date" id="startDate"/></div>
-        <div class="date-wrap"><span class="date-lbl">Due</span><input type="date" id="dueDate"/></div>
-        <button class="add-btn" onclick="addTask()">+</button>
-      </div>
+<!-- ══ OVERVIEW ══════════════════════════════ -->
+<div class="pane on" id="pane-overview">
+  <div class="stats-grid" id="statsGrid"></div>
+  <div class="sec-hdr">
+    <span class="sec-title">Task Register</span>
+    <div class="sec-actions">
+      <button class="btn" id="gcalSyncBtn" onclick="syncAllPending()" style="display:none">↑ Sync all</button>
+      <button class="btn primary" onclick="openAddTask()">+ Add task</button>
     </div>
-    <div class="row" style="margin-bottom:13px;flex-wrap:wrap;gap:5px">
-      <button class="fbtn on" onclick="setFilter('all',this)">All</button>
-      <button class="fbtn" onclick="setFilter('active',this)">Active</button>
-      <button class="fbtn" onclick="setFilter('done',this)">Done</button>
-      <button class="fbtn" onclick="setFilter('overdue',this)">⚠ Overdue</button>
-      <button class="fbtn" onclick="setFilter('synced',this)">🗓 Synced</button>
-      <div style="display:flex;align-items:center;gap:6px;background:var(--s2);border:1.5px solid var(--b1);border-radius:8px;padding:5px 10px;flex:1;min-width:120px">
-        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" style="opacity:.4;flex-shrink:0"><circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10 10l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <input id="searchQ" style="background:transparent;border:none;outline:none;color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;width:100%" placeholder="Search…" oninput="renderTasks()"/>
-      </div>
-    </div>
-    <div class="slbl" id="taskCountLbl">Tasks</div>
-    <div id="taskList"></div>
   </div>
-
-  <!-- WEEKLY -->
-  <div class="pane" id="pane-weekly">
-    <div class="week-nav">
-      <button class="nbtn" onclick="wkOff--;renderWeekly()">‹</button>
-      <div class="week-title" id="weekTitle"></div>
-      <button class="nbtn" onclick="wkOff++;renderWeekly()">›</button>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
-      <button class="fbtn" onclick="wkOff=0;renderWeekly()">Today</button>
-      <button class="fbtn on" onclick="openNewEvent(todayStr())">+ Add Event</button>
-      <span style="font-size:11px;color:var(--muted);margin-left:auto" id="wkSync"></span>
-    </div>
-    <div class="week-grid" id="weekGrid"></div>
-    <div id="weekDetail"></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Task</th><th>Tags</th><th>Priority</th><th>Due date</th><th>Status</th><th>Calendar</th><th>Actions</th></tr></thead>
+      <tbody id="overviewTbl"></tbody>
+    </table>
   </div>
+</div>
 
-  <!-- MONTHLY -->
-  <div class="pane" id="pane-monthly">
-    <div class="month-nav">
-      <button class="nbtn" onclick="moOff--;renderMonthly()">‹</button>
-      <div class="month-title" id="monthTitle"></div>
-      <button class="nbtn" onclick="moOff++;renderMonthly()">›</button>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:12px">
-      <button class="fbtn" onclick="moOff=0;renderMonthly()">Today</button>
-      <button class="fbtn on" onclick="openNewEvent(todayStr())">+ Add Event</button>
-    </div>
-    <div class="dow-row" id="dowRow"></div>
-    <div class="month-grid" id="monthGrid"></div>
-    <div id="monthDetail"></div>
+<!-- ══ TASKS ══════════════════════════════════ -->
+<div class="pane" id="pane-tasks">
+  <div class="sec-hdr">
+    <span class="sec-title">All Tasks & Actions</span>
+    <button class="btn primary" onclick="openAddTask()">+ Add task</button>
   </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+    <select id="fStatus" onchange="renderTasks()" style="font-size:12.5px;padding:7px 10px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;outline:none;">
+      <option value="all">All status</option>
+      <option value="On track">On track</option>
+      <option value="At risk">At risk</option>
+      <option value="Delayed">Delayed</option>
+      <option value="Done">Done</option>
+    </select>
+    <select id="fPri" onchange="renderTasks()" style="font-size:12.5px;padding:7px 10px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;outline:none;">
+      <option value="all">All priority</option>
+      <option value="Hi">High</option>
+      <option value="Med">Medium</option>
+      <option value="Lo">Low</option>
+    </select>
+    <input id="fSearch" placeholder="Search tasks…" oninput="renderTasks()" style="font-size:12.5px;padding:7px 12px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;flex:1;min-width:140px;outline:none;"/>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th style="width:32px"></th><th>Task</th><th>Tags</th><th>Priority</th><th>Start</th><th>Due</th><th>Owner</th><th>Status</th><th>Calendar</th><th>Actions</th></tr></thead>
+      <tbody id="tasksTbl"></tbody>
+    </table>
+  </div>
+</div>
 
-  <!-- PLANNER -->
-  <div class="pane" id="pane-planner">
-    <div class="top3-title">🎯 Today's Top 3</div>
-    <div id="top3Slots"></div>
-    <button class="fbtn on" style="margin-top:6px" onclick="saveTop3()">Save priorities</button>
-    <div class="sep" style="margin:18px 0"></div>
-    <div class="pomo">
-      <div class="pom-lbl">Pomodoro Timer</div>
-      <div class="pom-modes">
-        <button class="pom-mode on" onclick="setPomMode('work',this)">Focus 25m</button>
-        <button class="pom-mode" onclick="setPomMode('short',this)">Break 5m</button>
-        <button class="pom-mode" onclick="setPomMode('long',this)">Long 15m</button>
-      </div>
-      <div class="pom-ring">
-        <svg width="130" height="130" viewBox="0 0 130 130">
-          <circle class="pom-track" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="0"/>
-          <circle class="pom-prog" id="pomCircle" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="0"/>
-        </svg>
-        <div class="pom-time" id="pomTime">25:00</div>
-      </div>
-      <div class="pom-sub" id="pomSub">Ready to focus</div>
-      <div class="pom-btns">
-        <button class="pom-btn start" id="pomBtn" onclick="togglePom()">Start</button>
-        <button class="pom-btn" onclick="resetPom()">Reset</button>
-      </div>
+<!-- ══ SCHEDULE ═══════════════════════════════ -->
+<div class="pane" id="pane-schedule">
+  <div class="sec-hdr" style="margin-bottom:14px">
+    <span class="sec-title">Gantt Timeline</span>
+    <span style="font-size:12px;color:#a0aec0" id="schedRange"></span>
+  </div>
+  <div class="tl-wrap" id="tlWrap"></div>
+  <div class="sec-hdr" style="margin-top:18px"><span class="sec-title">Overdue & Upcoming — 30 days</span></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Task</th><th>Due</th><th>Priority</th><th>Status</th><th>Calendar</th></tr></thead>
+      <tbody id="upcomingTbl"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ WEEKLY ═════════════════════════════════ -->
+<div class="pane" id="pane-weekly">
+  <div class="week-nav">
+    <button class="nav-arrow" onclick="wkOff--;renderWeekly()">‹</button>
+    <div class="week-title-txt" id="weekTitle"></div>
+    <button class="nav-arrow" onclick="wkOff++;renderWeekly()">›</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
+    <button class="btn sm" onclick="wkOff=0;renderWeekly()">Today</button>
+    <button class="btn sm primary" onclick="openNewCalEvent(todayStr())">+ Add event</button>
+    <span style="font-size:11.5px;color:#a0aec0;margin-left:auto" id="wkGcalStatus"></span>
+  </div>
+  <div class="week-grid" id="weekGrid"></div>
+  <div id="weekDetail"></div>
+</div>
+
+<!-- ══ MONTHLY ════════════════════════════════ -->
+<div class="pane" id="pane-monthly">
+  <div class="month-nav">
+    <button class="nav-arrow" onclick="moOff--;renderMonthly()">‹</button>
+    <div class="month-title-txt" id="monthTitle"></div>
+    <button class="nav-arrow" onclick="moOff++;renderMonthly()">›</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <button class="btn sm" onclick="moOff=0;renderMonthly()">Today</button>
+    <button class="btn sm primary" onclick="openNewCalEvent(todayStr())">+ Add event</button>
+  </div>
+  <div class="dow-row" id="dowRow"></div>
+  <div class="month-grid" id="monthGrid"></div>
+  <div id="monthDetail"></div>
+</div>
+
+<!-- ══ QUALITY ════════════════════════════════ -->
+<div class="pane" id="pane-quality">
+  <div class="two-col">
+    <div class="qpanel"><div class="qpanel-title">Completion metrics</div><div id="qualMetrics"></div></div>
+    <div class="qpanel"><div class="qpanel-title">Priority breakdown</div><div id="priBreakdown"></div></div>
+  </div>
+  <div class="sec-hdr"><span class="sec-title">High-priority & at-risk items</span></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Task</th><th>Priority</th><th>Due</th><th>Status</th><th>Risk</th><th>Actions</th></tr></thead>
+      <tbody id="riskTbl"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ PLANNER ════════════════════════════════ -->
+<div class="pane" id="pane-planner">
+  <div class="sec-hdr" style="margin-bottom:14px"><span class="sec-title">6-day view</span></div>
+  <div class="planner-week" id="plannerWeek"></div>
+  <div class="sec-hdr"><span class="sec-title">Today's Top 3</span></div>
+  <div id="top3Slots"></div>
+  <button class="btn sm primary" style="margin-top:8px" onclick="saveTop3()">Save priorities</button>
+  <div class="pomo-wrap">
+    <div class="pom-lbl">Pomodoro Timer</div>
+    <div class="pom-modes">
+      <button class="pom-mode on" onclick="setPomMode('work',this)">Focus 25m</button>
+      <button class="pom-mode" onclick="setPomMode('short',this)">Break 5m</button>
+      <button class="pom-mode" onclick="setPomMode('long',this)">Long 15m</button>
+    </div>
+    <div class="pom-ring">
+      <svg width="140" height="140" viewBox="0 0 140 140">
+        <circle class="pom-track" cx="70" cy="70" r="58" stroke-dasharray="364.4" stroke-dashoffset="0"/>
+        <circle class="pom-prog" id="pomCircle" cx="70" cy="70" r="58" stroke-dasharray="364.4" stroke-dashoffset="0"/>
+      </svg>
+      <div class="pom-time" id="pomTime">25:00</div>
+    </div>
+    <div class="pom-sub" id="pomSub">Ready to focus</div>
+    <div class="pom-btns">
+      <button class="btn primary" id="pomBtn" onclick="togglePom()">Start</button>
+      <button class="btn" onclick="resetPom()">Reset</button>
     </div>
   </div>
 </div>
 
+</div><!-- /content -->
+
 <div class="toast" id="toast"></div>
 
-<!-- EVENT MODAL -->
+<!-- ── TASK MODAL ── -->
+<div class="overlay" id="taskOv" onclick="if(event.target===this)closeTaskModal()">
+  <div class="modal">
+    <div class="modal-title" id="taskModalTitle">Add task</div>
+    <div class="form-grid">
+      <div class="ff full"><label class="flbl">Task name <span class="req">*</span></label><input id="fTitle" placeholder="e.g. Review NCR report"/></div>
+      <div class="ff"><label class="flbl">Category</label>
+        <select id="fTag"><option>Work</option><option>Quality</option><option>Urgent</option><option>Health</option><option>Finance</option><option>Personal</option><option>Learning</option></select>
+      </div>
+      <div class="ff"><label class="flbl">Priority</label>
+        <select id="fPriority"><option value="Hi">High</option><option value="Med" selected>Medium</option><option value="Lo">Low</option></select>
+      </div>
+      <div class="ff"><label class="flbl">Start date</label><input type="date" id="fStart"/></div>
+      <div class="ff"><label class="flbl">Due date</label><input type="date" id="fDue"/></div>
+      <div class="ff"><label class="flbl">Owner</label><input id="fOwner" placeholder="Full name"/></div>
+      <div class="ff"><label class="flbl">Overall status</label>
+        <select id="fStatusM"><option value="On track" selected>On track</option><option value="At risk">At risk</option><option value="Delayed">Delayed</option><option value="Done">Done</option></select>
+      </div>
+      <div class="ff full"><label class="flbl">Notes / observations</label><textarea id="fNotes" placeholder="Key issues, context, or flags…"></textarea></div>
+    </div>
+    <div class="mac">
+      <button class="mbtn cancel" onclick="closeTaskModal()">Cancel</button>
+      <button class="mbtn save" onclick="saveTask()">Save task</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── EVENT MODAL ── -->
 <div class="overlay" id="evOv" onclick="if(event.target===this)closeEvModal()">
   <div class="modal" id="evModal"></div>
 </div>
 
-<!-- GCAL MODAL -->
+<!-- ── GCAL MODAL ── -->
 <div class="overlay" id="gcalOv" onclick="if(event.target===this)closeGCalModal()">
   <div class="modal" id="gcalModal"></div>
 </div>
 
 <script>
-/* ── MIGRATE: pull old PWA data into new keys on first run ── */
-(function migrate(){
-  // Tasks: old key = sq_tasks3
+/* ════════════════════════════════════════════
+   MIGRATE old PWA data
+════════════════════════════════════════════ */
+(function(){
   if(!localStorage.getItem('tf6_tasks')){
-    const old = localStorage.getItem('sq_tasks3');
-    if(old){
-      try{
-        const oldTasks = JSON.parse(old);
-        // Normalise shape — old tasks may lack some new fields
-        const normalised = oldTasks.map(t=>({
-          id:        t.id        || Date.now()+Math.random(),
-          title:     t.title     || t.text || '',
-          tags:      t.tags      || (t.category?[t.category]:[]),
-          priority:  t.priority  || 'med',
-          startDate: t.startDate || '',
-          dueDate:   t.dueDate   || t.due || '',
-          done:      t.done      || t.completed || false,
-          synced:    false,
-          gcalId:    null,
-          calUrl:    null,
-          createdAt: t.createdAt || new Date().toISOString()
-        }));
-        localStorage.setItem('tf6_tasks', JSON.stringify(normalised));
-      }catch(e){ console.warn('Migration failed', e); }
-    }
+    const old=localStorage.getItem('sq_tasks3');
+    if(old){try{
+      const ot=JSON.parse(old);
+      localStorage.setItem('tf6_tasks',JSON.stringify(ot.map(t=>({
+        id:t.id||Date.now()+Math.random(),title:t.title||t.text||'',
+        tags:t.tags||(t.category?[t.category]:[]),
+        priority:t.priority||'Med',startDate:t.startDate||'',
+        dueDate:t.dueDate||t.due||'',done:t.done||false,
+        status:t.status||'On track',owner:t.owner||'',notes:t.notes||'',
+        synced:false,gcalId:null,calUrl:null,createdAt:t.createdAt||new Date().toISOString()
+      }))));
+    }catch(e){}}
   }
-  // Calendar events: old key = cal_evts3
   if(!localStorage.getItem('tf6_cal')){
-    const old = localStorage.getItem('cal_evts3');
-    if(old){
-      try{ localStorage.setItem('tf6_cal', old); }
-      catch(e){}
-    }
+    const old=localStorage.getItem('cal_evts3');
+    if(old){try{localStorage.setItem('tf6_cal',old);}catch(e){}}
   }
 })();
 
-/* ── STATE ─────────────────────────────────── */
-let tasks     = JSON.parse(localStorage.getItem('tf6_tasks') || '[]');
-let calEvs    = JSON.parse(localStorage.getItem('tf6_cal')   || '[]');
-let top3      = JSON.parse(localStorage.getItem('tf6_top3')  || '[{"text":"","done":false},{"text":"","done":false},{"text":"","done":false}]');
-let gcal      = JSON.parse(localStorage.getItem('tf6_gcal')  || 'null');
-let selTags=[],selPri='med',taskFilter='all';
-let wkOff=0,moOff=0,selWkDay=null,selMoDay=null;
-let pomMode='work',pomRun=false,pomRemain=1500,pomTotal=1500,pomTmr=null;
+/* ════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════ */
+let tasks   = JSON.parse(localStorage.getItem('tf6_tasks') || '[]');
+let calEvs  = JSON.parse(localStorage.getItem('tf6_cal')   || '[]');
+let top3    = JSON.parse(localStorage.getItem('tf6_top3')  || '[{"text":"","done":false},{"text":"","done":false},{"text":"","done":false}]');
+let gcal    = JSON.parse(localStorage.getItem('tf6_gcal')  || 'null');
+let wkOff=0, moOff=0, selWkDay=null, selMoDay=null;
+let editId=null;
+let pomMode='work', pomRun=false, pomRemain=1500, pomTotal=1500, pomTmr=null;
 let toastTmr;
-const CIRC=339.3;
+const CIRC=364.4;
 const POM={work:1500,short:300,long:900};
 
 function save(){
@@ -392,146 +494,187 @@ function save(){
   localStorage.setItem('tf6_gcal',JSON.stringify(gcal));
 }
 
-/* ── DATE HELPERS ─────────────────────────── */
-function localStr(d){
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
+/* ════════════════════════════════════════════
+   DATE HELPERS
+════════════════════════════════════════════ */
+function localStr(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function todayStr(){return localStr(new Date());}
-function fmtD(s){
-  if(!s)return'';
-  const d=new Date(s+'T00:00:00');
-  return d.toLocaleDateString('en-SG',{day:'numeric',month:'short'});
-}
-function isOverdue(t){
-  if(!t.dueDate||t.done)return false;
-  return new Date(t.dueDate+'T00:00:00')<new Date(new Date().toDateString());
-}
+function fmtD(s){if(!s)return'—';const d=new Date(s+'T00:00:00');return d.toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});}
+function fmtS(s){if(!s)return'—';const d=new Date(s+'T00:00:00');return d.toLocaleDateString('en-SG',{day:'numeric',month:'short'});}
+function isOverdue(t){if(!t.dueDate||t.done)return false;return new Date(t.dueDate+'T00:00:00')<new Date(new Date().toDateString());}
 function eventsOn(ds){
-  const te=tasks.filter(t=>t.dueDate===ds||t.startDate===ds);
-  const ce=calEvs.filter(e=>e.date===ds||(e.endDate&&e.date<=ds&&e.endDate>=ds));
-  return{te,ce};
+  return{
+    te:tasks.filter(t=>t.dueDate===ds||t.startDate===ds),
+    ce:calEvs.filter(e=>e.date===ds||(e.endDate&&e.date<=ds&&e.endDate>=ds))
+  };
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* ════════════════════════════════════════════
+   BADGES
+════════════════════════════════════════════ */
+function statusBadge(t){
+  if(t.done) return'<span class="badge b-done"><span class="dot" style="background:#3182ce"></span>Done</span>';
+  const s=t.status||'On track';
+  if(s==='At risk')  return'<span class="badge b-risk"><span class="dot" style="background:#d69e2e"></span>At risk</span>';
+  if(s==='Delayed')  return'<span class="badge b-delay"><span class="dot" style="background:#e53e3e"></span>Delayed</span>';
+  if(s==='Done')     return'<span class="badge b-done"><span class="dot" style="background:#3182ce"></span>Done</span>';
+  return'<span class="badge b-track"><span class="dot" style="background:#38a169"></span>On track</span>';
+}
+function priBadge(p){
+  if(p==='Hi') return'<span class="badge b-hi">High</span>';
+  if(p==='Lo') return'<span class="badge b-lo">Low</span>';
+  return'<span class="badge b-med">Medium</span>';
+}
+function calBadge(t){
+  if(t.synced) return`<span class="badge b-gcal" style="cursor:pointer" onclick="${t.calUrl?`window.open('${t.calUrl}','_blank')`:'void(0)'}" title="View in Google Calendar">🗓 Synced</span>`;
+  if(gcal&&(t.dueDate||t.startDate)) return`<button class="btn sm amber-o" onclick="manualSyncTask(${t.id})" style="padding:2px 8px;font-size:10.5px">↑ Sync</button>`;
+  return'<span style="color:#cbd5e0;font-size:11px">—</span>';
 }
 
-/* ── INIT ─────────────────────────────────── */
+/* ════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded',()=>{
-  updateGCalUI();renderAll();renderTop3();updatePomUI();
+  updateGCalUI();
+  document.getElementById('hdrDate').textContent=new Date().toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
+  renderAll();renderTop3();updatePomUI();
   window.addEventListener('message',handleOAuthMsg);
 });
-function renderAll(){renderStats();renderTasks();renderWeekly();renderMonthly();}
 
-/* ── TABS ─────────────────────────────────── */
-function switchTab(id,btn){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+function renderAll(){updatePhasePill();renderOverview();}
+
+function updatePhasePill(){
+  const total=tasks.length,done=tasks.filter(t=>t.done).length;
+  const pct=total?Math.round((done/total)*100):0;
+  document.getElementById('phasePill').textContent=`${done}/${total} done · ${pct}%`;
+}
+
+/* ════════════════════════════════════════════
+   TABS
+════════════════════════════════════════════ */
+function switchTab(id,el){
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
-  btn.classList.add('on');
+  el.classList.add('on');
   document.getElementById('pane-'+id).classList.add('on');
-  if(id==='weekly')renderWeekly();
-  if(id==='monthly')renderMonthly();
+  const fn={overview:renderOverview,tasks:renderTasksTab,schedule:renderSchedule,
+    weekly:renderWeekly,monthly:renderMonthly,quality:renderQuality,planner:renderPlanner};
+  if(fn[id]) fn[id]();
 }
 
-/* ── TAG/PRI ──────────────────────────────── */
-function toggleTag(el,tag){
-  if(selTags.includes(tag)){selTags=selTags.filter(t=>t!==tag);el.classList.remove('on');}
-  else{selTags.push(tag);el.classList.add('on');}
-}
-function setPri(p){
-  selPri=p;
-  document.querySelectorAll('.tinput-card .pri').forEach(b=>b.classList.remove('on'));
-  document.querySelector('.tinput-card .pri.'+p).classList.add('on');
+/* ════════════════════════════════════════════
+   OVERVIEW
+════════════════════════════════════════════ */
+function renderOverview(){
+  updatePhasePill();
+  const total=tasks.length,done=tasks.filter(t=>t.done).length;
+  const ov=tasks.filter(t=>isOverdue(t)).length,hi=tasks.filter(t=>t.priority==='Hi'&&!t.done).length;
+  const pct=total?Math.round((done/total)*100):0;
+  document.getElementById('statsGrid').innerHTML=`
+    <div class="scard"><div class="scard-lbl">Total tasks</div><div class="scard-val blue">${total}</div><div class="scard-sub">${tasks.filter(t=>!t.done).length} active · ${done} complete</div></div>
+    <div class="scard"><div class="scard-lbl">Completion</div><div class="scard-val green">${pct}%</div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>
+    <div class="scard"><div class="scard-lbl">Overdue</div><div class="scard-val ${ov>0?'red':'green'}">${ov}</div><div class="scard-sub">${ov>0?'Requires attention':'All on schedule'}</div></div>
+    <div class="scard"><div class="scard-lbl">High priority open</div><div class="scard-val ${hi>0?'amber':'green'}">${hi}</div><div class="scard-sub">unresolved items</div></div>`;
+  const syncBtn=document.getElementById('gcalSyncBtn');
+  if(syncBtn) syncBtn.style.display=gcal?'inline-flex':'none';
+  const tbody=document.getElementById('overviewTbl');
+  if(!tasks.length){tbody.innerHTML=`<tr><td class="empty-td" colspan="7">No tasks yet. Click "+ Add task" to begin.</td></tr>`;return;}
+  tbody.innerHTML=tasks.slice(0,12).map(t=>`
+    <tr>
+      <td><span style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'#2d3748'}">${esc(t.title)}</span></td>
+      <td>${(t.tags||[]).map(g=>`<span class="tag-chip">${g}</span>`).join('')}</td>
+      <td>${priBadge(t.priority||'Med')}</td>
+      <td style="font-size:12.5px;color:${isOverdue(t)?'#9b2c2c':'#718096'}">${fmtS(t.dueDate)}${isOverdue(t)?' ⚠':''}</td>
+      <td>${statusBadge(t)}</td>
+      <td>${calBadge(t)}</td>
+      <td style="display:flex;gap:5px;flex-wrap:nowrap">
+        <button class="btn sm ${t.done?'':'success'}" onclick="toggleDone(${t.id})">${t.done?'Reopen':'✓ Done'}</button>
+        <button class="btn sm" onclick="openEditTask(${t.id})">Edit</button>
+        <button class="btn sm danger" onclick="deleteTask(${t.id})">Del</button>
+      </td>
+    </tr>`).join('');
 }
 
-/* ── TASK CRUD ────────────────────────────── */
-function addTask(){
-  const inp=document.getElementById('taskInput');
-  const title=inp.value.trim();
-  if(!title){inp.focus();toast('Type a task first','warn');return;}
-  const sd=document.getElementById('startDate').value;
-  const dd=document.getElementById('dueDate').value;
-  const t={id:Date.now(),title,tags:[...selTags],priority:selPri,startDate:sd,dueDate:dd,
-    done:false,synced:false,gcalId:null,calUrl:null,createdAt:new Date().toISOString()};
-  tasks.unshift(t);
-  if(gcal&&(dd||sd)){pushTask(t).then(()=>{save();renderAll();});}
-  else{save();renderAll();}
-  inp.value='';
-  document.getElementById('startDate').value='';
-  document.getElementById('dueDate').value='';
-  selTags=[];
-  document.querySelectorAll('#tagChips .chip').forEach(c=>c.classList.remove('on'));
-  setPri('med');inp.focus();
-  toast('✓ Task added'+(gcal&&(dd||sd)?' & synced':''),'ok');
-}
-function toggleDone(id){
-  const t=tasks.find(t=>t.id===id);if(t){t.done=!t.done;save();renderAll();}
-}
-function deleteTask(id){
-  if(!confirm('Delete this task?'))return;
-  tasks=tasks.filter(t=>t.id!==id);save();renderAll();toast('Deleted','');
-}
-function setFilter(f,btn){
-  taskFilter=f;
-  document.querySelectorAll('#pane-tasks .fbtn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');renderTasks();
-}
-function getFiltered(){
-  const q=(document.getElementById('searchQ').value||'').toLowerCase();
-  return tasks.filter(t=>{
-    if(q&&!t.title.toLowerCase().includes(q)&&!t.tags.join(' ').toLowerCase().includes(q))return false;
-    if(taskFilter==='active')return!t.done;
-    if(taskFilter==='done')return t.done;
-    if(taskFilter==='overdue')return!t.done&&isOverdue(t);
-    if(taskFilter==='synced')return t.synced;
+/* ════════════════════════════════════════════
+   TASKS TAB
+════════════════════════════════════════════ */
+function renderTasksTab(){
+  const fs=document.getElementById('fStatus').value;
+  const fp=document.getElementById('fPri').value;
+  const fq=(document.getElementById('fSearch').value||'').toLowerCase();
+  const data=tasks.filter(t=>{
+    if(fq&&!t.title.toLowerCase().includes(fq)&&!(t.tags||[]).join(' ').toLowerCase().includes(fq))return false;
+    if(fp!=='all'&&(t.priority||'Med')!==fp)return false;
+    if(fs!=='all'){const s=t.done?'Done':(t.status||'On track');if(s!==fs)return false;}
     return true;
   });
+  const tbody=document.getElementById('tasksTbl');
+  if(!data.length){tbody.innerHTML=`<tr><td class="empty-td" colspan="10">No matching tasks.</td></tr>`;return;}
+  tbody.innerHTML=data.map(t=>`
+    <tr>
+      <td><div class="pchk ${t.done?'done-c':''}" onclick="toggleDone(${t.id})">${t.done?'✓':''}</div></td>
+      <td style="max-width:180px">
+        <span style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'#2d3748'}">${esc(t.title)}</span>
+        ${t.notes?`<div style="font-size:11px;color:#a0aec0;margin-top:2px">${esc(t.notes).substring(0,55)}${t.notes.length>55?'…':''}</div>`:''}
+      </td>
+      <td>${(t.tags||[]).map(g=>`<span class="tag-chip">${g}</span>`).join('')}</td>
+      <td>${priBadge(t.priority||'Med')}</td>
+      <td style="font-size:12px;color:#718096">${fmtS(t.startDate)}</td>
+      <td style="font-size:12px;color:${isOverdue(t)?'#9b2c2c':'#718096'}">${fmtS(t.dueDate)}${isOverdue(t)?' ⚠':''}</td>
+      <td style="font-size:12px;color:#718096">${esc(t.owner||'—')}</td>
+      <td>${statusBadge(t)}</td>
+      <td>${calBadge(t)}</td>
+      <td style="display:flex;gap:4px;flex-wrap:nowrap">
+        <button class="btn sm ${t.done?'':'success'}" onclick="toggleDone(${t.id})">${t.done?'Reopen':'Done'}</button>
+        <button class="btn sm" onclick="openEditTask(${t.id})">Edit</button>
+        <button class="btn sm danger" onclick="deleteTask(${t.id})">Del</button>
+      </td>
+    </tr>`).join('');
 }
 
-/* ── RENDER TASKS ─────────────────────────── */
-function renderStats(){
-  const total=tasks.length,done=tasks.filter(t=>t.done).length;
-  const ov=tasks.filter(t=>isOverdue(t)).length,syn=tasks.filter(t=>t.synced).length;
-  document.getElementById('statsRow').innerHTML=`
-    <div class="stat"><div class="stat-v blue">${total}</div><div class="stat-l">Total</div></div>
-    <div class="stat"><div class="stat-v green">${done}</div><div class="stat-l">Done</div></div>
-    <div class="stat"><div class="stat-v red">${ov}</div><div class="stat-l">Overdue</div></div>
-    <div class="stat"><div class="stat-v yellow">${syn}</div><div class="stat-l">Synced</div></div>`;
-  const pct=total?Math.round((done/total)*100):0;
-  document.getElementById('progFill').style.width=pct+'%';
-}
-function renderTasks(){
-  const list=document.getElementById('taskList');
-  const data=getFiltered();
-  document.getElementById('taskCountLbl').textContent=data.length+' task'+(data.length!==1?'s':'');
-  if(!data.length){list.innerHTML='<div class="empty"><div style="font-size:32px;opacity:.25;margin-bottom:8px">✦</div>No tasks here.</div>';return;}
-  list.innerHTML=data.map(t=>`
-    <div class="task-item ${t.priority} ${t.done?'done':''} ${isOverdue(t)?'overdue':''}">
-      <button class="chk ${t.done?'on':''}" onclick="toggleDone(${t.id})">${t.done?'✓':''}</button>
-      <div class="task-body">
-        <div class="task-title">${esc(t.title)}</div>
-        <div class="task-meta">
-          ${t.tags.map(g=>`<span class="m-tag">${g}</span>`).join('')}
-          ${t.startDate?`<span class="m-date">▶ ${fmtD(t.startDate)}</span>`:''}
-          ${t.dueDate?`<span class="m-date ${isOverdue(t)?'late':''}">⬛ ${fmtD(t.dueDate)}${isOverdue(t)?' ⚠':''}</span>`:''}
-          ${t.synced?`<span class="syn-badge" onclick="if(tasks.find(t=>t.id===${t.id})?.calUrl)window.open(tasks.find(t=>t.id===${t.id}).calUrl,'_blank')">🗓</span>`:''}
-        </div>
-      </div>
-      <div class="task-actions">
-        <button class="act sync" onclick="manualSyncTask(${t.id})" title="Sync to Calendar">
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M1 7h14" stroke="currentColor" stroke-width="1.4"/><path d="M5 1v3M11 1v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        </button>
-        <button class="act" onclick="openTaskEdit(${t.id})" title="Edit">
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M11 2l3 3L5 14H2v-3L11 2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
-        </button>
-        <button class="act del" onclick="deleteTask(${t.id})" title="Delete">
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4l.5 10h5L11 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-      </div>
-    </div>`).join('');
+/* ════════════════════════════════════════════
+   SCHEDULE
+════════════════════════════════════════════ */
+function renderSchedule(){
+  const wd=tasks.filter(t=>t.dueDate).sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
+  if(!wd.length){document.getElementById('tlWrap').innerHTML='<div style="text-align:center;padding:32px;color:#a0aec0;font-size:13px">No tasks with dates yet.</div>';return;}
+  const minD=new Date(wd[0].startDate||wd[0].dueDate+'T00:00:00');
+  const maxD=new Date(wd[wd.length-1].dueDate+'T00:00:00');
+  const total=Math.max(maxD-minD,1);
+  document.getElementById('schedRange').textContent=fmtD(localStr(minD))+' → '+fmtD(localStr(maxD));
+  document.getElementById('tlWrap').innerHTML=wd.slice(0,10).map(t=>{
+    const sd=new Date((t.startDate||t.dueDate)+'T00:00:00');
+    const ed=new Date(t.dueDate+'T00:00:00');
+    const left=Math.max(0,((sd-minD)/total)*100);
+    const width=Math.max(3,((ed-sd+86400000)/total)*100);
+    const col=t.priority==='Hi'?'#9b2c2c':t.priority==='Med'?'#744210':'#1a3a5c';
+    return`<div class="tl-row">
+      <div class="tl-name" title="${esc(t.title)}">${esc(t.title).substring(0,24)}${t.title.length>24?'…':''}</div>
+      <div class="tl-bar-bg"><div class="tl-bar" style="left:${left.toFixed(1)}%;width:${width.toFixed(1)}%;background:${col}">${width>12?esc(t.title).substring(0,12):''}</div></div>
+      <div class="tl-dates">${fmtS(t.startDate||t.dueDate)} → ${fmtS(t.dueDate)}</div>
+    </div>`;
+  }).join('');
+  const now=new Date(),in30=new Date(now);in30.setDate(in30.getDate()+30);
+  const up=tasks.filter(t=>t.dueDate&&!t.done&&new Date(t.dueDate+'T00:00:00')<=in30).sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
+  const tbody=document.getElementById('upcomingTbl');
+  if(!up.length){tbody.innerHTML=`<tr><td class="empty-td" colspan="5">No overdue or upcoming tasks in the next 30 days.</td></tr>`;return;}
+  tbody.innerHTML=up.map(t=>`
+    <tr>
+      <td>${esc(t.title)}</td>
+      <td style="font-size:12.5px;color:${isOverdue(t)?'#9b2c2c':'#718096'}">${fmtS(t.dueDate)}${isOverdue(t)?' ⚠':''}</td>
+      <td>${priBadge(t.priority||'Med')}</td>
+      <td>${statusBadge(t)}</td>
+      <td>${calBadge(t)}</td>
+    </tr>`).join('');
 }
 
-/* ── WEEKLY VIEW ──────────────────────────── */
+/* ════════════════════════════════════════════
+   WEEKLY
+════════════════════════════════════════════ */
 function getWeekDays(off){
   const now=new Date();
-  const mon=new Date(now);
-  mon.setDate(now.getDate()-((now.getDay()+6)%7)+off*7);
+  const mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7)+off*7);
   return Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
 }
 function renderWeekly(){
@@ -541,19 +684,19 @@ function renderWeekly(){
   document.getElementById('weekTitle').textContent=
     days[0].toLocaleDateString('en-SG',{day:'numeric',month:'short'})+' – '+
     days[6].toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
-  document.getElementById('wkSync').textContent=gcal?'🟢 Calendar synced':'';
+  document.getElementById('wkGcalStatus').textContent=gcal?'🟢 Calendar connected':'';
   document.getElementById('weekGrid').innerHTML=days.map((d,i)=>{
     const ds=localStr(d);
     const{te,ce}=eventsOn(ds);
-    const all=[...te.slice(0,2).map(t=>({lbl:t.title,cls:'task-'+t.priority,id:t.id,type:'task'})),
-               ...ce.slice(0,2).map(c=>({lbl:c.title,cls:'cal-ev',id:c.id,type:'cal'}))];
+    const all=[...te.slice(0,2).map(t=>({lbl:t.title,cls:t.priority==='Hi'?'hi':t.priority==='Med'?'med':'lo',id:t.id,type:'task'})),
+               ...ce.slice(0,2).map(c=>({lbl:c.title,cls:'cal',id:c.id,type:'cal'}))];
     const extra=te.length+ce.length-all.length;
     return`<div class="dcol ${ds===ts?'today':''} ${ds===selWkDay?'sel':''}" onclick="selWkDay='${ds}';renderWeekly()">
-      <div class="dname">${DOW[i]}</div>
-      <div class="dnum">${d.getDate()}</div>
+      <div class="dow-lbl">${DOW[i]}</div>
+      <div class="day-num">${d.getDate()}</div>
       ${all.map(ev=>`<div class="dev ${ev.cls}" onclick="event.stopPropagation();openEvDetail('${ev.id}','${ev.type}')" title="${esc(ev.lbl)}">${esc(ev.lbl)}</div>`).join('')}
-      ${extra>0?`<div class="dmore">+${extra}</div>`:''}
-      <button class="dadd" onclick="event.stopPropagation();openNewEvent('${ds}')">+</button>
+      ${extra>0?`<div class="dmore">+${extra} more</div>`:''}
+      <button class="dadd-btn" onclick="event.stopPropagation();openNewCalEvent('${ds}')">+</button>
     </div>`;
   }).join('');
   renderWeekDetail();
@@ -565,47 +708,43 @@ function renderWeekDetail(){
   const d=new Date(selWkDay+'T00:00:00');
   const lbl=d.toLocaleDateString('en-SG',{weekday:'long',day:'numeric',month:'long'});
   c.innerHTML=`
-    <div class="day-detail">
-      <div class="day-detail-title">${lbl}</div>
-      ${te.length===0&&ce.length===0?`<div style="color:var(--muted);font-size:12.5px;margin-bottom:8px">No events.</div>`:''}
+    <div class="day-detail-panel">
+      <div class="ddp-title"><span>${lbl}</span><button class="btn sm primary" onclick="openNewCalEvent('${selWkDay}')">+ Add event</button></div>
+      ${te.length===0&&ce.length===0?'<div style="color:#a0aec0;font-size:13px">No events on this day.</div>':''}
       ${te.map(t=>`
         <div class="ev-row">
-          <div class="ev-dot" style="background:${t.priority==='hi'?'var(--red)':t.priority==='med'?'var(--yellow)':'var(--sky)'}"></div>
-          <div class="ev-title-t">${esc(t.title)}</div>
-          <span class="m-tag">${t.priority}</span>
-          ${t.synced?'<span class="syn-badge">🗓</span>':''}
-          <button class="act sync" onclick="manualSyncTask(${t.id})" title="Sync">
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M1 7h14" stroke="currentColor" stroke-width="1.4"/></svg>
-          </button>
+          <div class="ev-dot" style="background:${t.priority==='Hi'?'#9b2c2c':t.priority==='Med'?'#d69e2e':'#1a3a5c'}"></div>
+          <div class="ev-title">${esc(t.title)}</div>
+          ${priBadge(t.priority||'Med')}
+          ${t.synced?`<span class="badge b-gcal" style="cursor:pointer" onclick="${t.calUrl?`window.open('${t.calUrl}','_blank')`:'void(0)'}">🗓 Synced</span>`:''}
+          <button class="btn sm" onclick="manualSyncTask(${t.id})" title="Sync to Google Calendar">↑ Sync</button>
         </div>`).join('')}
       ${ce.map(c=>`
         <div class="ev-row">
-          <div class="ev-dot" style="background:${c.color||'var(--green)'}"></div>
-          <div class="ev-title-t">${esc(c.title)}</div>
-          ${c.time?`<span class="ev-time-t">${c.time}</span>`:''}
-          ${c.source==='gcal'?'<span class="syn-badge">🗓</span>':''}
-          <button class="act del" onclick="deleteCalEv('${c.id}')">
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4l.5 10h5L11 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
+          <div class="ev-dot" style="background:${c.color||'#38a169'}"></div>
+          <div class="ev-title">${esc(c.title)}</div>
+          ${c.time?`<span class="ev-time">${c.time}${c.endTime?' – '+c.endTime:''}</span>`:''}
+          ${c.source==='gcal'?'<span class="badge b-gcal">🗓 From GCal</span>':''}
+          <button class="btn sm danger" onclick="deleteCalEv('${c.id}')">Del</button>
         </div>`).join('')}
-      <button class="fbtn on" style="margin-top:8px" onclick="openNewEvent('${selWkDay}')">+ Add event</button>
     </div>`;
 }
 
-/* ── MONTHLY VIEW ─────────────────────────── */
+/* ════════════════════════════════════════════
+   MONTHLY
+════════════════════════════════════════════ */
 function renderMonthly(){
   const now=new Date();
-  const yr=now.getFullYear(),mo=now.getMonth()+moOff;
-  const tgt=new Date(yr,mo,1);
+  const tgt=new Date(now.getFullYear(),now.getMonth()+moOff,1);
   const ts=localStr(new Date());
   document.getElementById('monthTitle').textContent=tgt.toLocaleDateString('en-SG',{month:'long',year:'numeric'});
   const DOW=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  document.getElementById('dowRow').innerHTML=DOW.map(d=>`<div class="dow">${d}</div>`).join('');
+  document.getElementById('dowRow').innerHTML=DOW.map(d=>`<div class="dow-hdr">${d}</div>`).join('');
   const firstDow=(tgt.getDay()+6)%7;
   const dim=new Date(tgt.getFullYear(),tgt.getMonth()+1,0).getDate();
   const cells=[];
   for(let i=0;i<firstDow;i++){const d=new Date(tgt);d.setDate(d.getDate()-(firstDow-i));cells.push({d,cur:false});}
-  for(let i=1;i<=dim;i++)cells.push({d:new Date(tgt.getFullYear(),tgt.getMonth(),i),cur:true});
+  for(let i=1;i<=dim;i++) cells.push({d:new Date(tgt.getFullYear(),tgt.getMonth(),i),cur:true});
   while(cells.length%7!==0){const last=cells[cells.length-1].d;const d=new Date(last);d.setDate(last.getDate()+1);cells.push({d,cur:false});}
   document.getElementById('monthGrid').innerHTML=cells.map(({d,cur})=>{
     const ds=localStr(d);
@@ -615,7 +754,7 @@ function renderMonthly(){
     return`<div class="mcell ${ds===ts?'today':''} ${!cur?'other':''} ${ds===selMoDay?'sel':''}" onclick="selMoDay='${ds}';renderMonthly()">
       <div class="mcn">${d.getDate()}</div>
       ${vis.map(ev=>`<div class="mcev ${ev.cls}">${esc(ev.lbl)}</div>`).join('')}
-      ${extra>0?`<div style="font-size:8.5px;color:var(--muted)">+${extra}</div>`:''}
+      ${extra>0?`<div style="font-size:9px;color:#a0aec0">+${extra}</div>`:''}
     </div>`;
   }).join('');
   renderMonthDetail();
@@ -630,155 +769,110 @@ function renderMonthDetail(){
     <div class="sdp">
       <div class="sdp-hd">
         <span class="sdp-title">${lbl}</span>
-        <button class="fbtn on" onclick="openNewEvent('${selMoDay}')">+ Add</button>
+        <button class="btn sm primary" onclick="openNewCalEvent('${selMoDay}')">+ Add event</button>
       </div>
-      ${te.length===0&&ce.length===0?`<div style="color:var(--muted);font-size:12.5px">No events on this day.</div>`:''}
+      ${te.length===0&&ce.length===0?'<div style="color:#a0aec0;font-size:13px">No events on this day.</div>':''}
       ${te.map(t=>`
         <div class="ev-row">
-          <div class="ev-dot" style="background:${t.priority==='hi'?'var(--red)':t.priority==='med'?'var(--yellow)':'var(--sky)'}"></div>
-          <div class="ev-title-t">${esc(t.title)}</div>
-          ${t.synced?'<span class="syn-badge">🗓</span>':''}
-          <button class="act sync" onclick="manualSyncTask(${t.id})">
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M1 7h14" stroke="currentColor" stroke-width="1.4"/></svg>
-          </button>
+          <div class="ev-dot" style="background:${t.priority==='Hi'?'#9b2c2c':t.priority==='Med'?'#d69e2e':'#1a3a5c'}"></div>
+          <div class="ev-title">${esc(t.title)}</div>
+          ${priBadge(t.priority||'Med')}
+          ${t.synced?`<span class="badge b-gcal">🗓 Synced</span>`:''}
+          <button class="btn sm" onclick="manualSyncTask(${t.id})">↑ Sync</button>
         </div>`).join('')}
       ${ce.map(c=>`
         <div class="ev-row">
-          <div class="ev-dot" style="background:${c.color||'var(--green)'}"></div>
-          <div class="ev-title-t">${esc(c.title)}</div>
-          ${c.time?`<span class="ev-time-t">${c.time}</span>`:''}
-          ${c.source==='gcal'?'<span class="syn-badge">🗓</span>':''}
-          <button class="act del" onclick="deleteCalEv('${c.id}')">
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4l.5 10h5L11 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
+          <div class="ev-dot" style="background:${c.color||'#38a169'}"></div>
+          <div class="ev-title">${esc(c.title)}</div>
+          ${c.time?`<span class="ev-time">${c.time}</span>`:''}
+          ${c.source==='gcal'?'<span class="badge b-gcal">🗓 From GCal</span>':''}
+          <button class="btn sm danger" onclick="deleteCalEv('${c.id}')">Del</button>
         </div>`).join('')}
     </div>`;
 }
 
-/* ── EVENT MODAL ──────────────────────────── */
-function openNewEvent(dateStr){
-  document.getElementById('evModal').innerHTML=`
-    <div class="mhd"><span style="font-size:22px">🗓</span><span class="mhd-title">New Event</span></div>
-    <div class="mf"><div class="ml">Title</div><input class="mi" id="evTitle" placeholder="Event name…"/></div>
-    <div class="mf"><div class="ml">Date</div><input type="date" class="mi" id="evDate" value="${dateStr||''}"/></div>
-    <div class="mf"><div class="ml">End date</div><input type="date" class="mi" id="evEnd"/></div>
-    <div style="display:flex;gap:8px">
-      <div class="mf" style="flex:1"><div class="ml">Start time</div><div class="date-wrap"><input type="time" id="evTime"/></div></div>
-      <div class="mf" style="flex:1"><div class="ml">End time</div><div class="date-wrap"><input type="time" id="evEndTime"/></div></div>
-    </div>
-    <div class="mf"><div class="ml">Color</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        ${['#5b7cfa','#34d399','#f87171','#fbbf24','#f472b6','#38bdf8'].map((c,i)=>
-          `<div onclick="window._ec='${c}';document.querySelectorAll('.csw').forEach(s=>s.style.outline='none');this.style.outline='2px solid #fff'"
-            class="csw" style="width:22px;height:22px;border-radius:50%;background:${c};cursor:pointer;${i===0?'outline:2px solid #fff':''}"></div>`).join('')}
-      </div>
-    </div>
-    <div class="mac">
-      <button class="mbtn ghost" onclick="closeEvModal()">Cancel</button>
-      <button class="mbtn primary" onclick="saveNewEvent()">Add Event</button>
-    </div>`;
-  window._ec='#5b7cfa';
-  document.getElementById('evOv').classList.add('show');
+/* ════════════════════════════════════════════
+   QUALITY
+════════════════════════════════════════════ */
+function renderQuality(){
+  const total=tasks.length,done=tasks.filter(t=>t.done).length;
+  const ov=tasks.filter(t=>isOverdue(t)).length;
+  const onT=tasks.filter(t=>!t.done&&(t.status||'On track')==='On track').length;
+  const atR=tasks.filter(t=>!t.done&&t.status==='At risk').length;
+  const del=tasks.filter(t=>!t.done&&t.status==='Delayed').length;
+  const pct=total?Math.round((done/total)*100):0;
+  document.getElementById('qualMetrics').innerHTML=`
+    <div class="met-row"><span class="met-lbl">Completion rate</span><span class="met-val" style="color:#276749">${pct}%</span></div>
+    <div class="met-row"><span class="met-lbl">On track</span><span class="met-val" style="color:#276749">${onT}</span></div>
+    <div class="met-row"><span class="met-lbl">At risk</span><span class="met-val" style="color:#744210">${atR}</span></div>
+    <div class="met-row"><span class="met-lbl">Delayed</span><span class="met-val" style="color:#9b2c2c">${del}</span></div>
+    <div class="met-row"><span class="met-lbl">Overdue</span><span class="met-val" style="color:${ov>0?'#9b2c2c':'#276749'}">${ov}</span></div>
+    <div class="met-row"><span class="met-lbl">GCal synced</span><span class="met-val" style="color:#2c5282">${tasks.filter(t=>t.synced).length}</span></div>`;
+  const hi=tasks.filter(t=>t.priority==='Hi').length;
+  const med=tasks.filter(t=>(t.priority||'Med')==='Med').length;
+  const lo=tasks.filter(t=>t.priority==='Lo').length;
+  document.getElementById('priBreakdown').innerHTML=`
+    <div class="met-row"><span class="met-lbl">High priority</span><span class="met-val" style="color:#9b2c2c">${hi}</span></div>
+    <div class="met-row"><span class="met-lbl">Medium priority</span><span class="met-val" style="color:#744210">${med}</span></div>
+    <div class="met-row"><span class="met-lbl">Low priority</span><span class="met-val" style="color:#276749">${lo}</span></div>
+    <div class="met-row"><span class="met-lbl">No due date</span><span class="met-val" style="color:#a0aec0">${tasks.filter(t=>!t.dueDate).length}</span></div>
+    <div class="met-row"><span class="met-lbl">Total events</span><span class="met-val" style="color:#2c5282">${calEvs.length}</span></div>`;
+  const risky=tasks.filter(t=>!t.done&&(t.priority==='Hi'||t.status==='At risk'||t.status==='Delayed'||isOverdue(t)));
+  const tbody=document.getElementById('riskTbl');
+  if(!risky.length){tbody.innerHTML=`<tr><td class="empty-td" colspan="6">No high-priority or at-risk items. Great work!</td></tr>`;return;}
+  tbody.innerHTML=risky.map(t=>`
+    <tr>
+      <td>${esc(t.title)}</td>
+      <td>${priBadge(t.priority||'Med')}</td>
+      <td style="font-size:12.5px;color:${isOverdue(t)?'#9b2c2c':'#718096'}">${fmtS(t.dueDate)}</td>
+      <td>${statusBadge(t)}</td>
+      <td style="font-size:12px;color:#9b2c2c">${isOverdue(t)?'⚠ Overdue':t.priority==='Hi'?'High priority':t.status}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn sm" onclick="openEditTask(${t.id})">Edit</button>
+        <button class="btn sm amber-o" onclick="manualSyncTask(${t.id})">↑ Sync</button>
+      </td>
+    </tr>`).join('');
 }
-function saveNewEvent(){
-  const title=document.getElementById('evTitle').value.trim();
-  const date=document.getElementById('evDate').value;
-  if(!title||!date){toast('Title and date required','warn');return;}
-  const ev={id:'ev_'+Date.now(),title,date,
-    endDate:document.getElementById('evEnd').value||date,
-    time:document.getElementById('evTime').value,
-    endTime:document.getElementById('evEndTime').value,
-    color:window._ec||'#5b7cfa',gcalId:null,calUrl:null,source:'local',synced:false};
-  calEvs.push(ev);
-  if(gcal){pushCalEv(ev).then(()=>{save();renderAll();});}
-  else{save();renderAll();}
-  closeEvModal();
-  toast('Event added'+(gcal?' & synced':''),'ok');
-}
-function openEvDetail(id,type){
-  const modal=document.getElementById('evModal');
-  if(type==='task'){
-    const t=tasks.find(t=>t.id==id);if(!t)return;
-    modal.innerHTML=`
-      <div class="mhd"><span style="font-size:22px">📋</span><span class="mhd-title">Task</span></div>
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:9px">${esc(t.title)}</div>
-      <div class="task-meta" style="margin-bottom:10px">
-        ${t.tags.map(g=>`<span class="m-tag">${g}</span>`).join('')}
-        <span class="m-tag">${t.priority}</span>
-      </div>
-      ${t.startDate?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px">Start: ${fmtD(t.startDate)}</div>`:''}
-      ${t.dueDate?`<div style="font-size:12px;color:var(--muted)">Due: ${fmtD(t.dueDate)}</div>`:''}
-      <div class="mac">
-        <button class="mbtn ghost" onclick="closeEvModal()">Close</button>
-        <button class="mbtn primary" onclick="closeEvModal();manualSyncTask(${t.id})">Sync to Calendar</button>
-      </div>`;
-  } else {
-    const c=calEvs.find(e=>e.id===id);if(!c)return;
-    modal.innerHTML=`
-      <div class="mhd"><span style="font-size:22px">🗓</span><span class="mhd-title">Event</span></div>
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:9px">${esc(c.title)}</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Date: ${fmtD(c.date)}${c.endDate&&c.endDate!==c.date?' → '+fmtD(c.endDate):''}</div>
-      ${c.time?`<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Time: ${c.time}${c.endTime?' – '+c.endTime:''}</div>`:''}
-      ${c.source==='gcal'?'<span class="syn-badge" style="display:inline-flex;margin-bottom:10px">🗓 From Google Calendar</span>':''}
-      <div class="mac">
-        <button class="mbtn ghost" onclick="closeEvModal()">Close</button>
-        ${c.calUrl?`<button class="mbtn primary" onclick="window.open('${c.calUrl}','_blank')">Open in Calendar</button>`:''}
-        <button class="mbtn danger" onclick="deleteCalEv('${c.id}');closeEvModal()">Delete</button>
-      </div>`;
-  }
-  document.getElementById('evOv').classList.add('show');
-}
-function openTaskEdit(id){
-  const t=tasks.find(t=>t.id===id);if(!t)return;
-  document.getElementById('evModal').innerHTML=`
-    <div class="mhd"><span style="font-size:20px">✏️</span><span class="mhd-title">Edit Task</span></div>
-    <div class="mf"><div class="ml">Title</div><input class="mi" id="etTitle" value="${esc(t.title)}"/></div>
-    <div class="mf"><div class="ml">Priority</div>
-      <div style="display:flex;gap:7px">
-        <button class="pri hi ${t.priority==='hi'?'on':''}" onclick="window._ep='hi';this.parentElement.querySelectorAll('.pri').forEach(b=>b.classList.remove('on'));this.classList.add('on')">● Hi</button>
-        <button class="pri med ${t.priority==='med'?'on':''}" onclick="window._ep='med';this.parentElement.querySelectorAll('.pri').forEach(b=>b.classList.remove('on'));this.classList.add('on')">● Med</button>
-        <button class="pri lo ${t.priority==='lo'?'on':''}" onclick="window._ep='lo';this.parentElement.querySelectorAll('.pri').forEach(b=>b.classList.remove('on'));this.classList.add('on')">● Lo</button>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:12px">
-      <div class="date-wrap" style="flex:1"><span class="date-lbl">Start</span><input type="date" id="etStart" value="${t.startDate||''}"/></div>
-      <div class="date-wrap" style="flex:1"><span class="date-lbl">Due</span><input type="date" id="etDue" value="${t.dueDate||''}"/></div>
-    </div>
-    <div class="mac">
-      <button class="mbtn ghost" onclick="closeEvModal()">Cancel</button>
-      <button class="mbtn primary" onclick="saveTaskEdit(${id})">Save</button>
-    </div>`;
-  window._ep=t.priority;
-  document.getElementById('evOv').classList.add('show');
-}
-function saveTaskEdit(id){
-  const t=tasks.find(t=>t.id===id);if(!t)return;
-  t.title=document.getElementById('etTitle').value.trim()||t.title;
-  t.priority=window._ep||t.priority;
-  t.startDate=document.getElementById('etStart').value;
-  t.dueDate=document.getElementById('etDue').value;
-  t.synced=false;save();renderAll();closeEvModal();toast('Updated','ok');
-}
-function deleteCalEv(id){
-  calEvs=calEvs.filter(e=>e.id!==id);save();renderAll();toast('Event deleted','');
-}
-function closeEvModal(){document.getElementById('evOv').classList.remove('show');}
 
-/* ── PLANNER ──────────────────────────────── */
+/* ════════════════════════════════════════════
+   PLANNER
+════════════════════════════════════════════ */
+function renderPlanner(){
+  const today=new Date();
+  const days=Array.from({length:6},(_,i)=>{const d=new Date(today);d.setDate(today.getDate()+i);return d;});
+  const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  document.getElementById('plannerWeek').innerHTML=days.map(d=>{
+    const ds=localStr(d);
+    const isToday=ds===localStr(today);
+    const dt=tasks.filter(t=>t.dueDate===ds||t.startDate===ds);
+    return`<div class="plan-card ${isToday?'today-card':''}">
+      <div class="plan-card-title">${DOW[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}${isToday?' — Today':''}</div>
+      ${dt.length===0?'<div style="font-size:12px;color:#a0aec0;padding:6px 0">No tasks</div>':''}
+      ${dt.map(t=>`
+        <div class="plan-item">
+          <div class="pchk ${t.done?'done-c':''}" onclick="toggleDone(${t.id})">${t.done?'✓':''}</div>
+          <span style="text-decoration:${t.done?'line-through':'none'};font-size:12px">${esc(t.title)}</span>
+        </div>`).join('')}
+    </div>`;
+  }).join('');
+  renderTop3();
+}
 function renderTop3(){
   document.getElementById('top3Slots').innerHTML=top3.map((s,i)=>`
-    <div class="t3slot">
-      <div class="t3n ${s.text?'filled':''}">${i+1}</div>
-      <input class="t3in" value="${esc(s.text||'')}" placeholder="Priority ${i+1}…" oninput="top3[${i}].text=this.value" onblur="save()"/>
-      <button class="t3chk ${s.done?'on':''}" onclick="top3[${i}].done=!top3[${i}].done;save();renderTop3()">${s.done?'✓':''}</button>
+    <div class="t3-slot">
+      <div class="t3-num ${s.text?'filled':''}">${i+1}</div>
+      <input class="t3-in" value="${esc(s.text||'')}" placeholder="Priority ${i+1}…" oninput="top3[${i}].text=this.value" onblur="save()"/>
+      <button class="t3-chk ${s.done?'done-c':''}" onclick="top3[${i}].done=!top3[${i}].done;save();renderTop3()">${s.done?'✓':''}</button>
     </div>`).join('');
 }
 function saveTop3(){
-  document.querySelectorAll('.t3in').forEach((el,i)=>{top3[i].text=el.value;});
+  document.querySelectorAll('.t3-in').forEach((el,i)=>{top3[i].text=el.value;});
   save();renderTop3();toast('Top 3 saved','ok');
 }
 
-/* ── POMODORO ─────────────────────────────── */
+/* ════════════════════════════════════════════
+   POMODORO
+════════════════════════════════════════════ */
 function setPomMode(m,btn){
   if(pomRun)return;
   pomMode=m;pomRemain=pomTotal=POM[m];
@@ -808,56 +902,223 @@ function resetPom(){
   updatePomUI();
 }
 function updatePomUI(){
-  const m=String(Math.floor(pomRemain/60)).padStart(2,'0');
-  const s=String(pomRemain%60).padStart(2,'0');
-  document.getElementById('pomTime').textContent=`${m}:${s}`;
+  document.getElementById('pomTime').textContent=`${String(Math.floor(pomRemain/60)).padStart(2,'0')}:${String(pomRemain%60).padStart(2,'0')}`;
   document.getElementById('pomCircle').style.strokeDashoffset=CIRC*(1-pomRemain/pomTotal);
   const lbl={work:'Focus session',short:'Short break',long:'Long break'};
   document.getElementById('pomSub').textContent=pomRun?lbl[pomMode]+(pomRemain<60?' — almost done!':''):'Ready to focus';
 }
 
-/* ── GCAL ─────────────────────────────────── */
+/* ════════════════════════════════════════════
+   TASK CRUD
+════════════════════════════════════════════ */
+function toggleDone(id){
+  const t=tasks.find(t=>t.id===id||t.id==id);
+  if(t){t.done=!t.done;if(t.done)t.status='Done';save();refreshActive();}
+}
+function deleteTask(id){
+  if(!confirm('Delete this task?'))return;
+  tasks=tasks.filter(t=>t.id!==id&&t.id!=id);
+  save();refreshActive();toast('Task deleted','');
+}
+function openAddTask(){
+  editId=null;
+  document.getElementById('taskModalTitle').textContent='Add task';
+  ['fTitle','fOwner','fNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fStart').value='';
+  document.getElementById('fDue').value='';
+  document.getElementById('fPriority').value='Med';
+  document.getElementById('fStatusM').value='On track';
+  document.getElementById('fTag').value='Work';
+  document.getElementById('taskOv').classList.add('show');
+}
+function openEditTask(id){
+  const t=tasks.find(t=>t.id===id||t.id==id);if(!t)return;
+  editId=id;
+  document.getElementById('taskModalTitle').textContent='Edit task';
+  document.getElementById('fTitle').value=t.title||'';
+  document.getElementById('fOwner').value=t.owner||'';
+  document.getElementById('fNotes').value=t.notes||'';
+  document.getElementById('fStart').value=t.startDate||'';
+  document.getElementById('fDue').value=t.dueDate||'';
+  document.getElementById('fPriority').value=t.priority||'Med';
+  document.getElementById('fStatusM').value=t.status||'On track';
+  document.getElementById('fTag').value=(t.tags&&t.tags[0])||'Work';
+  document.getElementById('taskOv').classList.add('show');
+}
+function closeTaskModal(){document.getElementById('taskOv').classList.remove('show');}
+function saveTask(){
+  const title=document.getElementById('fTitle').value.trim();
+  if(!title){alert('Task name is required');return;}
+  const data={title,tags:[document.getElementById('fTag').value],
+    priority:document.getElementById('fPriority').value,
+    startDate:document.getElementById('fStart').value,
+    dueDate:document.getElementById('fDue').value,
+    owner:document.getElementById('fOwner').value,
+    status:document.getElementById('fStatusM').value,
+    notes:document.getElementById('fNotes').value};
+  if(editId!==null){
+    const t=tasks.find(t=>t.id===editId||t.id==editId);
+    if(t){Object.assign(t,data);t.synced=false;}
+  } else {
+    const t={id:Date.now(),...data,done:false,synced:false,gcalId:null,calUrl:null,createdAt:new Date().toISOString()};
+    tasks.unshift(t);
+    if(gcal&&(t.dueDate||t.startDate)){pushTask(t).then(()=>{save();refreshActive();});}
+  }
+  save();refreshActive();closeTaskModal();
+  toast(editId?'Task updated':'Task added'+(gcal?' & synced':''),'ok');
+}
+
+/* ════════════════════════════════════════════
+   CALENDAR EVENT CRUD
+════════════════════════════════════════════ */
+function openNewCalEvent(dateStr){
+  document.getElementById('evModal').innerHTML=`
+    <div class="modal-title">Add calendar event</div>
+    <div class="form-grid">
+      <div class="ff full"><label class="flbl">Title <span class="req">*</span></label><input id="evTitle" placeholder="Event name…"/></div>
+      <div class="ff"><label class="flbl">Date <span class="req">*</span></label><input type="date" id="evDate" value="${dateStr||''}"/></div>
+      <div class="ff"><label class="flbl">End date</label><input type="date" id="evEndDate"/></div>
+      <div class="ff"><label class="flbl">Start time</label><input type="time" id="evTime"/></div>
+      <div class="ff"><label class="flbl">End time</label><input type="time" id="evEndTime"/></div>
+      <div class="ff"><label class="flbl">Color</label>
+        <div style="display:flex;gap:8px;padding:8px 0">
+          ${['#1a3a5c','#9b2c2c','#276749','#744210','#553c9a','#0e7490'].map((col,i)=>
+            `<div onclick="window._evCol='${col}';document.querySelectorAll('.colsw').forEach(s=>s.style.outline='none');this.style.outline='2px solid #1a202c'"
+              class="colsw" style="width:22px;height:22px;border-radius:50%;background:${col};cursor:pointer;${i===0?'outline:2px solid #1a202c':''}"></div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="mac">
+      <button class="mbtn cancel" onclick="closeEvModal()">Cancel</button>
+      <button class="mbtn save" onclick="saveCalEvent()">Add event</button>
+    </div>`;
+  window._evCol='#1a3a5c';
+  document.getElementById('evOv').classList.add('show');
+}
+function saveCalEvent(){
+  const title=document.getElementById('evTitle').value.trim();
+  const date=document.getElementById('evDate').value;
+  if(!title||!date){alert('Title and date are required');return;}
+  const ev={id:'ev_'+Date.now(),title,date,
+    endDate:document.getElementById('evEndDate').value||date,
+    time:document.getElementById('evTime').value,
+    endTime:document.getElementById('evEndTime').value,
+    color:window._evCol||'#1a3a5c',gcalId:null,calUrl:null,source:'local',synced:false};
+  calEvs.push(ev);
+  if(gcal){pushCalEv(ev).then(()=>{save();refreshActive();});}
+  else{save();refreshActive();}
+  closeEvModal();toast('Event added'+(gcal?' & synced':''),'ok');
+}
+function openEvDetail(id,type){
+  const modal=document.getElementById('evModal');
+  if(type==='task'){
+    const t=tasks.find(t=>t.id==id);if(!t)return;
+    modal.innerHTML=`
+      <div class="modal-title">Task detail</div>
+      <div style="font-size:16px;font-weight:700;color:#1a202c;margin-bottom:10px">${esc(t.title)}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+        ${(t.tags||[]).map(g=>`<span class="tag-chip">${g}</span>`).join('')}
+        ${priBadge(t.priority||'Med')}${statusBadge(t)}
+      </div>
+      ${t.startDate?`<div style="font-size:13px;color:#718096;margin-bottom:4px">Start: ${fmtD(t.startDate)}</div>`:''}
+      ${t.dueDate?`<div style="font-size:13px;color:#718096;margin-bottom:4px">Due: ${fmtD(t.dueDate)}</div>`:''}
+      ${t.owner?`<div style="font-size:13px;color:#718096;margin-bottom:4px">Owner: ${esc(t.owner)}</div>`:''}
+      ${t.notes?`<div style="font-size:13px;color:#718096;margin-top:8px;background:#f7fafc;padding:10px;border-radius:8px">${esc(t.notes)}</div>`:''}
+      <div class="mac">
+        <button class="mbtn cancel" onclick="closeEvModal()">Close</button>
+        <button class="mbtn save" onclick="closeEvModal();manualSyncTask(${t.id})">↑ Sync to Calendar</button>
+      </div>`;
+  } else {
+    const c=calEvs.find(e=>e.id===id);if(!c)return;
+    modal.innerHTML=`
+      <div class="modal-title">Event detail</div>
+      <div style="font-size:16px;font-weight:700;color:#1a202c;margin-bottom:10px">${esc(c.title)}</div>
+      <div style="font-size:13px;color:#718096;margin-bottom:4px">Date: ${fmtD(c.date)}${c.endDate&&c.endDate!==c.date?' → '+fmtD(c.endDate):''}</div>
+      ${c.time?`<div style="font-size:13px;color:#718096;margin-bottom:8px">Time: ${c.time}${c.endTime?' – '+c.endTime:''}</div>`:''}
+      ${c.source==='gcal'?'<span class="badge b-gcal" style="margin-bottom:12px;display:inline-flex">🗓 From Google Calendar</span>':''}
+      <div class="mac">
+        <button class="mbtn cancel" onclick="closeEvModal()">Close</button>
+        ${c.calUrl?`<button class="mbtn save" onclick="window.open('${c.calUrl}','_blank')">Open in GCal</button>`:''}
+        <button class="mbtn" style="background:#fff5f5;color:#9b2c2c;border-color:#fed7d7" onclick="deleteCalEv('${c.id}');closeEvModal()">Delete</button>
+      </div>`;
+  }
+  document.getElementById('evOv').classList.add('show');
+}
+function deleteCalEv(id){calEvs=calEvs.filter(e=>e.id!==id);save();refreshActive();toast('Event deleted','');}
+function closeEvModal(){document.getElementById('evOv').classList.remove('show');}
+
+/* ════════════════════════════════════════════
+   REFRESH ACTIVE PANE
+════════════════════════════════════════════ */
+function refreshActive(){
+  updatePhasePill();
+  const active=document.querySelector('.ntab.on');
+  if(!active)return;
+  const txt=active.textContent.trim();
+  if(txt==='Overview')renderOverview();
+  else if(txt==='Tasks & Actions')renderTasksTab();
+  else if(txt==='Schedule')renderSchedule();
+  else if(txt==='Weekly Calendar')renderWeekly();
+  else if(txt==='Monthly Calendar')renderMonthly();
+  else if(txt==='Quality & Risk')renderQuality();
+  else if(txt==='Planner')renderPlanner();
+}
+
+/* ════════════════════════════════════════════
+   GOOGLE CALENDAR OAuth
+════════════════════════════════════════════ */
 const SCOPES='https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/userinfo.email';
 
 function updateGCalUI(){
   const dot=document.getElementById('gcalDot');
   const lbl=document.getElementById('gcalLabel');
-  const pill=document.getElementById('gcalPill');
+  const btn=document.getElementById('gcalBtn');
+  const syncBtn=document.getElementById('gcalSyncBtn');
   if(gcal&&gcal.accessToken){
-    dot.classList.add('on');lbl.textContent=gcal.email||'Calendar';pill.classList.add('conn');
+    dot.classList.add('on');
+    lbl.textContent=gcal.email||'Calendar';
+    btn.classList.add('conn');
+    if(syncBtn)syncBtn.style.display='inline-flex';
   } else {
-    dot.classList.remove('on');lbl.textContent='Connect Calendar';pill.classList.remove('conn');
+    dot.classList.remove('on');
+    lbl.textContent='Connect Calendar';
+    btn.classList.remove('conn');
+    if(syncBtn)syncBtn.style.display='none';
   }
 }
+
 function openGCalModal(){
   const modal=document.getElementById('gcalModal');
   if(gcal&&gcal.accessToken){
     modal.innerHTML=`
-      <div class="mhd"><span style="font-size:24px">🗓</span><span class="mhd-title">Google Calendar</span></div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">Connected as <strong style="color:var(--text)">${gcal.email||'your account'}</strong></div>
-      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:16px">
-        <button class="fbtn on" onclick="syncAllPending()">↑ Sync all unsynced items</button>
-        <button class="fbtn on" onclick="importFromGCal()">↓ Import from Google Calendar</button>
-        <button class="fbtn" onclick="ensureFresh().then(ok=>{if(ok)toast('Auth refreshed','ok')})">⟳ Refresh auth token</button>
+      <div class="modal-title">Google Calendar</div>
+      <div style="font-size:13px;color:#718096;margin-bottom:18px;line-height:1.7">Connected as <strong style="color:#1a202c">${gcal.email||'your account'}</strong><br>Tasks and events with dates sync automatically.</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
+        <button class="btn" onclick="syncAllPending()">↑ Sync all unsynced items</button>
+        <button class="btn" onclick="importFromGCal()">↓ Import from Google Calendar</button>
+        <button class="btn" onclick="ensureFresh().then(ok=>{if(ok)toast('Auth refreshed','ok')})">⟳ Refresh auth token</button>
       </div>
       <div class="mac">
-        <button class="mbtn ghost" onclick="closeGCalModal()">Close</button>
-        <button class="mbtn danger" onclick="disconnectGCal()">Disconnect</button>
+        <button class="mbtn cancel" onclick="closeGCalModal()">Close</button>
+        <button class="mbtn" style="background:#fff5f5;color:#9b2c2c;border-color:#fed7d7" onclick="disconnectGCal()">Disconnect</button>
       </div>`;
   } else {
     modal.innerHTML=`
-      <div class="mhd"><span style="font-size:24px">🗓</span><span class="mhd-title">Connect Google Calendar</span></div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">Full two-way sync — tasks & calendar events sync automatically.</div>
+      <div class="modal-title">Connect Google Calendar</div>
+      <div style="font-size:13px;color:#718096;margin-bottom:16px;line-height:1.6">Full two-way sync using the official Google Calendar API. One-time setup in 4 steps.</div>
       <div class="steps">
-        <div class="step"><div class="stn">1</div><div><div class="stt">Create OAuth credentials</div><div class="std">console.cloud.google.com → APIs & Services → Credentials → Create OAuth 2.0 Client ID (Web application)</div></div></div>
-        <div class="step"><div class="stn">2</div><div><div class="stt">Add redirect URI</div><div class="stc">${window.location.origin}/oauth-callback.html</div></div></div>
-        <div class="step"><div class="stn">3</div><div><div class="stt">Enable Google Calendar API</div><div class="std">APIs & Services → Library → Google Calendar API → Enable</div></div></div>
+        <div class="step"><div class="stn">1</div><div><div class="stt">Create OAuth credentials</div><div class="std">Go to console.cloud.google.com → APIs & Services → Credentials → Create OAuth 2.0 Client ID → Web application</div></div></div>
+        <div class="step"><div class="stn">2</div><div><div class="stt">Add authorised redirect URI</div><div class="stc">${window.location.origin}/oauth-callback.html</div></div></div>
+        <div class="step"><div class="stn">3</div><div><div class="stt">Enable Google Calendar API</div><div class="std">APIs & Services → Library → search "Google Calendar API" → Enable</div></div></div>
+        <div class="step"><div class="stn">4</div><div><div class="stt">Paste your credentials below</div></div></div>
       </div>
-      <div class="mf"><div class="ml">Client ID</div><input class="mi" id="cid" placeholder="xxxxxxxx.apps.googleusercontent.com" value="${gcal&&gcal.clientId||''}"/></div>
-      <div class="mf"><div class="ml">Client Secret</div><input class="mi" id="csec" type="password" placeholder="GOCSPX-…" value="${gcal&&gcal.clientSecret||''}"/></div>
+      <div class="form-grid">
+        <div class="ff full"><label class="flbl">Client ID</label><input id="cid" placeholder="xxxxxxxx.apps.googleusercontent.com" value="${gcal&&gcal.clientId||''}"/></div>
+        <div class="ff full"><label class="flbl">Client Secret</label><input id="csec" type="password" placeholder="GOCSPX-…" value="${gcal&&gcal.clientSecret||''}"/></div>
+      </div>
       <div class="mac">
-        <button class="mbtn ghost" onclick="closeGCalModal()">Cancel</button>
-        <button class="mbtn primary" onclick="startOAuth()">Authorize with Google</button>
+        <button class="mbtn cancel" onclick="closeGCalModal()">Cancel</button>
+        <button class="mbtn save" onclick="startOAuth()">Authorize with Google →</button>
       </div>`;
   }
   document.getElementById('gcalOv').classList.add('show');
@@ -881,15 +1142,15 @@ async function startOAuth(){
     response_type:'code',scope:SCOPES,access_type:'offline',prompt:'consent',
     state:st,code_challenge:ch,code_challenge_method:'S256'});
   const popup=window.open('https://accounts.google.com/o/oauth2/v2/auth?'+p,'gcal','width=520,height=620,menubar=no,toolbar=no');
-  if(!popup){toast('Allow popups for this site','warn');return;}
-  closeGCalModal();toast('Authorize in the popup window…','');
+  if(!popup){toast('Allow popups for this site and try again','warn');return;}
+  closeGCalModal();toast('Complete authorization in the popup window…','');
 }
 function handleOAuthMsg(e){
   if(e.origin!==window.location.origin)return;
   if(!e.data||e.data.type!=='gcal_oauth')return;
   const{code,state,error}=e.data;
   if(error){toast('Auth failed: '+error,'err');return;}
-  if(state!==sessionStorage.getItem('gcs')){toast('State mismatch','err');return;}
+  if(state!==sessionStorage.getItem('gcs')){toast('State mismatch — please retry','err');return;}
   exchangeCode(code,sessionStorage.getItem('gcv'));
 }
 async function exchangeCode(code,v){
@@ -911,40 +1172,46 @@ async function exchangeCode(code,v){
     let cnt=0;
     for(const t of tasks){if(!t.synced&&(t.dueDate||t.startDate)){await pushTask(t);cnt++;}}
     for(const e of calEvs){if(!e.synced&&e.date){await pushCalEv(e);cnt++;}}
-    save();renderAll();
+    save();refreshActive();
     toast(`🗓 Connected as ${gcal.email}${cnt?' — '+cnt+' items synced':''}`, 'ok');
   }catch(err){toast('Connection failed: '+err.message,'err');}
 }
 async function ensureFresh(){
   if(!gcal)return false;
   if(gcal.expiry&&Date.now()<gcal.expiry)return true;
-  if(!gcal.refreshToken){toast('Session expired — reconnect','err');gcal.accessToken=null;save();updateGCalUI();return false;}
+  if(!gcal.refreshToken){toast('Session expired — please reconnect','err');gcal.accessToken=null;save();updateGCalUI();return false;}
   try{
     const r=await fetch('https://oauth2.googleapis.com/token',{
       method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams({refresh_token:gcal.refreshToken,client_id:gcal.clientId,client_secret:gcal.clientSecret,grant_type:'refresh_token'})});
-    const d=await r.json();
-    if(d.error)throw new Error(d.error);
+      body:new URLSearchParams({refresh_token:gcal.refreshToken,client_id:gcal.clientId,
+        client_secret:gcal.clientSecret,grant_type:'refresh_token'})});
+    const d=await r.json();if(d.error)throw new Error(d.error);
     gcal.accessToken=d.access_token;
     gcal.expiry=Date.now()+(d.expires_in-60)*1000;
     save();return true;
   }catch(e){toast('Token refresh failed','err');return false;}
 }
 function disconnectGCal(){
-  if(!confirm('Disconnect Google Calendar?'))return;
+  if(!confirm('Disconnect Google Calendar? Tasks will remain but sync status will reset.'))return;
   gcal=null;
   tasks.forEach(t=>{t.synced=false;t.gcalId=null;t.calUrl=null;});
   calEvs.forEach(e=>{e.synced=false;e.gcalId=null;e.calUrl=null;});
-  save();updateGCalUI();renderAll();closeGCalModal();toast('Disconnected','');
+  save();updateGCalUI();refreshActive();closeGCalModal();toast('Disconnected from Google Calendar','');
 }
 
-/* ── GCAL PUSH ────────────────────────────── */
+/* ════════════════════════════════════════════
+   GCAL PUSH / PULL
+════════════════════════════════════════════ */
 async function pushTask(task){
   const ok=await ensureFresh();if(!ok)return;
-  const sd=task.startDate||task.dueDate;const ed=task.dueDate||task.startDate;if(!sd)return;
+  const sd=task.startDate||task.dueDate;
+  const ed=task.dueDate||task.startDate;
+  if(!sd)return;
   const nxt=d=>{const dt=new Date(d+'T00:00:00');dt.setDate(dt.getDate()+1);return dt.toISOString().split('T')[0];};
-  const body={summary:task.title,description:['Tags:'+task.tags.join(','),'Priority:'+task.priority,'From TaskFlow'].join('\n'),
-    start:{date:sd},end:{date:nxt(ed)},colorId:task.priority==='hi'?'11':task.priority==='med'?'5':'7'};
+  const body={summary:task.title,
+    description:[(task.tags||[]).length?'Tags: '+(task.tags||[]).join(', '):'','Priority: '+task.priority,'Status: '+(task.status||'On track'),'From TaskFlow Dashboard'].filter(Boolean).join('\n'),
+    start:{date:sd},end:{date:nxt(ed)},
+    colorId:task.priority==='Hi'?'11':task.priority==='Med'?'5':'7'};
   try{
     const method=task.gcalId?'PUT':'POST';
     const url=task.gcalId?`https://www.googleapis.com/calendar/v3/calendars/primary/events/${task.gcalId}`:'https://www.googleapis.com/calendar/v3/calendars/primary/events';
@@ -952,37 +1219,37 @@ async function pushTask(task){
     if(r.status===401){gcal.expiry=0;return pushTask(task);}
     if(!r.ok)throw new Error('HTTP '+r.status);
     const ev=await r.json();task.synced=true;task.gcalId=ev.id;task.calUrl=ev.htmlLink;
-  }catch(e){console.error('Task push',e);}
+  }catch(e){console.error('Task push error',e);}
 }
 async function pushCalEv(ev){
   const ok=await ensureFresh();if(!ok)return;
   const nxt=d=>{const dt=new Date(d+'T00:00:00');dt.setDate(dt.getDate()+1);return dt.toISOString().split('T')[0];};
   const start=ev.time?{dateTime:ev.date+'T'+ev.time+':00',timeZone:'Asia/Singapore'}:{date:ev.date};
   const end=ev.endTime?{dateTime:(ev.endDate||ev.date)+'T'+ev.endTime+':00',timeZone:'Asia/Singapore'}:{date:nxt(ev.endDate||ev.date)};
-  const body={summary:ev.title,start,end};
   try{
     const method=ev.gcalId?'PUT':'POST';
     const url=ev.gcalId?`https://www.googleapis.com/calendar/v3/calendars/primary/events/${ev.gcalId}`:'https://www.googleapis.com/calendar/v3/calendars/primary/events';
-    const r=await fetch(url,{method,headers:{Authorization:'Bearer '+gcal.accessToken,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const r=await fetch(url,{method,headers:{Authorization:'Bearer '+gcal.accessToken,'Content-Type':'application/json'},body:JSON.stringify({summary:ev.title,start,end})});
     if(r.status===401){gcal.expiry=0;return pushCalEv(ev);}
     if(!r.ok)throw new Error('HTTP '+r.status);
     const res=await r.json();ev.synced=true;ev.gcalId=res.id;ev.calUrl=res.htmlLink;ev.source='gcal';
-  }catch(e){console.error('Cal push',e);}
+  }catch(e){console.error('Cal ev push error',e);}
 }
 async function manualSyncTask(id){
-  const t=tasks.find(t=>t.id===id);if(!t)return;
+  const t=tasks.find(t=>t.id===id||t.id==id);if(!t)return;
   if(!gcal){openGCalModal();return;}
   if(!t.dueDate&&!t.startDate){toast('Add a date to this task first','warn');return;}
-  toast('Syncing…','');
-  await pushTask(t);save();renderAll();
-  toast(t.synced?'🗓 Synced to Google Calendar!':'Sync failed','ok');
+  toast('Syncing to Google Calendar…','');
+  await pushTask(t);save();refreshActive();
+  toast(t.synced?'🗓 Synced to Google Calendar!':'Sync failed — check console','ok');
 }
 async function syncAllPending(){
-  if(!gcal){toast('Connect Calendar first','warn');return;}
+  if(!gcal){toast('Connect Google Calendar first','warn');return;}
   let cnt=0;
   for(const t of tasks){if(!t.synced&&(t.dueDate||t.startDate)){await pushTask(t);cnt++;}}
   for(const e of calEvs){if(!e.synced&&e.date){await pushCalEv(e);cnt++;}}
-  save();renderAll();closeGCalModal();toast(`🗓 Synced ${cnt} item(s)`,'ok');
+  save();refreshActive();closeGCalModal();
+  toast(`🗓 Synced ${cnt} item(s) to Google Calendar`,'ok');
 }
 async function importFromGCal(){
   const ok=await ensureFresh();if(!ok)return;
@@ -1000,19 +1267,21 @@ async function importFromGCal(){
         endDate:ev.end?.date||ev.end?.dateTime?.split('T')[0]||'',
         time:ev.start?.dateTime?.split('T')[1]?.slice(0,5)||'',
         endTime:ev.end?.dateTime?.split('T')[1]?.slice(0,5)||'',
-        color:'#34d399',gcalId:ev.id,calUrl:ev.htmlLink,source:'gcal',synced:true});
+        color:'#276749',gcalId:ev.id,calUrl:ev.htmlLink,source:'gcal',synced:true});
       added++;
     }
-    save();renderAll();closeGCalModal();toast(`↓ Imported ${added} event(s)`,'ok');
+    save();refreshActive();closeGCalModal();
+    toast(`↓ Imported ${added} event(s) from Google Calendar`,'ok');
   }catch(e){toast('Import failed: '+e.message,'err');}
 }
 
-/* ── HELPERS ──────────────────────────────── */
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+/* ════════════════════════════════════════════
+   TOAST
+════════════════════════════════════════════ */
 function toast(msg,type){
   const el=document.getElementById('toast');
   el.textContent=msg;el.className='toast show'+(type?' '+type:'');
-  clearTimeout(toastTmr);toastTmr=setTimeout(()=>el.classList.remove('show'),3000);
+  clearTimeout(toastTmr);toastTmr=setTimeout(()=>el.classList.remove('show'),3200);
 }
 </script>
 </body>
