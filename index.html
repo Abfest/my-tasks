@@ -216,7 +216,36 @@ tbody tr:hover td{background:#f7fafc;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.ok{background:#276749;}.toast.warn{background:#744210;}.toast.err{background:#9b2c2c;}
 
-/* ── RESPONSIVE ── */
+/* ── AI ASSISTANT ── */
+.ai-msg{display:flex;gap:10px;align-items:flex-start;animation:fadeUp .2s ease;}
+.ai-msg-user{flex-direction:row-reverse;}
+.ai-avatar{width:30px;height:30px;border-radius:50%;background:#1a3a5c;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.ai-msg-user .ai-avatar{background:#e2e8f0;color:#4a5568;}
+.ai-bubble{max-width:82%;padding:11px 14px;border-radius:12px;font-size:13.5px;line-height:1.65;color:#2d3748;background:#f7fafc;border:1px solid #e2e8f0;}
+.ai-msg-user .ai-bubble{background:#1a3a5c;color:#fff;border-color:#1a3a5c;border-radius:12px 12px 2px 12px;}
+.ai-msg-assistant .ai-bubble{border-radius:2px 12px 12px 12px;}
+.ai-bubble strong{font-weight:600;}
+.ai-bubble ul,.ai-bubble ol{margin:8px 0 8px 18px;}
+.ai-bubble li{margin-bottom:4px;}
+.ai-bubble p{margin-bottom:8px;}.ai-bubble p:last-child{margin-bottom:0;}
+.ai-typing{display:flex;gap:4px;align-items:center;padding:12px 14px;}
+.ai-typing span{width:7px;height:7px;border-radius:50%;background:#cbd5e0;animation:aiDot 1.2s infinite;}
+.ai-typing span:nth-child(2){animation-delay:.2s;}
+.ai-typing span:nth-child(3){animation-delay:.4s;}
+@keyframes aiDot{0%,80%,100%{transform:scale(1);opacity:.4;}40%{transform:scale(1.3);opacity:1;}}
+.ai-sugg{padding:6px 12px;border-radius:20px;font-size:11.5px;font-weight:500;cursor:pointer;border:1px solid #e2e8f0;background:#fff;color:#4a5568;transition:all .15s;font-family:'Inter',sans-serif;white-space:nowrap;}
+.ai-sugg:hover{background:#ebf8ff;border-color:#90cdf4;color:#2b6cb0;}
+.ai-ctx-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;}
+.ai-ctx-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#a0aec0;margin-bottom:10px;}
+.ai-ctx-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f0f4f8;font-size:12.5px;color:#718096;}
+.ai-ctx-row:last-child{border-bottom:none;}
+.ai-ctx-val{font-weight:700;color:#2d3748;}
+.ai-ctx-red{color:#9b2c2c!important;}
+.ai-ctx-amber{color:#744210!important;}
+.ai-quick-btn{display:block;width:100%;text-align:left;padding:8px 10px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid #e2e8f0;background:#f7fafc;color:#2d3748;transition:all .15s;font-family:'Inter',sans-serif;margin-bottom:5px;}
+.ai-quick-btn:last-child{margin-bottom:0;}
+.ai-quick-btn:hover{background:#ebf8ff;border-color:#90cdf4;color:#2b6cb0;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:700px){
   .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   .week-grid{grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;}
@@ -258,6 +287,7 @@ tbody tr:hover td{background:#f7fafc;}
   <div class="ntab" onclick="switchTab('monthly',this)">Monthly Calendar</div>
   <div class="ntab" onclick="switchTab('quality',this)">Quality & Risk</div>
   <div class="ntab" onclick="switchTab('planner',this)">Planner</div>
+  <div class="ntab" onclick="switchTab('ai',this)">✦ AI Assistant</div>
 </div>
 
 <div class="content">
@@ -398,6 +428,81 @@ tbody tr:hover td{background:#f7fafc;}
     <div class="pom-btns">
       <button class="btn primary" id="pomBtn" onclick="togglePom()">Start</button>
       <button class="btn" onclick="resetPom()">Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ AI ASSISTANT ══════════════════════════ -->
+<div class="pane" id="pane-ai">
+  <div style="display:flex;gap:16px;height:calc(100vh - 160px);min-height:400px;">
+
+    <!-- Chat column -->
+    <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#1a202c;">✦ AI Assistant</div>
+          <div style="font-size:12px;color:#a0aec0;margin-top:2px;">Powered by Claude · Knows your tasks &amp; calendar</div>
+        </div>
+        <button class="btn sm danger" onclick="clearAIChat()">Clear chat</button>
+      </div>
+
+      <!-- Messages -->
+      <div id="aiMessages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 2px;margin-bottom:14px;">
+        <div class="ai-msg ai-msg-assistant">
+          <div class="ai-avatar">✦</div>
+          <div class="ai-bubble">
+            Hi! I'm your TaskFlow AI assistant. I have full context of all your tasks and calendar events.<br><br>
+            I can help you <strong>prioritise work</strong>, <strong>draft plans</strong>, <strong>identify risks</strong>, <strong>summarise your week</strong>, or answer any question about your schedule. What would you like to work on?
+          </div>
+        </div>
+      </div>
+
+      <!-- Suggestions -->
+      <div id="aiSuggestions" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+        <button class="ai-sugg" onclick="sendSuggestion(this)">What are my top priorities today?</button>
+        <button class="ai-sugg" onclick="sendSuggestion(this)">Summarise my overdue tasks</button>
+        <button class="ai-sugg" onclick="sendSuggestion(this)">What's coming up this week?</button>
+        <button class="ai-sugg" onclick="sendSuggestion(this)">Draft a status update for my tasks</button>
+        <button class="ai-sugg" onclick="sendSuggestion(this)">Which tasks are at risk?</button>
+        <button class="ai-sugg" onclick="sendSuggestion(this)">Help me plan my day</button>
+      </div>
+
+      <!-- Input -->
+      <div style="display:flex;gap:8px;align-items:flex-end;">
+        <textarea id="aiInput" placeholder="Ask anything about your tasks, schedule, or priorities…"
+          style="flex:1;resize:none;height:52px;font-size:13.5px;padding:12px 14px;border-radius:10px;border:1px solid #e2e8f0;font-family:'Inter',sans-serif;color:#2d3748;outline:none;line-height:1.5;transition:border-color .15s;"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAIMessage();}"
+          oninput="this.style.height='52px';this.style.height=Math.min(this.scrollHeight,120)+'px';"
+          onfocus="this.style.borderColor='#1a3a5c'" onblur="this.style.borderColor='#e2e8f0'"></textarea>
+        <button class="btn primary" id="aiSendBtn" onclick="sendAIMessage()" style="height:52px;padding:0 20px;border-radius:10px;font-size:14px;flex-shrink:0;">
+          Send
+        </button>
+      </div>
+    </div>
+
+    <!-- Context sidebar -->
+    <div style="width:240px;flex-shrink:0;display:flex;flex-direction:column;gap:12px;overflow-y:auto;">
+      <div class="ai-ctx-card">
+        <div class="ai-ctx-title">Context loaded</div>
+        <div class="ai-ctx-row"><span>Tasks</span><span id="ctxTasks" class="ai-ctx-val">0</span></div>
+        <div class="ai-ctx-row"><span>Active</span><span id="ctxActive" class="ai-ctx-val">0</span></div>
+        <div class="ai-ctx-row"><span>Overdue</span><span id="ctxOverdue" class="ai-ctx-val ai-ctx-red">0</span></div>
+        <div class="ai-ctx-row"><span>High priority</span><span id="ctxHi" class="ai-ctx-val ai-ctx-amber">0</span></div>
+        <div class="ai-ctx-row"><span>Cal events</span><span id="ctxCal" class="ai-ctx-val">0</span></div>
+      </div>
+      <div class="ai-ctx-card">
+        <div class="ai-ctx-title">Quick actions</div>
+        <button class="ai-quick-btn" onclick="askAI('Create a brief summary of all my current tasks grouped by priority')">📋 Task summary</button>
+        <button class="ai-quick-btn" onclick="askAI('What are the 3 most critical tasks I should focus on right now and why?')">🎯 Top 3 focus</button>
+        <button class="ai-quick-btn" onclick="askAI('Review my overdue tasks and suggest a recovery plan')">⚠️ Recovery plan</button>
+        <button class="ai-quick-btn" onclick="askAI('Draft a professional weekly status update based on my tasks')">📝 Status update</button>
+        <button class="ai-quick-btn" onclick="askAI('Analyse my workload and identify any scheduling conflicts or risks')">🔍 Risk analysis</button>
+        <button class="ai-quick-btn" onclick="askAI('Suggest how I can better organise and categorise my current tasks')">⚙️ Optimise tasks</button>
+      </div>
+      <div class="ai-ctx-card" style="font-size:11.5px;color:#a0aec0;line-height:1.6;">
+        <div class="ai-ctx-title">About</div>
+        The AI assistant reads all your task data — titles, priorities, dates, status, owners and notes — to give you contextual, personalised answers.
+      </div>
     </div>
   </div>
 </div>
@@ -554,7 +659,8 @@ function switchTab(id,el){
   el.classList.add('on');
   document.getElementById('pane-'+id).classList.add('on');
   const fn={overview:renderOverview,tasks:renderTasksTab,schedule:renderSchedule,
-    weekly:renderWeekly,monthly:renderMonthly,quality:renderQuality,planner:renderPlanner};
+    weekly:renderWeekly,monthly:renderMonthly,quality:renderQuality,planner:renderPlanner,
+    ai:updateAIContext};
   if(fn[id]) fn[id]();
 }
 
@@ -1490,6 +1596,184 @@ async function importFromGCal(){
     save();refreshActive();closeGCalModal();
     toast(`↓ Imported ${added} event(s) from Google Calendar`,'ok');
   }catch(e){toast('Import failed: '+e.message,'err');}
+}
+
+/* ════════════════════════════════════════════
+   AI ASSISTANT
+════════════════════════════════════════════ */
+let aiHistory = [];
+
+function buildTaskContext(){
+  const now = todayStr();
+  const active = tasks.filter(t=>!t.done);
+  const overdue = tasks.filter(t=>isOverdue(t));
+  const hi = tasks.filter(t=>t.priority==='Hi'&&!t.done);
+  const done = tasks.filter(t=>t.done);
+  const upcoming = tasks.filter(t=>t.dueDate&&!t.done&&t.dueDate>=now)
+    .sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate)).slice(0,10);
+
+  const fmtTask = t =>
+    `- [${t.done?'DONE':'OPEN'}] "${t.title}" | Priority: ${t.priority} | Status: ${t.status||'On track'}`+
+    `${t.dueDate?' | Due: '+t.dueDate:''}${t.startDate?' | Start: '+t.startDate:''}`+
+    `${t.owner?' | Owner: '+t.owner:''}${(t.tags||[]).length?' | Tags: '+t.tags.join(','):''}${t.notes?' | Notes: '+t.notes.substring(0,80):''}`;
+
+  const evLines = calEvs.slice(0,20).map(e=>
+    `- "${e.title}" on ${e.date}${e.endDate&&e.endDate!==e.date?' to '+e.endDate:''}${e.time?' at '+e.time:''}`
+  );
+
+  return `You are an intelligent AI assistant embedded in TaskFlow Dashboard for Franco at Smart Quality Systems, Singapore. Today is ${new Date().toLocaleDateString('en-SG',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}.
+
+TASK SUMMARY:
+- Total tasks: ${tasks.length} | Active: ${active.length} | Done: ${done.length} | Overdue: ${overdue.length} | High priority open: ${hi.length}
+- Completion rate: ${tasks.length?Math.round((done.length/tasks.length)*100):0}%
+
+OVERDUE TASKS (${overdue.length}):
+${overdue.length?overdue.map(fmtTask).join('\n'):'None'}
+
+HIGH PRIORITY OPEN TASKS (${hi.length}):
+${hi.length?hi.map(fmtTask).join('\n'):'None'}
+
+UPCOMING TASKS (next 10 by due date):
+${upcoming.length?upcoming.map(fmtTask).join('\n'):'None'}
+
+ALL ACTIVE TASKS:
+${active.length?active.map(fmtTask).join('\n'):'No active tasks'}
+
+CALENDAR EVENTS (next 20):
+${evLines.length?evLines.join('\n'):'No calendar events'}
+
+INSTRUCTIONS:
+- Be concise, practical, and action-oriented
+- Use markdown formatting: **bold** for emphasis, bullet lists for multiple items
+- When suggesting priorities, consider due dates, priority levels, and overdue status
+- Reference specific task names from the data above when relevant
+- For status updates, be professional and clear
+- You can suggest adding tasks or updating statuses`;
+}
+
+function updateAIContext(){
+  const overdue=tasks.filter(t=>isOverdue(t)).length;
+  const hi=tasks.filter(t=>t.priority==='Hi'&&!t.done).length;
+  document.getElementById('ctxTasks').textContent=tasks.length;
+  document.getElementById('ctxActive').textContent=tasks.filter(t=>!t.done).length;
+  document.getElementById('ctxOverdue').textContent=overdue;
+  document.getElementById('ctxHi').textContent=hi;
+  document.getElementById('ctxCal').textContent=calEvs.length;
+}
+
+function renderMarkdown(text){
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/^### (.+)$/gm,'<div style="font-weight:700;margin:8px 0 4px">$1</div>')
+    .replace(/^## (.+)$/gm,'<div style="font-weight:700;font-size:14px;margin:10px 0 4px">$1</div>')
+    .replace(/^# (.+)$/gm,'<div style="font-weight:700;font-size:15px;margin:10px 0 4px">$1</div>')
+    .replace(/^- (.+)$/gm,'<li>$1</li>')
+    .replace(/^(\d+)\. (.+)$/gm,'<li>$2</li>')
+    .replace(/(<li>.*<\/li>)/s, '<ul style="margin:6px 0 6px 16px">$1</ul>')
+    .replace(/\n\n/g,'</p><p>')
+    .replace(/^(?!<)(.+)$/gm,'<p>$1</p>')
+    .replace(/<p><\/p>/g,'')
+    .replace(/<p>(<(?:ul|div|li))/g,'$1')
+    .replace(/(<\/(?:ul|div|li)>)<\/p>/g,'$1');
+}
+
+function appendMsg(role, html, isLoading=false){
+  const msgs = document.getElementById('aiMessages');
+  const div = document.createElement('div');
+  div.className = `ai-msg ai-msg-${role}`;
+  if(isLoading) div.id = 'aiTyping';
+  div.innerHTML = `
+    <div class="ai-avatar">${role==='user'?'F':'✦'}</div>
+    <div class="ai-bubble">${isLoading?'<div class="ai-typing"><span></span><span></span><span></span></div>':html}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+async function sendAIMessage(){
+  const input = document.getElementById('aiInput');
+  const msg = input.value.trim();
+  if(!msg) return;
+  input.value = '';
+  input.style.height = '52px';
+  doAskAI(msg);
+}
+
+function sendSuggestion(btn){
+  doAskAI(btn.textContent);
+}
+
+function askAI(prompt){
+  // Switch to AI tab first
+  const aiTab = document.querySelector('.ntab:last-child');
+  if(aiTab && !aiTab.classList.contains('on')){
+    document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
+    document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+    aiTab.classList.add('on');
+    document.getElementById('pane-ai').classList.add('on');
+    updateAIContext();
+  }
+  setTimeout(()=>doAskAI(prompt), 100);
+}
+
+async function doAskAI(userMsg){
+  // Show user message
+  appendMsg('user', renderMarkdown(userMsg));
+
+  // Add to history
+  aiHistory.push({role:'user', content: userMsg});
+
+  // Show typing indicator
+  const typingEl = appendMsg('assistant','',true);
+
+  // Disable send
+  const sendBtn = document.getElementById('aiSendBtn');
+  sendBtn.disabled = true;
+  sendBtn.textContent = '…';
+
+  try{
+    const systemPrompt = buildTaskContext();
+
+    const response = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: aiHistory
+      })
+    });
+
+    const data = await response.json();
+    const replyText = data.content?.[0]?.text || 'Sorry, I could not get a response. Please try again.';
+
+    // Add assistant reply to history
+    aiHistory.push({role:'assistant', content: replyText});
+
+    // Replace typing indicator with actual response
+    typingEl.querySelector('.ai-bubble').innerHTML = renderMarkdown(replyText);
+
+  }catch(err){
+    typingEl.querySelector('.ai-bubble').innerHTML = '<span style="color:#9b2c2c">Sorry, something went wrong. Please try again.</span>';
+    console.error('AI error:', err);
+  }finally{
+    sendBtn.disabled = false;
+    sendBtn.textContent = 'Send';
+    document.getElementById('aiMessages').scrollTop = 9999;
+  }
+}
+
+function clearAIChat(){
+  aiHistory = [];
+  const msgs = document.getElementById('aiMessages');
+  msgs.innerHTML = `
+    <div class="ai-msg ai-msg-assistant">
+      <div class="ai-avatar">✦</div>
+      <div class="ai-bubble">Chat cleared. How can I help you with your tasks and schedule?</div>
+    </div>`;
 }
 
 /* ════════════════════════════════════════════
