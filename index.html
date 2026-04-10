@@ -79,10 +79,15 @@ tbody tr:hover td{background:#f7fafc;}
 /* ── BADGES ── */
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
 .badge .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
-.b-track{background:#f0fff4;color:#276749;}.b-track .dot{background:#38a169;}
-.b-risk{background:#fffaf0;color:#744210;}.b-risk .dot{background:#d69e2e;}
+.b-open{background:#edf2f7;color:#2d3748;}.b-open .dot{background:#a0aec0;}
+.b-progress{background:#ebf8ff;color:#1a4e8c;}.b-progress .dot{background:#2b6cb0;}
+.b-pending{background:#fff8e6;color:#7b4f00;}.b-pending .dot{background:#d97706;}
+.b-review{background:#e9f2ff;color:#1e429f;}.b-review .dot{background:#3b82f6;}
+.b-closed{background:#f0fff4;color:#1a5c38;}.b-closed .dot{background:#16a34a;}
+.b-track{background:#f0fff4;color:#1a5c38;}.b-track .dot{background:#16a34a;}
+.b-risk{background:#fff3cd;color:#7b4f00;}.b-risk .dot{background:#d97706;}
 .b-delay{background:#fff5f5;color:#9b2c2c;}.b-delay .dot{background:#e53e3e;}
-.b-done{background:#ebf8ff;color:#2c5282;}.b-done .dot{background:#3182ce;}
+.b-done{background:#f0fff4;color:#1a5c38;}.b-done .dot{background:#16a34a;}
 .b-hi{background:#fff5f5;color:#9b2c2c;}
 .b-med{background:#fffaf0;color:#744210;}
 .b-lo{background:#f0fff4;color:#276749;}
@@ -494,10 +499,12 @@ tbody tr:hover td{background:#f7fafc;}
   <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
     <select id="fStatus" onchange="renderTasks()" style="font-size:12.5px;padding:7px 10px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;outline:none;">
       <option value="all">All status</option>
-      <option value="On track">On track</option>
-      <option value="At risk">At risk</option>
-      <option value="Delayed">Delayed</option>
-      <option value="Done">Done</option>
+      <option value="Open">Open</option>
+      <option value="In Progress">In Progress</option>
+      <option value="Pending External">Pending External</option>
+      <option value="Under Review">Under Review</option>
+      <option value="Closed">Closed</option>
+      <option value="Overdue">Overdue ⚠</option>
     </select>
     <select id="fPri" onchange="renderTasks()" style="font-size:12.5px;padding:7px 10px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;outline:none;">
       <option value="all">All priority</option>
@@ -702,7 +709,13 @@ tbody tr:hover td{background:#f7fafc;}
       <div class="ff"><label class="flbl">Due date</label><input type="date" id="fDue"/></div>
       <div class="ff"><label class="flbl">Owner</label><input id="fOwner" placeholder="Full name"/></div>
       <div class="ff"><label class="flbl">Overall status</label>
-        <select id="fStatusM"><option value="On track" selected>On track</option><option value="At risk">At risk</option><option value="Delayed">Delayed</option><option value="Done">Done</option></select>
+        <select id="fStatusM">
+          <option value="Open" selected>Open</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Pending External">Pending External</option>
+          <option value="Under Review">Under Review / Verification</option>
+          <option value="Closed">Closed</option>
+        </select>
       </div>
       <div class="ff full"><label class="flbl">Notes / observations</label><textarea id="fNotes" placeholder="Key issues, context, or flags…"></textarea></div>
     </div>
@@ -766,7 +779,7 @@ function normaliseTask(t){
     startDate: t.startDate || '',
     dueDate:   t.dueDate   || t.due || '',
     done:      t.done      || t.completed || false,
-    status:    t.status    || 'On track',
+    status:    t.status    || 'Open',
     owner:     t.owner     || '',
     notes:     t.notes     || '',
     synced:    t.synced    || false,
@@ -836,12 +849,21 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
    BADGES
 ════════════════════════════════════════════ */
 function statusBadge(t){
-  if(t.done) return'<span class="badge b-done"><span class="dot" style="background:#3182ce"></span>Done</span>';
-  const s=t.status||'On track';
-  if(s==='At risk')  return'<span class="badge b-risk"><span class="dot" style="background:#d69e2e"></span>At risk</span>';
-  if(s==='Delayed')  return'<span class="badge b-delay"><span class="dot" style="background:#e53e3e"></span>Delayed</span>';
-  if(s==='Done')     return'<span class="badge b-done"><span class="dot" style="background:#3182ce"></span>Done</span>';
-  return'<span class="badge b-track"><span class="dot" style="background:#38a169"></span>On track</span>';
+  const s = t.done ? 'Closed' : (t.status || 'Open');
+  const map = {
+    'Open':              ['b-open',     '#a0aec0'],
+    'In Progress':       ['b-progress', '#2b6cb0'],
+    'Pending External':  ['b-pending',  '#d97706'],
+    'Under Review':      ['b-review',   '#3b82f6'],
+    'Closed':            ['b-closed',   '#16a34a'],
+    /* legacy values */
+    'On track':          ['b-closed',   '#16a34a'],
+    'At risk':           ['b-risk',     '#d97706'],
+    'Delayed':           ['b-delay',    '#e53e3e'],
+    'Done':              ['b-closed',   '#16a34a'],
+  };
+  const [cls, dot] = map[s] || ['b-open', '#718096'];
+  return `<span class="badge ${cls}"><span class="dot" style="background:${dot}"></span>${s}</span>`;
 }
 function priBadge(p){
   if(p==='Hi') return'<span class="badge b-hi">High</span>';
@@ -929,7 +951,8 @@ function renderTasksTab(){
   const data=tasks.filter(t=>{
     if(fq&&!t.title.toLowerCase().includes(fq)&&!(t.tags||[]).join(' ').toLowerCase().includes(fq))return false;
     if(fp!=='all'&&(t.priority||'Med')!==fp)return false;
-    if(fs!=='all'){const s=t.done?'Done':(t.status||'On track');if(s!==fs)return false;}
+    if(fs!=='all'){const s=t.done?'Closed':(isOverdue(t)&&fs==='Overdue'?'Overdue':(t.status||'Open'));
+    if(fs==='Overdue'){if(!isOverdue(t))return false;}else if(s!==fs)return false;}
     return true;
   });
   const tbody=document.getElementById('tasksTbl');
@@ -1342,27 +1365,32 @@ function renderMonthDetail(){
 function renderQuality(){
   const total=tasks.length,done=tasks.filter(t=>t.done).length;
   const ov=tasks.filter(t=>isOverdue(t)).length;
-  const onT=tasks.filter(t=>!t.done&&(t.status||'On track')==='On track').length;
-  const atR=tasks.filter(t=>!t.done&&t.status==='At risk').length;
-  const del=tasks.filter(t=>!t.done&&t.status==='Delayed').length;
+  const onT=tasks.filter(t=>!t.done&&(t.status||'Open')==='Open').length;
+  const inP=tasks.filter(t=>!t.done&&t.status==='In Progress').length;
+  const pend=tasks.filter(t=>!t.done&&t.status==='Pending External').length;
+  const rev=tasks.filter(t=>!t.done&&t.status==='Under Review').length;
+  const atR=tasks.filter(t=>!t.done&&(t.status==='At risk')).length;
+  const del=tasks.filter(t=>!t.done&&(t.status==='Delayed')).length;
   const pct=total?Math.round((done/total)*100):0;
   document.getElementById('qualMetrics').innerHTML=`
-    <div class="met-row"><span class="met-lbl">Completion rate</span><span class="met-val" style="color:#276749">${pct}%</span></div>
-    <div class="met-row"><span class="met-lbl">On track</span><span class="met-val" style="color:#276749">${onT}</span></div>
-    <div class="met-row"><span class="met-lbl">At risk</span><span class="met-val" style="color:#744210">${atR}</span></div>
-    <div class="met-row"><span class="met-lbl">Delayed</span><span class="met-val" style="color:#9b2c2c">${del}</span></div>
-    <div class="met-row"><span class="met-lbl">Overdue</span><span class="met-val" style="color:${ov>0?'#9b2c2c':'#276749'}">${ov}</span></div>
-    <div class="met-row"><span class="met-lbl">GCal synced</span><span class="met-val" style="color:#2c5282">${tasks.filter(t=>t.synced).length}</span></div>`;
+    <div class="met-row"><span class="met-lbl">Completion rate</span><span class="met-val" style="color:#16a34a">${pct}%</span></div>
+    <div class="met-row"><span class="met-lbl" style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#a0aec0;flex-shrink:0"></span>Open</span><span class="met-val" style="color:#2d3748">${onT}</span></div>
+    <div class="met-row"><span class="met-lbl" style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#2b6cb0;flex-shrink:0"></span>In Progress</span><span class="met-val" style="color:#2b6cb0">${inP}</span></div>
+    <div class="met-row"><span class="met-lbl" style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#d97706;flex-shrink:0"></span>Pending External</span><span class="met-val" style="color:#d97706">${pend}</span></div>
+    <div class="met-row"><span class="met-lbl" style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;flex-shrink:0"></span>Under Review</span><span class="met-val" style="color:#3b82f6">${rev}</span></div>
+    <div class="met-row"><span class="met-lbl" style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#16a34a;flex-shrink:0"></span>Closed</span><span class="met-val" style="color:#16a34a">${done}</span></div>
+    <div class="met-row"><span class="met-lbl" style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#e53e3e;flex-shrink:0"></span>Overdue ⚠</span><span class="met-val" style="color:${ov>0?'#e53e3e':'#a0aec0'}">${ov}</span></div>
+    <div class="met-row"><span class="met-lbl">GCal synced</span><span class="met-val" style="color:#2b6cb0">${tasks.filter(t=>t.synced).length}</span></div>`;
   const hi=tasks.filter(t=>t.priority==='Hi').length;
   const med=tasks.filter(t=>(t.priority||'Med')==='Med').length;
   const lo=tasks.filter(t=>t.priority==='Lo').length;
   document.getElementById('priBreakdown').innerHTML=`
-    <div class="met-row"><span class="met-lbl">High priority</span><span class="met-val" style="color:#9b2c2c">${hi}</span></div>
-    <div class="met-row"><span class="met-lbl">Medium priority</span><span class="met-val" style="color:#744210">${med}</span></div>
-    <div class="met-row"><span class="met-lbl">Low priority</span><span class="met-val" style="color:#276749">${lo}</span></div>
+    <div class="met-row"><span class="met-lbl" style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#e53e3e;flex-shrink:0"></span>High priority</span><span class="met-val" style="color:#e53e3e">${hi}</span></div>
+    <div class="met-row"><span class="met-lbl" style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#d97706;flex-shrink:0"></span>Medium priority</span><span class="met-val" style="color:#d97706">${med}</span></div>
+    <div class="met-row"><span class="met-lbl" style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#16a34a;flex-shrink:0"></span>Low priority</span><span class="met-val" style="color:#16a34a">${lo}</span></div>
     <div class="met-row"><span class="met-lbl">No due date</span><span class="met-val" style="color:#a0aec0">${tasks.filter(t=>!t.dueDate).length}</span></div>
-    <div class="met-row"><span class="met-lbl">Total events</span><span class="met-val" style="color:#2c5282">${calEvs.length}</span></div>`;
-  const risky=tasks.filter(t=>!t.done&&(t.priority==='Hi'||t.status==='At risk'||t.status==='Delayed'||isOverdue(t)));
+    <div class="met-row"><span class="met-lbl">Total cal events</span><span class="met-val" style="color:#2b6cb0">${calEvs.length}</span></div>`;
+  const risky=tasks.filter(t=>!t.done&&(t.priority==='Hi'||t.status==='At risk'||t.status==='Delayed'||t.status==='Pending External'||isOverdue(t)));
   const tbody=document.getElementById('riskTbl');
   if(!risky.length){tbody.innerHTML=`<tr><td class="empty-td" colspan="6">No high-priority or at-risk items. Great work!</td></tr>`;return;}
   tbody.innerHTML=risky.map(t=>`
@@ -1472,7 +1500,7 @@ function openAddTask(){
   document.getElementById('fStart').value='';
   document.getElementById('fDue').value='';
   document.getElementById('fPriority').value='Med';
-  document.getElementById('fStatusM').value='On track';
+  document.getElementById('fStatusM').value='Open';
   document.getElementById('fTag').value='Work';
   document.getElementById('taskOv').classList.add('show');
 }
@@ -1486,7 +1514,7 @@ function openEditTask(id){
   document.getElementById('fStart').value=t.startDate||'';
   document.getElementById('fDue').value=t.dueDate||'';
   document.getElementById('fPriority').value=t.priority||'Med';
-  document.getElementById('fStatusM').value=t.status||'On track';
+  document.getElementById('fStatusM').value=t.status||'Open';
   document.getElementById('fTag').value=(t.tags&&t.tags[0])||'Work';
   document.getElementById('taskOv').classList.add('show');
 }
@@ -1754,7 +1782,7 @@ async function pushTask(task){
   if(!sd)return;
   const nxt=d=>{const dt=new Date(d+'T00:00:00');dt.setDate(dt.getDate()+1);return dt.toISOString().split('T')[0];};
   const body={summary:task.title,
-    description:[(task.tags||[]).length?'Tags: '+(task.tags||[]).join(', '):'','Priority: '+task.priority,'Status: '+(task.status||'On track'),'From TaskFlow Dashboard'].filter(Boolean).join('\n'),
+    description:[(task.tags||[]).length?'Tags: '+(task.tags||[]).join(', '):'','Priority: '+task.priority,'Status: '+(task.status||'Open'),'From TaskFlow Dashboard'].filter(Boolean).join('\n'),
     start:{date:sd},end:{date:nxt(ed)},
     colorId:task.priority==='Hi'?'11':task.priority==='Med'?'5':'7'};
   try{
@@ -1835,7 +1863,7 @@ function buildTaskContext(){
     .sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate)).slice(0,10);
 
   const fmtTask = t =>
-    `- [${t.done?'DONE':'OPEN'}] "${t.title}" | Priority: ${t.priority} | Status: ${t.status||'On track'}`+
+    `- [${t.done?'DONE':'OPEN'}] "${t.title}" | Priority: ${t.priority} | Status: ${t.status||'Open'}`+
     `${t.dueDate?' | Due: '+t.dueDate:''}${t.startDate?' | Start: '+t.startDate:''}`+
     `${t.owner?' | Owner: '+t.owner:''}${(t.tags||[]).length?' | Tags: '+t.tags.join(','):''}${t.notes?' | Notes: '+t.notes.substring(0,80):''}`;
 
