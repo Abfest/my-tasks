@@ -6,6 +6,7 @@
 <title>TaskFlow Dashboard</title>
 <meta name="theme-color" content="#1a3a5c"/>
 <link rel="manifest" href="manifest.json"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231a3a5c'/><text x='16' y='23' font-size='18' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'>T</text></svg>"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -761,9 +762,8 @@ tbody tr:hover td{background:#f7fafc;}
 <!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+  import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-  /* ── Firebase config ── */
   const firebaseConfig = {
     apiKey: "AIzaSyAVCu0FKXfbaLDNj4gg1HsLoohkjGEDE6c",
     authDomain: "taskflow-dashboard-36518.firebaseapp.com",
@@ -773,18 +773,27 @@ tbody tr:hover td{background:#f7fafc;}
     appId: "1:725240848138:web:e2052e135754786f8124f3"
   };
 
-  const fbApp = initializeApp(firebaseConfig);
-  const db    = getFirestore(fbApp);
-  const USER  = 'franco'; // single-user app
+  try {
+    const fbApp = initializeApp(firebaseConfig);
+    const db    = getFirestore(fbApp);
 
-  /* Expose Firestore helpers to global scope */
-  window._db      = db;
-  window._doc     = doc;
-  window._setDoc  = setDoc;
-  window._getDoc  = getDoc;
-  window._onSnap  = onSnapshot;
-  window._fbReady = true;
-  window.dispatchEvent(new Event('firebase-ready'));
+    window._fbReady = true;
+    window._fbSaveDoc = async (data) => {
+      await setDoc(doc(db, 'taskflow', 'franco'), data);
+    };
+    window._fbListen = (callback) => {
+      return onSnapshot(doc(db, 'taskflow', 'franco'), callback);
+    };
+
+    /* Signal to the main script that Firebase is ready */
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', () => window.dispatchEvent(new Event('firebase-ready')));
+    } else {
+      window.dispatchEvent(new Event('firebase-ready'));
+    }
+  } catch(e) {
+    console.warn('Firebase init failed:', e);
+  }
 </script>
 
 <script>
@@ -865,78 +874,91 @@ function save(){
 }
 
 let _fbSaveTimer = null;
+let _lastFbSaveTime = null;
+
 function fbSave(){
-  /* Debounce 800ms so rapid edits don't hammer Firestore */
   clearTimeout(_fbSaveTimer);
   _fbSaveTimer = setTimeout(async ()=>{
-    if(!window._fbReady) return;
-    const db=window._db, d=window._doc, s=window._setDoc;
+    if(!window._fbSaveDoc) return;
     try{
-      await s(d(db,'taskflow',USER), {
-        tasks:  JSON.stringify(tasks),
-        calEvs: JSON.stringify(calEvs),
-        top3:   JSON.stringify(top3),
-        gcal:   JSON.stringify(gcal),
-        updatedAt: new Date().toISOString()
+      const now = new Date().toISOString();
+      _lastFbSaveTime = Date.now();
+      await window._fbSaveDoc({
+        tasks:     JSON.stringify(tasks),
+        calEvs:    JSON.stringify(calEvs),
+        top3:      JSON.stringify(top3),
+        gcal:      JSON.stringify(gcal),
+        updatedAt: now
       });
-    }catch(e){ console.warn('Firebase save error',e); }
+    }catch(e){ console.warn('Firebase save error:', e); }
   }, 800);
 }
 
 /* ════════════════════════════════════════════
    FIREBASE REAL-TIME LISTENER
 ════════════════════════════════════════════ */
-let _ignoreNextSnapshot = false;
+let _fbListening = false;
 
 function startFirebaseSync(){
-  if(!window._fbReady) return;
-  const db=window._db, d=window._doc, snap=window._onSnap;
+  if(!window._fbListen || _fbListening) return;
+  _fbListening = true;
 
-  snap(d(db,'taskflow',USER), (snapshot)=>{
-    if(!snapshot.exists()) return;
-    if(_ignoreNextSnapshot){ _ignoreNextSnapshot=false; return; }
+  window._fbListen((snapshot)=>{
+    if(!snapshot.exists()) {
+      /* No data yet — push local data up */
+      if(tasks.length > 0 || calEvs.length > 0) fbSave();
+      return;
+    }
 
     const data = snapshot.data();
+
+    /* Skip updates we just wrote ourselves (debounce window = 2s) */
+    const updatedAt = new Date(data.updatedAt||0).getTime();
+    if(_lastFbSaveTime && (updatedAt - _lastFbSaveTime) < 2000 && (updatedAt - _lastFbSaveTime) > -100) return;
+
     let changed = false;
 
     try{
-      const remoteTasks = JSON.parse(data.tasks||'[]').map(normaliseTask);
-      /* Only update if remote has more or newer data */
-      if(remoteTasks.length > 0){
-        tasks = remoteTasks;
+      const remote = JSON.parse(data.tasks||'[]').map(normaliseTask);
+      if(remote.length > 0 && JSON.stringify(remote) !== JSON.stringify(tasks)){
+        tasks = remote;
         writeLocal(TASK_KEYS, tasks);
         changed = true;
       }
     }catch(e){}
 
     try{
-      const remoteCal = JSON.parse(data.calEvs||'[]');
-      if(remoteCal.length >= 0){
-        calEvs = remoteCal;
+      const remote = JSON.parse(data.calEvs||'[]');
+      if(JSON.stringify(remote) !== JSON.stringify(calEvs)){
+        calEvs = remote;
         writeLocal(CAL_KEYS, calEvs);
         changed = true;
       }
     }catch(e){}
 
     try{
-      const remoteTop3 = JSON.parse(data.top3||'[]');
-      if(remoteTop3.length > 0){
-        top3 = remoteTop3;
+      const remote = JSON.parse(data.top3||'[]');
+      if(remote.length > 0 && JSON.stringify(remote) !== JSON.stringify(top3)){
+        top3 = remote;
         writeLocal(TOP3_KEYS, top3);
         changed = true;
       }
     }catch(e){}
 
     try{
-      const remoteGcal = JSON.parse(data.gcal||'null');
-      if(remoteGcal){ gcal = remoteGcal; writeLocal(GCAL_KEYS, gcal); }
+      const remote = JSON.parse(data.gcal||'null');
+      if(remote && JSON.stringify(remote) !== JSON.stringify(gcal)){
+        gcal = remote;
+        writeLocal(GCAL_KEYS, gcal);
+        updateGCalUI();
+      }
     }catch(e){}
 
     if(changed){
-      updateGCalUI();
       updatePhasePill();
       refreshActive();
       showSyncIndicator();
+      console.log('🔄 Synced from Firebase');
     }
   });
 }
@@ -1019,16 +1041,14 @@ window.addEventListener('DOMContentLoaded',()=>{
   renderAll();renderTop3();updatePomUI();
   window.addEventListener('message',handleOAuthMsg);
 
-  /* Start Firebase sync once SDK is ready */
-  if(window._fbReady){
+  /* Firebase syncs once SDK module finishes loading */
+  window.addEventListener('firebase-ready', ()=>{
+    console.log('🔥 Firebase connected');
     startFirebaseSync();
-  } else {
-    window.addEventListener('firebase-ready', ()=>{
-      startFirebaseSync();
-      /* Push any locally-stored data to Firebase on first connect */
-      if(tasks.length>0 || calEvs.length>0) fbSave();
-    });
-  }
+  });
+
+  /* If firebase-ready already fired before DOMContentLoaded (unlikely but safe) */
+  if(window._fbReady) startFirebaseSync();
 });
 
 function renderAll(){updatePhasePill();renderOverview();}
