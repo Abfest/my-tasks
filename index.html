@@ -295,7 +295,7 @@ tbody tr:hover td{background:#f7fafc;}
 .st-body-textarea{width:100%;background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:7px 10px;font-size:12.5px;color:#2d3748;font-family:'Inter',sans-serif;outline:none;resize:vertical;min-height:64px;line-height:1.5;transition:border-color .15s;}
 .st-body-textarea:focus{border-color:#1a3a5c;box-shadow:0 0 0 2px rgba(26,58,92,.08);}
 .st-body-textarea::placeholder{color:#cbd5e0;}
-.st-body-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+.st-body-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
 .st-body-select{width:100%;background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;font-size:12px;color:#2d3748;font-family:'Inter',sans-serif;outline:none;transition:border-color .15s;}
 .st-body-select:focus{border-color:#1a3a5c;}
 .add-st-btn{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#1a3a5c;cursor:pointer;padding:8px 4px;background:none;border:none;font-family:'Inter',sans-serif;font-weight:600;margin-top:2px;}
@@ -1207,10 +1207,17 @@ function renderTasksTab(){
   if(!data.length){tbody.innerHTML=`<tr><td class="empty-td" colspan="10">No matching tasks.</td></tr>`;return;}
   tbody.innerHTML=data.map(t=>`
     <tr>
-      <td><div class="pchk ${t.done?'done-c':''}" onclick="toggleDone(${t.id})">${t.done?'✓':''}</div></td>
-      <td style="max-width:180px">
-        <span style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'#2d3748'}">${esc(t.title)}</span>
-        ${t.notes?`<div style="font-size:11px;color:#a0aec0;margin-top:2px">${esc(t.notes).substring(0,55)}${t.notes.length>55?'…':''}</div>`:''}
+      <td><div class="pchk ${t.done?'done-c':''}" onclick="toggleDone(${t.id})" title="${(t.subtasks||[]).length>0&&!t.done?'Complete all subtasks first':'Mark done'}">${t.done?'✓':''}</div></td>
+      <td style="max-width:200px">
+        <div style="display:flex;align-items:flex-start;gap:6px">
+          ${(t.subtasks||[]).length>0?`<button onclick="toggleExpandRow('trow_${t.id}')" id="exp_trow_${t.id}" style="width:16px;height:16px;border-radius:3px;border:0.5px solid #e2e8f0;background:#f7fafc;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;flex-shrink:0;margin-top:2px;color:#718096;">▶</button>`:'<span style="width:16px;flex-shrink:0"></span>'}
+          <div style="min-width:0;flex:1">
+            <span style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'#2d3748'}">${esc(t.title)}</span>
+            ${t.notes?`<div style="font-size:11px;color:#a0aec0;margin-top:2px">${esc(t.notes).substring(0,55)}${t.notes.length>55?'…':''}</div>`:''}
+            ${(t.subtasks||[]).length>0?`<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><div style="height:3px;width:50px;background:#e2e8f0;border-radius:2px;overflow:hidden"><div style="height:100%;width:${Math.round(((t.subtasks||[]).filter(s=>s.done).length/(t.subtasks||[]).length)*100)}%;background:#1a3a5c;border-radius:2px"></div></div><span style="font-size:10.5px;color:#718096">${(t.subtasks||[]).filter(s=>s.done).length}/${(t.subtasks||[]).length} subtasks</span></div>`:''}
+          </div>
+        </div>
+        <div id="trow_${t.id}" style="display:none;margin-top:8px;">${renderSubtasksInRow(t)}</div>
       </td>
       <td>${(t.tags||[]).map(g=>`<span class="tag-chip">${g}</span>`).join('')}</td>
       <td>${priBadge(t.priority||'Med')}</td>
@@ -1822,7 +1829,17 @@ function updatePomUI(){
 ════════════════════════════════════════════ */
 function toggleDone(id){
   const t=tasks.find(t=>t.id===id||t.id==id);
-  if(t){t.done=!t.done;if(t.done)t.status='Done';save();refreshActive();}
+  if(!t) return;
+  if(!t.done){
+    const openSubs=(t.subtasks||[]).filter(s=>!s.done);
+    if(openSubs.length>0){
+      toast(`⚠ ${openSubs.length} subtask${openSubs.length>1?'s':''} still open — close them first`,'warn');
+      return;
+    }
+  }
+  t.done=!t.done;
+  if(t.done) t.status='Closed';
+  save();refreshActive();
 }
 function deleteTask(id){
   if(!confirm('Delete this task?'))return;
@@ -1935,6 +1952,11 @@ function renderSubtaskList(){
               oninput="window._editSubtasks[${i}].owner=this.value"/>
           </div>
           <div>
+            <div class="st-body-lbl">Start date</div>
+            <input type="date" class="st-body-input" value="${s.startDate||''}"
+              onchange="window._editSubtasks[${i}].startDate=this.value"/>
+          </div>
+          <div>
             <div class="st-body-lbl">Due date</div>
             <input type="date" class="st-body-input" value="${s.dueDate||''}"
               onchange="window._editSubtasks[${i}].dueDate=this.value"/>
@@ -1958,7 +1980,7 @@ function toggleStDone(i){
 
 function addSubtask(){
   if(!window._editSubtasks) window._editSubtasks = [];
-  window._editSubtasks.push({id:'st_'+Date.now(),title:'',description:'',status:'Open',owner:'',dueDate:'',done:false,_open:true});
+  window._editSubtasks.push({id:'st_'+Date.now(),title:'',description:'',status:'Open',owner:'',startDate:'',dueDate:'',done:false,_open:true});
   renderSubtaskList();
   setTimeout(()=>{
     const inputs = document.querySelectorAll('.st-title-inp');
@@ -1991,6 +2013,7 @@ function collectSubtasks(){
     description: s.description||'',
     status:      s.status||'Open',
     owner:       s.owner||'',
+    startDate:   s.startDate||'',
     dueDate:     s.dueDate||'',
     done:        s.done||false
   })).filter(s=>s.title.trim());
@@ -2011,6 +2034,7 @@ function renderSubtasksInRow(t){
             ${s.description?`<div class="sub-item-desc">${esc(s.description)}</div>`:''}
             <div class="sub-item-meta">
               ${s.owner?`<span style="font-size:11px;color:#a0aec0">${esc(s.owner)}</span>`:''}
+              ${s.startDate?`<span style="font-size:11px;color:#a0aec0">Start ${fmtS(s.startDate)}</span>`:''}
               ${s.dueDate?`<span style="font-size:11px;color:${isOverdue({dueDate:s.dueDate,done:s.done})?'#9b2c2c':'#a0aec0'}">Due ${fmtS(s.dueDate)}</span>`:''}
               ${statusBadge({status:s.status||'Open',done:s.done})}
             </div>
