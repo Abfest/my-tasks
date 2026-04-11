@@ -742,6 +742,19 @@ tbody tr:hover td{background:#f7fafc;}
       </div>
       <div class="ff full"><label class="flbl">Notes / observations</label><textarea id="fNotes" placeholder="Key issues, context, or flags…"></textarea></div>
     </div>
+    <!-- SUBTASKS SECTION -->
+    <div class="st-section">
+      <div class="st-section-hdr">
+        <span class="st-section-lbl">Subtasks</span>
+        <div class="st-progress" id="stProgress" style="display:none">
+          <div class="st-prog-bar"><div class="st-prog-fill" id="stProgFill" style="width:0%"></div></div>
+          <span class="st-prog-txt" id="stProgTxt">0 / 0 done</span>
+        </div>
+      </div>
+      <div id="stList"></div>
+      <button class="add-st-btn" onclick="addSubtask()">+ Add subtask</button>
+    </div>
+
     <div class="mac">
       <button class="mbtn cancel" onclick="closeTaskModal()">Cancel</button>
       <button class="mbtn save" onclick="saveTask()">Save task</button>
@@ -815,7 +828,8 @@ function normaliseTask(t){
     synced:    t.synced    || false,
     gcalId:    t.gcalId    || null,
     calUrl:    t.calUrl    || null,
-    createdAt: t.createdAt || new Date().toISOString()
+    createdAt: t.createdAt || new Date().toISOString(),
+    subtasks:  t.subtasks  || []
   };
 }
 
@@ -999,6 +1013,15 @@ function eventsOn(ds){
     ce:calEvs.filter(e=>e.date===ds||(e.endDate&&e.date<=ds&&e.endDate>=ds))
   };
 }
+function toggleExpandRow(rowId){
+  const el=document.getElementById(rowId);
+  const btn=document.getElementById('exp_'+rowId);
+  if(!el)return;
+  const isOpen=el.style.display!=='none';
+  el.style.display=isOpen?'none':'block';
+  if(btn)btn.textContent=isOpen?'▶':'▾';
+}
+
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 /* ════════════════════════════════════════════
@@ -1090,9 +1113,23 @@ function renderOverview(){
   if(syncBtn) syncBtn.style.display=gcal?'inline-flex':'none';
   const tbody=document.getElementById('overviewTbl');
   if(!tasks.length){tbody.innerHTML=`<tr><td class="empty-td" colspan="7">No tasks yet. Click "+ Add task" to begin.</td></tr>`;return;}
-  tbody.innerHTML=tasks.slice(0,12).map(t=>`
-    <tr>
-      <td><span style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'#2d3748'}">${esc(t.title)}</span></td>
+  tbody.innerHTML=tasks.slice(0,12).map(t=>{
+    const subs=t.subtasks||[];
+    const sDone=subs.filter(s=>s.done).length;
+    const hasSubs=subs.length>0;
+    const stPct=hasSubs?Math.round((sDone/subs.length)*100):0;
+    const rowId='ovrow_'+t.id;
+    return`<tr>
+      <td>
+        <div style="display:flex;align-items:flex-start;gap:6px">
+          ${hasSubs?`<button onclick="toggleExpandRow('${rowId}')" style="width:16px;height:16px;border-radius:3px;border:0.5px solid #e2e8f0;background:#f7fafc;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;flex-shrink:0;margin-top:2px;color:#718096;" id="exp_${rowId}">▶</button>`:'<span style="width:16px;flex-shrink:0"></span>'}
+          <div style="min-width:0">
+            <span style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'#2d3748'}">${esc(t.title)}</span>
+            ${hasSubs?`<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><div style="height:3px;width:60px;background:#e2e8f0;border-radius:2px;overflow:hidden"><div style="height:100%;width:${stPct}%;background:#1a3a5c;border-radius:2px"></div></div><span style="font-size:10.5px;color:#718096">${sDone}/${subs.length}</span></div>`:''}
+          </div>
+        </div>
+        ${hasSubs?`<div id="${rowId}" style="display:none">${renderSubtasksInRow(t)}</div>`:''}
+      </td>
       <td>${(t.tags||[]).map(g=>`<span class="tag-chip">${g}</span>`).join('')}</td>
       <td>${priBadge(t.priority||'Med')}</td>
       <td style="font-size:12.5px;color:${isOverdue(t)?'#9b2c2c':'#718096'}">${fmtS(t.dueDate)}${isOverdue(t)?' ⚠':''}</td>
@@ -1103,7 +1140,7 @@ function renderOverview(){
         <button class="btn sm" onclick="openEditTask(${t.id})">Edit</button>
         <button class="btn sm danger" onclick="deleteTask(${t.id})">Del</button>
       </td>
-    </tr>`).join('');
+    </tr>`;}).join('');
 }
 
 /* ════════════════════════════════════════════
@@ -1755,6 +1792,8 @@ function openAddTask(){
   document.getElementById('fPriority').value='Med';
   document.getElementById('fStatusM').value='Open';
   document.getElementById('fTag').value='Work';
+  window._editSubtasks = [];
+  renderSubtaskList();
   document.getElementById('taskOv').classList.add('show');
 }
 function openEditTask(id){
@@ -1769,6 +1808,8 @@ function openEditTask(id){
   document.getElementById('fPriority').value=t.priority||'Med';
   document.getElementById('fStatusM').value=t.status||'Open';
   document.getElementById('fTag').value=(t.tags&&t.tags[0])||'Work';
+  window._editSubtasks = JSON.parse(JSON.stringify(t.subtasks||[]));
+  renderSubtaskList();
   document.getElementById('taskOv').classList.add('show');
 }
 function closeTaskModal(){document.getElementById('taskOv').classList.remove('show');}
@@ -1781,7 +1822,8 @@ function saveTask(){
     dueDate:document.getElementById('fDue').value,
     owner:document.getElementById('fOwner').value,
     status:document.getElementById('fStatusM').value,
-    notes:document.getElementById('fNotes').value};
+    notes:document.getElementById('fNotes').value,
+    subtasks: collectSubtasks()};
   if(editId!==null){
     const t=tasks.find(t=>t.id===editId||t.id==editId);
     if(t){Object.assign(t,data);t.synced=false;}
@@ -1792,6 +1834,151 @@ function saveTask(){
   }
   save();refreshActive();closeTaskModal();
   toast(editId?'Task updated':'Task added'+(gcal?' & synced':''),'ok');
+}
+
+/* ════════════════════════════════════════════
+   SUBTASKS
+════════════════════════════════════════════ */
+if(!window._editSubtasks) window._editSubtasks = [];
+
+function renderSubtaskList(){
+  const list = document.getElementById('stList');
+  if(!list) return;
+  const subs = window._editSubtasks || [];
+
+  const done = subs.filter(s=>s.done).length;
+  const total = subs.length;
+  const pct = total ? Math.round((done/total)*100) : 0;
+
+  const prog = document.getElementById('stProgress');
+  if(prog){ prog.style.display = total>0 ? 'flex' : 'none'; }
+  const fill = document.getElementById('stProgFill');
+  if(fill) fill.style.width = pct+'%';
+  const txt = document.getElementById('stProgTxt');
+  if(txt) txt.textContent = done+' / '+total+' done';
+
+  list.innerHTML = subs.map((s,i)=>`
+    <div class="st-card" id="stcard_${i}">
+      <div class="st-card-hdr" onclick="toggleStBody(${i})">
+        <span class="st-drag" onclick="event.stopPropagation()">⠿</span>
+        <div class="st-chk ${s.done?'on':''}" onclick="event.stopPropagation();toggleStDone(${i})">${s.done?'✓':''}</div>
+        <input class="st-title-inp ${s.done?'done-t':''}" value="${esc(s.title||'')}" placeholder="Subtask name…"
+          onclick="event.stopPropagation()"
+          oninput="window._editSubtasks[${i}].title=this.value;updateStProgress()"/>
+        <span class="st-expand-icon ${s._open?'open':''}">▶</span>
+        <button class="st-del" onclick="event.stopPropagation();removeSubtask(${i})" title="Remove">×</button>
+      </div>
+      <div class="st-card-body" style="display:${s._open?'flex':'none'}">
+        <div>
+          <div class="st-body-lbl">Description</div>
+          <textarea class="st-body-textarea" placeholder="Actions, context, notes…"
+            oninput="window._editSubtasks[${i}].description=this.value">${esc(s.description||'')}</textarea>
+        </div>
+        <div class="st-body-grid">
+          <div>
+            <div class="st-body-lbl">Status</div>
+            <select class="st-body-select" onchange="window._editSubtasks[${i}].status=this.value">
+              ${['Open','In Progress','Pending External','Under Review','Closed'].map(opt=>
+                `<option value="${opt}" ${(s.status||'Open')===opt?'selected':''}>${opt}</option>`
+              ).join('')}
+            </select>
+          </div>
+          <div>
+            <div class="st-body-lbl">Owner</div>
+            <input class="st-body-input" value="${esc(s.owner||'')}" placeholder="Name"
+              oninput="window._editSubtasks[${i}].owner=this.value"/>
+          </div>
+          <div>
+            <div class="st-body-lbl">Due date</div>
+            <input type="date" class="st-body-input" value="${s.dueDate||''}"
+              onchange="window._editSubtasks[${i}].dueDate=this.value"/>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleStBody(i){
+  window._editSubtasks[i]._open = !window._editSubtasks[i]._open;
+  renderSubtaskList();
+}
+
+function toggleStDone(i){
+  const s = window._editSubtasks[i];
+  s.done = !s.done;
+  s.status = s.done ? 'Closed' : 'Open';
+  renderSubtaskList();
+}
+
+function addSubtask(){
+  if(!window._editSubtasks) window._editSubtasks = [];
+  window._editSubtasks.push({id:'st_'+Date.now(),title:'',description:'',status:'Open',owner:'',dueDate:'',done:false,_open:true});
+  renderSubtaskList();
+  setTimeout(()=>{
+    const inputs = document.querySelectorAll('.st-title-inp');
+    if(inputs.length) inputs[inputs.length-1].focus();
+  },50);
+}
+
+function removeSubtask(i){
+  window._editSubtasks.splice(i,1);
+  renderSubtaskList();
+}
+
+function updateStProgress(){
+  const subs = window._editSubtasks||[];
+  const done = subs.filter(s=>s.done).length;
+  const total = subs.length;
+  const pct = total ? Math.round((done/total)*100) : 0;
+  const prog = document.getElementById('stProgress');
+  if(prog) prog.style.display = total>0?'flex':'none';
+  const fill = document.getElementById('stProgFill');
+  if(fill) fill.style.width = pct+'%';
+  const txt = document.getElementById('stProgTxt');
+  if(txt) txt.textContent = done+' / '+total+' done';
+}
+
+function collectSubtasks(){
+  return (window._editSubtasks||[]).map(s=>({
+    id:          s.id||'st_'+Date.now()+Math.random(),
+    title:       s.title||'',
+    description: s.description||'',
+    status:      s.status||'Open',
+    owner:       s.owner||'',
+    dueDate:     s.dueDate||'',
+    done:        s.done||false
+  })).filter(s=>s.title.trim());
+}
+
+function renderSubtasksInRow(t){
+  const subs = t.subtasks||[];
+  if(!subs.length) return '';
+  const done = subs.filter(s=>s.done).length;
+  const pct = Math.round((done/subs.length)*100);
+  return `
+    <div class="sub-indent">
+      ${subs.map(s=>`
+        <div class="sub-item">
+          <div class="sub-item-chk ${s.done?'on':''}" onclick="toggleSubtaskDone(${t.id},'${s.id}')">${s.done?'✓':''}</div>
+          <div class="sub-item-body">
+            <div class="sub-item-title ${s.done?'done-t':''}">${esc(s.title)}</div>
+            ${s.description?`<div class="sub-item-desc">${esc(s.description)}</div>`:''}
+            <div class="sub-item-meta">
+              ${s.owner?`<span style="font-size:11px;color:#a0aec0">${esc(s.owner)}</span>`:''}
+              ${s.dueDate?`<span style="font-size:11px;color:${isOverdue({dueDate:s.dueDate,done:s.done})?'#9b2c2c':'#a0aec0'}">Due ${fmtS(s.dueDate)}</span>`:''}
+              ${statusBadge({status:s.status||'Open',done:s.done})}
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function toggleSubtaskDone(taskId, stId){
+  const t = tasks.find(t=>t.id===taskId||t.id==taskId);
+  if(!t||!t.subtasks) return;
+  const s = t.subtasks.find(s=>s.id===stId);
+  if(s){ s.done=!s.done; s.status=s.done?'Closed':'Open'; }
+  save(); refreshActive();
 }
 
 /* ════════════════════════════════════════════
