@@ -758,40 +758,39 @@ tbody tr:hover td{background:#f7fafc;}
   <div class="modal" id="gcalModal"></div>
 </div>
 
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+  /* ── Firebase config ── */
+  const firebaseConfig = {
+    apiKey: "AIzaSyAVCu0FKXfbaLDNj4gg1HsLoohkjGEDE6c",
+    authDomain: "taskflow-dashboard-36518.firebaseapp.com",
+    projectId: "taskflow-dashboard-36518",
+    storageBucket: "taskflow-dashboard-36518.firebasestorage.app",
+    messagingSenderId: "725240848138",
+    appId: "1:725240848138:web:e2052e135754786f8124f3"
+  };
+
+  const fbApp = initializeApp(firebaseConfig);
+  const db    = getFirestore(fbApp);
+  const USER  = 'franco'; // single-user app
+
+  /* Expose Firestore helpers to global scope */
+  window._db      = db;
+  window._doc     = doc;
+  window._setDoc  = setDoc;
+  window._getDoc  = getDoc;
+  window._onSnap  = onSnapshot;
+  window._fbReady = true;
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+
 <script>
 /* ════════════════════════════════════════════
-   UNIVERSAL STORAGE — reads/writes ALL keys
-   so old PWA (sq_tasks3) and new dashboard
-   (tf6_tasks) always share the same data.
+   NORMALISE — shape tasks consistently
 ════════════════════════════════════════════ */
-const TASK_KEYS = ['tf6_tasks','sq_tasks3'];
-const CAL_KEYS  = ['tf6_cal','cal_evts3'];
-const TOP3_KEYS = ['tf6_top3'];
-const GCAL_KEYS = ['tf6_gcal'];
-
-function readLatest(keys, fallback){
-  /* Return the value from whichever key has the most items */
-  let best = null, bestLen = -1;
-  for(const k of keys){
-    try{
-      const raw = localStorage.getItem(k);
-      if(!raw) continue;
-      const parsed = JSON.parse(raw);
-      const len = Array.isArray(parsed) ? parsed.length : (parsed ? 1 : 0);
-      if(len > bestLen){ best = parsed; bestLen = len; }
-    }catch(e){}
-  }
-  return best !== null ? best : (typeof fallback === 'string' ? JSON.parse(fallback) : fallback);
-}
-
-function saveAll(keys, value){
-  const str = JSON.stringify(value);
-  for(const k of keys){
-    try{ localStorage.setItem(k, str); }catch(e){}
-  }
-}
-
-/* Normalise a raw task from any version into the current shape */
 function normaliseTask(t){
   return {
     id:        t.id        || Date.now()+Math.random(),
@@ -812,38 +811,151 @@ function normaliseTask(t){
 }
 
 /* ════════════════════════════════════════════
-   STATE — loaded from whichever key has data
+   LOCAL STORAGE FALLBACK (works offline too)
 ════════════════════════════════════════════ */
-let tasks  = readLatest(TASK_KEYS, '[]').map(normaliseTask);
-let calEvs = readLatest(CAL_KEYS,  '[]');
-let top3   = readLatest(TOP3_KEYS, '[{"text":"","done":false},{"text":"","done":false},{"text":"","done":false}]');
-let gcal   = readLatest(GCAL_KEYS, 'null');
+const TASK_KEYS = ['tf6_tasks','sq_tasks3'];
+const CAL_KEYS  = ['tf6_cal','cal_evts3'];
+const TOP3_KEYS = ['tf6_top3'];
+const GCAL_KEYS = ['tf6_gcal'];
 
-/* Write back to ALL keys immediately so both app versions are in sync */
-saveAll(TASK_KEYS, tasks);
-saveAll(CAL_KEYS,  calEvs);
+function readLocal(keys, fallback){
+  let best = null, bestLen = -1;
+  for(const k of keys){
+    try{
+      const raw = localStorage.getItem(k);
+      if(!raw) continue;
+      const parsed = JSON.parse(raw);
+      const len = Array.isArray(parsed) ? parsed.length : (parsed ? 1 : 0);
+      if(len > bestLen){ best = parsed; bestLen = len; }
+    }catch(e){}
+  }
+  return best !== null ? best : (typeof fallback === 'string' ? JSON.parse(fallback) : fallback);
+}
+
+function writeLocal(keys, value){
+  const str = JSON.stringify(value);
+  for(const k of keys) try{ localStorage.setItem(k, str); }catch(e){}
+}
+
+/* ════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════ */
+let tasks  = readLocal(TASK_KEYS, '[]').map(normaliseTask);
+let calEvs = readLocal(CAL_KEYS,  '[]');
+let top3   = readLocal(TOP3_KEYS, '[{"text":"","done":false},{"text":"","done":false},{"text":"","done":false}]');
+let gcal   = readLocal(GCAL_KEYS, 'null');
 
 let wkOff=0, moOff=0, selWkDay=null, selMoDay=null;
 let editId=null;
 let pomMode='work', pomRun=false, pomRemain=1500, pomTotal=1500, pomTmr=null;
-let toastTmr;
+let toastTmr, _fbUnsubTasks, _fbUnsubCal, _fbUnsubTop3;
 const CIRC=364.4;
 const POM={work:1500,short:300,long:900};
+const USER='franco';
 
+/* ════════════════════════════════════════════
+   SAVE — writes to localStorage + Firebase
+════════════════════════════════════════════ */
 function save(){
-  /* Write to all keys every time so every version of the app sees the update */
-  saveAll(TASK_KEYS, tasks);
-  saveAll(CAL_KEYS,  calEvs);
-  saveAll(TOP3_KEYS, top3);
-  saveAll(GCAL_KEYS, gcal);
+  writeLocal(TASK_KEYS, tasks);
+  writeLocal(CAL_KEYS,  calEvs);
+  writeLocal(TOP3_KEYS, top3);
+  writeLocal(GCAL_KEYS, gcal);
+  fbSave();
 }
 
-/* Poll for external changes (e.g. PWA updated a key in a different tab) */
+let _fbSaveTimer = null;
+function fbSave(){
+  /* Debounce 800ms so rapid edits don't hammer Firestore */
+  clearTimeout(_fbSaveTimer);
+  _fbSaveTimer = setTimeout(async ()=>{
+    if(!window._fbReady) return;
+    const db=window._db, d=window._doc, s=window._setDoc;
+    try{
+      await s(d(db,'taskflow',USER), {
+        tasks:  JSON.stringify(tasks),
+        calEvs: JSON.stringify(calEvs),
+        top3:   JSON.stringify(top3),
+        gcal:   JSON.stringify(gcal),
+        updatedAt: new Date().toISOString()
+      });
+    }catch(e){ console.warn('Firebase save error',e); }
+  }, 800);
+}
+
+/* ════════════════════════════════════════════
+   FIREBASE REAL-TIME LISTENER
+════════════════════════════════════════════ */
+let _ignoreNextSnapshot = false;
+
+function startFirebaseSync(){
+  if(!window._fbReady) return;
+  const db=window._db, d=window._doc, snap=window._onSnap;
+
+  snap(d(db,'taskflow',USER), (snapshot)=>{
+    if(!snapshot.exists()) return;
+    if(_ignoreNextSnapshot){ _ignoreNextSnapshot=false; return; }
+
+    const data = snapshot.data();
+    let changed = false;
+
+    try{
+      const remoteTasks = JSON.parse(data.tasks||'[]').map(normaliseTask);
+      /* Only update if remote has more or newer data */
+      if(remoteTasks.length > 0){
+        tasks = remoteTasks;
+        writeLocal(TASK_KEYS, tasks);
+        changed = true;
+      }
+    }catch(e){}
+
+    try{
+      const remoteCal = JSON.parse(data.calEvs||'[]');
+      if(remoteCal.length >= 0){
+        calEvs = remoteCal;
+        writeLocal(CAL_KEYS, calEvs);
+        changed = true;
+      }
+    }catch(e){}
+
+    try{
+      const remoteTop3 = JSON.parse(data.top3||'[]');
+      if(remoteTop3.length > 0){
+        top3 = remoteTop3;
+        writeLocal(TOP3_KEYS, top3);
+        changed = true;
+      }
+    }catch(e){}
+
+    try{
+      const remoteGcal = JSON.parse(data.gcal||'null');
+      if(remoteGcal){ gcal = remoteGcal; writeLocal(GCAL_KEYS, gcal); }
+    }catch(e){}
+
+    if(changed){
+      updateGCalUI();
+      updatePhasePill();
+      refreshActive();
+      showSyncIndicator();
+    }
+  });
+}
+
+function showSyncIndicator(){
+  const pill = document.getElementById('phasePill');
+  if(!pill) return;
+  const orig = pill.textContent;
+  pill.style.background = 'rgba(22,163,74,0.3)';
+  pill.style.borderColor = '#16a34a';
+  setTimeout(()=>{ pill.style.background=''; pill.style.borderColor=''; }, 1500);
+}
+
+/* Cross-tab sync via localStorage events */
 window.addEventListener('storage', e => {
   if(TASK_KEYS.includes(e.key) && e.newValue){
     try{
-      const incoming = JSON.parse(e.newValue).map(normaliseTask);
-      if(incoming.length >= tasks.length){ tasks = incoming; save(); refreshActive(); }
+      const inc = JSON.parse(e.newValue).map(normaliseTask);
+      if(inc.length >= tasks.length){ tasks = inc; refreshActive(); }
     }catch(err){}
   }
   if(CAL_KEYS.includes(e.key) && e.newValue){
@@ -906,6 +1018,17 @@ window.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('hdrDate').textContent=new Date().toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
   renderAll();renderTop3();updatePomUI();
   window.addEventListener('message',handleOAuthMsg);
+
+  /* Start Firebase sync once SDK is ready */
+  if(window._fbReady){
+    startFirebaseSync();
+  } else {
+    window.addEventListener('firebase-ready', ()=>{
+      startFirebaseSync();
+      /* Push any locally-stored data to Firebase on first connect */
+      if(tasks.length>0 || calEvs.length>0) fbSave();
+    });
+  }
 });
 
 function renderAll(){updatePhasePill();renderOverview();}
