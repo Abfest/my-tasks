@@ -28,7 +28,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:#f0f2f5;color:#1a202c;d
 .phase-pill{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;}
 
 /* ── NAV TABS ── */
-.nav{background:#fff;border-bottom:1px solid #e2e8f0;display:flex;padding:0 24px;flex-shrink:0;overflow-x:auto;position:relative;z-index:10;}
+.nav{background:#fff;border-bottom:1px solid #e2e8f0;display:flex;padding:0 20px;flex-shrink:0;overflow-x:auto;position:relative;z-index:10;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.nav::-webkit-scrollbar{display:none;}
 .nav::-webkit-scrollbar{display:none;}
 .ntab{padding:13px 18px;font-size:13px;font-weight:500;color:#718096;cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;transition:all .18s;user-select:none;}
 .ntab:hover{color:#2d3748;}
@@ -319,6 +320,69 @@ tbody tr:hover td{background:#f7fafc;}
 @media(max-width:768px){.wsum-grid{grid-template-columns:repeat(3,1fr);gap:8px;}.wsum-val{font-size:18px;}}
 
 
+
+
+/* ── OVERDUE BANNER ── */
+.overdue-banner{
+  background:linear-gradient(135deg,#dc2626,#9b2c2c);
+  color:#fff;
+  padding:0;
+  overflow:hidden;
+  max-height:0;
+  transition:max-height .4s ease, padding .4s ease;
+  position:relative;
+  z-index:50;
+}
+.overdue-banner.show{
+  max-height:120px;
+  padding:10px 20px;
+}
+.overdue-banner-inner{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.overdue-banner-icon{font-size:18px;flex-shrink:0;}
+.overdue-banner-text{flex:1;min-width:0;}
+.overdue-banner-title{font-size:13px;font-weight:700;margin-bottom:2px;}
+.overdue-banner-tasks{font-size:11.5px;color:rgba(255,255,255,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.overdue-banner-actions{display:flex;gap:7px;align-items:center;flex-shrink:0;}
+.overdue-banner-btn{
+  background:rgba(255,255,255,.2);
+  border:1px solid rgba(255,255,255,.3);
+  color:#fff;
+  border-radius:6px;
+  padding:5px 12px;
+  font-size:11.5px;
+  font-family:'Inter',sans-serif;
+  cursor:pointer;
+  transition:background .15s;
+  white-space:nowrap;
+}
+.overdue-banner-btn:hover{background:rgba(255,255,255,.3);}
+.overdue-banner-btn.primary{background:rgba(255,255,255,.9);color:#9b2c2c;font-weight:600;}
+.overdue-banner-btn.primary:hover{background:#fff;}
+.overdue-dismiss{
+  background:none;border:none;color:rgba(255,255,255,.6);
+  cursor:pointer;font-size:18px;padding:0 4px;line-height:1;
+  transition:color .15s;flex-shrink:0;
+}
+.overdue-dismiss:hover{color:#fff;}
+/* Pulse dot */
+.overdue-pulse{
+  width:8px;height:8px;border-radius:50%;background:#fff;
+  animation:overduePulse 1.5s infinite;flex-shrink:0;
+}
+@keyframes overduePulse{
+  0%,100%{opacity:1;transform:scale(1);}
+  50%{opacity:.5;transform:scale(1.4);}
+}
+@media(max-width:768px){
+  .overdue-banner.show{max-height:200px;padding:10px 14px;}
+  .overdue-banner-tasks{white-space:normal;}
+  .overdue-banner-actions{width:100%;}
+}
 
 /* ── ARCHIVE ── */
 .archive-month{background:#fff;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:12px;overflow:hidden;}
@@ -770,6 +834,22 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
   <div class="ntab" onclick="switchTab('archive',this)">🗂 Archive</div>
 </div>
 
+<!-- ══ OVERDUE BANNER ══════════════════════════ -->
+<div class="overdue-banner" id="overdueBanner">
+  <div class="overdue-banner-inner">
+    <div class="overdue-pulse"></div>
+    <div class="overdue-banner-icon">⚠️</div>
+    <div class="overdue-banner-text">
+      <div class="overdue-banner-title" id="overdueBannerTitle">Overdue tasks</div>
+      <div class="overdue-banner-tasks" id="overdueBannerTasks"></div>
+    </div>
+    <div class="overdue-banner-actions">
+      <button class="overdue-banner-btn primary" onclick="switchTab('tasks',document.querySelector('[onclick*=tasks]'));document.getElementById('fStatus').value='Overdue';renderTasksTab();dismissOverdueBanner();">View overdue</button>
+      <button class="overdue-dismiss" onclick="dismissOverdueBanner()" title="Dismiss">×</button>
+    </div>
+  </div>
+</div>
+
 <div class="content">
 
 <!-- ══ OVERVIEW ══════════════════════════════ -->
@@ -794,14 +874,20 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
 
 <!-- ══ TASKS ══════════════════════════════════ -->
 <div class="pane" id="pane-tasks" style="padding:0;">
-  <div class="sec-hdr" style="padding:14px 20px 10px;">
+  <!-- Tasks header -->
+  <div style="padding:14px 20px 10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:1px solid #e2e8f0;background:#fff;">
     <span class="sec-title">All Tasks & Actions</span>
-    <button class="btn primary" onclick="openAddTask()">+ Add task</button>
+    <div style="display:flex;gap:7px;align-items:center;">
+      <button id="toggleDoneBtn" onclick="toggleShowDone()" class="btn sm" style="white-space:nowrap;">Hide completed</button>
+      <button class="btn primary" onclick="openAddTask()">+ Add task</button>
+    </div>
   </div>
-  <div class="cat-filter-bar" id="catFilterBar" style="display:none;"></div>
-  <div style="padding:10px 20px 0;">
-  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-    <select id="fStatus" onchange="renderTasksTab()" style="font-size:12.5px;padding:7px 10px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;outline:none;">
+  <!-- Filter bar -->
+  <div style="padding:10px 20px;background:#f7fafc;border-bottom:1px solid #e2e8f0;display:flex;gap:7px;flex-wrap:wrap;align-items:center;">
+    <!-- Search -->
+    <input id="fSearch" placeholder="🔍 Search tasks…" oninput="renderTasksTab()" style="font-size:12px;padding:6px 10px;border-radius:7px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;min-width:160px;outline:none;flex:1;max-width:240px;"/>
+    <!-- Status -->
+    <select id="fStatus" onchange="renderTasksTab()" style="font-size:12px;padding:6px 8px;border-radius:7px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;outline:none;">
       <option value="all">All status</option>
       <option value="Open">Open</option>
       <option value="In Progress">In Progress</option>
@@ -810,15 +896,28 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
       <option value="Closed">Closed</option>
       <option value="Overdue">Overdue ⚠</option>
     </select>
-    <select id="fPri" onchange="renderTasksTab()" style="font-size:12.5px;padding:7px 10px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;outline:none;">
+    <!-- Priority -->
+    <select id="fPri" onchange="renderTasksTab()" style="font-size:12px;padding:6px 8px;border-radius:7px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;outline:none;">
       <option value="all">All priority</option>
       <option value="Hi">High</option>
       <option value="Med">Medium</option>
       <option value="Lo">Low</option>
     </select>
-    <input id="fSearch" placeholder="Search tasks…" oninput="renderTasksTab()" style="font-size:12.5px;padding:7px 12px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;flex:1;min-width:140px;outline:none;"/>
-    <button id="toggleDoneBtn" onclick="toggleShowDone()" class="btn sm" style="white-space:nowrap;flex-shrink:0">Hide completed</button>
+    <!-- Owner -->
+    <select id="fOwner" onchange="renderTasksTab()" style="font-size:12px;padding:6px 8px;border-radius:7px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;outline:none;">
+      <option value="all">All owners</option>
+    </select>
+    <!-- Month -->
+    <select id="fMonth" onchange="renderTasksTab()" style="font-size:12px;padding:6px 8px;border-radius:7px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;outline:none;">
+      <option value="all">All months</option>
+    </select>
+    <!-- Clear filters -->
+    <button onclick="clearAllFilters()" class="btn sm" style="white-space:nowrap;font-size:11.5px;color:#718096;">✕ Clear</button>
   </div>
+  <!-- Category pills -->
+  <div id="catFilterBar" style="padding:8px 20px;background:#fff;border-bottom:1px solid #f0f4f8;display:none;"></div>
+  <div style="padding:10px 20px 0;">
+  <div style="display:none"><!-- spacer --></div>
   <div class="tbl-wrap">
     <table>
       <thead><tr><th style="width:32px"></th><th>Task</th><th>Tags</th><th>Priority</th><th>Start</th><th>Due</th><th>Owner</th><th>Status</th><th>Calendar</th><th>Actions</th></tr></thead>
@@ -1379,6 +1478,7 @@ function startFirebaseSync(){
     renderAll();
     updatePhasePill();
     refreshActive();
+    renderOverdueBanner();
     if(changed){
       buildNotifications();
       showSyncIndicator();
@@ -1766,6 +1866,7 @@ function renderAll(){
   updatePhasePill();
   renderOverview();
   refreshActive();
+  renderOverdueBanner();
 }
 
 function updatePhasePill(){
@@ -1949,14 +2050,39 @@ function toggleShowDone(){
 
 function renderTasksTab(){
   renderCatFilterBar();
+  // Populate owner dropdown
+  const ownerSel=document.getElementById('fOwner');
+  if(ownerSel){
+    const curOwner=ownerSel.value;
+    const owners=[...new Set(tasks.map(t=>t.owner||'').filter(Boolean))].sort();
+    ownerSel.innerHTML='<option value="all">All owners</option>'+owners.map(o=>`<option value="${esc(o)}" ${curOwner===o?'selected':''}>${esc(o)}</option>`).join('');
+  }
+  // Populate month dropdown
+  const monthSel=document.getElementById('fMonth');
+  if(monthSel){
+    const curMonth=monthSel.value;
+    const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const months=[...new Set(tasks.flatMap(t=>[t.dueDate,t.startDate].filter(Boolean).map(d=>d.substring(0,7))))].sort().reverse();
+    monthSel.innerHTML='<option value="all">All months</option>'+months.map(m=>{
+      const[y,mo]=m.split('-');
+      return `<option value="${m}" ${curMonth===m?'selected':''}>${MON[parseInt(mo)-1]} ${y}</option>`;
+    }).join('');
+  }
   const fs=document.getElementById('fStatus').value;
   const fp=document.getElementById('fPri').value;
   const fq=(document.getElementById('fSearch').value||'').toLowerCase();
 
+  const fo=(document.getElementById('fOwner')||{}).value||'all';
+  const fm=(document.getElementById('fMonth')||{}).value||'all';
   const matchesFilter = t => {
-    if(fq&&!t.title.toLowerCase().includes(fq)&&!(t.tags||[]).join(' ').toLowerCase().includes(fq))return false;
+    if(fq&&!t.title.toLowerCase().includes(fq)&&!(t.tags||[]).join(' ').toLowerCase().includes(fq)&&!(t.owner||'').toLowerCase().includes(fq))return false;
     if(fp!=='all'&&(t.priority||'Med')!==fp)return false;
     if(_catFilter&&!(t.tags||[]).includes(_catFilter))return false;
+    if(fo!=='all'&&(t.owner||'')!==fo)return false;
+    if(fm!=='all'){
+      const d=t.dueDate||t.startDate||'';
+      if(!d||!d.startsWith(fm))return false;
+    }
     if(fs!=='all'){
       const s=t.done?'Closed':(isOverdue(t)&&fs==='Overdue'?'Overdue':(t.status||'Open'));
       if(fs==='Overdue'){if(!isOverdue(t))return false;}
@@ -2923,6 +3049,49 @@ function openTBDetail(blockId){
 }
 
 /* ════════════════════════════════════════════
+   OVERDUE BANNER
+════════════════════════════════════════════ */
+let _bannerDismissed = false;
+let _bannerDismissedKey = '';
+
+function renderOverdueBanner(){
+  const overdue = tasks.filter(t => !t.done && isOverdue(t));
+  const banner = document.getElementById('overdueBanner');
+  if(!banner) return;
+
+  if(overdue.length === 0 || _bannerDismissed){
+    banner.classList.remove('show');
+    return;
+  }
+
+  // Don't re-show if same overdue set was already dismissed this session
+  const key = overdue.map(t=>t.id).sort().join(',');
+  if(key === _bannerDismissedKey){
+    banner.classList.remove('show');
+    return;
+  }
+
+  const title = document.getElementById('overdueBannerTitle');
+  const taskList = document.getElementById('overdueBannerTasks');
+
+  if(title) title.textContent = `${overdue.length} overdue task${overdue.length>1?'s':''} require attention`;
+  if(taskList){
+    const names = overdue.slice(0,3).map(t=>t.title.substring(0,35)+(t.title.length>35?'…':'')).join(' · ');
+    taskList.textContent = names + (overdue.length>3 ? ` · +${overdue.length-3} more` : '');
+  }
+
+  banner.classList.add('show');
+}
+
+function dismissOverdueBanner(){
+  const overdue = tasks.filter(t => !t.done && isOverdue(t));
+  _bannerDismissedKey = overdue.map(t=>t.id).sort().join(',');
+  _bannerDismissed = false; // allow re-show if new overdue tasks appear
+  const banner = document.getElementById('overdueBanner');
+  if(banner) banner.classList.remove('show');
+}
+
+/* ════════════════════════════════════════════
    MONTHLY ARCHIVE SYSTEM
 ════════════════════════════════════════════ */
 let _archives = JSON.parse(localStorage.getItem('tf_archives') || '[]');
@@ -3244,6 +3413,15 @@ function renderCatPicker(selected){
 function selectCat(name){
   document.getElementById('fTag').value = name;
   renderCatPicker(name);
+}
+
+function clearAllFilters(){
+  const ids=['fStatus','fPri','fOwner','fMonth','fSearch'];
+  ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=el.tagName==='INPUT'?'':'all'; });
+  _catFilter='';
+  renderCatFilterBar();
+  renderTasksTab();
+  toast('Filters cleared','ok');
 }
 
 function renderCatFilterBar(){
