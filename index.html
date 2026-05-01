@@ -3222,14 +3222,16 @@ function openEditTask(id){
 function closeTaskModal(){document.getElementById('taskOv').classList.remove('show');}
 function saveTask(){
   const title=document.getElementById('fTitle').value.trim();
-  if(!title){alert('Task name is required');return;}
-  const data={title,tags:[document.getElementById('fTag').value],
+  if(!title){toast('Task name is required','warn');return;}
+  const repeat=document.getElementById('fRepeat').value||'';
+  const gcal=document.getElementById('fGcal').checked;
+  const data={title,tags:[document.getElementById('fTag').value||'Work'],
     priority:document.getElementById('fPriority').value,
     startDate:document.getElementById('fStart').value,
     dueDate:document.getElementById('fDue').value,
     owner:document.getElementById('fOwner').value,
     status:document.getElementById('fStatusM').value,
-    repeat:repeat||'',
+    repeat:repeat,
     notes:document.getElementById('fNotes').value,
     subtasks: collectSubtasks()};
   if(editId!==null){
