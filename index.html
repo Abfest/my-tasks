@@ -1195,11 +1195,16 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
       return onSnapshot(doc(db, 'taskflow', 'franco'), callback);
     };
 
-    /* Signal to the main script that Firebase is ready */
+      /* Signal to the main script that Firebase is ready */
+    window._fbReady = true;
+    // Try dispatching event multiple ways to ensure it's caught
+    const dispatch = () => window.dispatchEvent(new Event('firebase-ready'));
     if(document.readyState === 'loading'){
-      document.addEventListener('DOMContentLoaded', () => window.dispatchEvent(new Event('firebase-ready')));
+      document.addEventListener('DOMContentLoaded', dispatch);
     } else {
-      window.dispatchEvent(new Event('firebase-ready'));
+      dispatch();
+      setTimeout(dispatch, 100);
+      setTimeout(dispatch, 500);
     }
   } catch(e) {
     console.warn('Firebase init failed:', e);
