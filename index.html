@@ -2877,6 +2877,9 @@ function renderPlanner(){
     calId: e.id
   }));
 
+  // Merge time blocks + calendar events
+  const allDayBlocks = [...dayBlocks, ...calDisplayBlocks];
+
   // Calculate summary
   let totalMins = 0;
   allDayBlocks.forEach(b => {
@@ -2935,7 +2938,6 @@ function renderPlanner(){
   if(!tbody) return;
 
   // Map blocks to slots (time blocks + calendar events)
-  const allDayBlocks = [...dayBlocks, ...calDisplayBlocks];
   const slotMap = {}; // slot -> block
   const coveredSlots = new Set();
   allDayBlocks.forEach(b => {
