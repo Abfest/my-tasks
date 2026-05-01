@@ -1315,6 +1315,7 @@ function fbSave(){
    FIREBASE REAL-TIME LISTENER
 ════════════════════════════════════════════ */
 let _fbListening = false;
+let _fbInitialLoad = true; // flag to bypass debounce on first load
 
 function startFirebaseSync(){
   if(!window._fbListen || _fbListening) return;
@@ -1329,9 +1330,10 @@ function startFirebaseSync(){
 
     const data = snapshot.data();
 
-    /* Skip updates we just wrote ourselves (debounce window = 2s) */
+    /* Skip updates we just wrote ourselves (debounce window = 2s) — but NOT on initial load */
     const updatedAt = new Date(data.updatedAt||0).getTime();
-    if(_lastFbSaveTime && (updatedAt - _lastFbSaveTime) < 2000 && (updatedAt - _lastFbSaveTime) > -100) return;
+    if(!_fbInitialLoad && _lastFbSaveTime && (updatedAt - _lastFbSaveTime) < 2000 && (updatedAt - _lastFbSaveTime) > -100) return;
+    _fbInitialLoad = false; // after first snapshot, apply normal debounce
 
     let changed = false;
 
@@ -1372,10 +1374,12 @@ function startFirebaseSync(){
     }catch(e){}
 
     if(changed){
+      renderAll();
       updatePhasePill();
       refreshActive();
+      buildNotifications();
       showSyncIndicator();
-      console.log('🔄 Synced from Firebase');
+      console.log('🔄 Synced from Firebase — tasks:', tasks.length);
     }
   });
 }
