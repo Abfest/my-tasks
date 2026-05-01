@@ -1694,6 +1694,14 @@ window.addEventListener('DOMContentLoaded',()=>{
   setInterval(buildNotifications, 5*60*1000);
   window.addEventListener('message',handleOAuthMsg);
 
+  /* Fallback: if Firebase SDK loads before event fires */
+  setTimeout(()=>{
+    if(tasks.length===0 && window._fbSaveDoc){
+      console.log('Firebase fallback sync...');
+      startFirebaseSync();
+    }
+  }, 3000);
+
   /* Firebase syncs once SDK module finishes loading */
   window.addEventListener('firebase-ready', ()=>{
     console.log('🔥 Firebase connected');
@@ -3144,12 +3152,16 @@ function resetPom(){
   updatePomUI();
 }
 function updatePomUI(){
-  // Also sync to sidebar pom display
   setTimeout(updatePomUI2, 50);
-  document.getElementById('pomTime').textContent=`${String(Math.floor(pomRemain/60)).padStart(2,'0')}:${String(pomRemain%60).padStart(2,'0')}`;
-  document.getElementById('pomCircle').style.strokeDashoffset=CIRC*(1-pomRemain/pomTotal);
+  const ts=String(Math.floor(pomRemain/60)).padStart(2,'0')+':'+String(pomRemain%60).padStart(2,'0');
   const lbl={work:'Focus session',short:'Short break',long:'Long break'};
-  document.getElementById('pomSub').textContent=pomRun?lbl[pomMode]+(pomRemain<60?' — almost done!':''):'Ready to focus';
+  const sub=pomRun?lbl[pomMode]+(pomRemain<60?' — almost done!':''):'Ready to focus';
+  const el1=document.getElementById('pomTime');
+  const el2=document.getElementById('pomCircle');
+  const el3=document.getElementById('pomSub');
+  if(el1) el1.textContent=ts;
+  if(el2) el2.style.strokeDashoffset=CIRC*(1-pomRemain/pomTotal);
+  if(el3) el3.textContent=sub;
 }
 
 /* ════════════════════════════════════════════
