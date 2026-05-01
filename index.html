@@ -1373,14 +1373,16 @@ function startFirebaseSync(){
       }
     }catch(e){}
 
+    // Always re-render after Firebase loads regardless of 'changed' flag
+    // This ensures first load always shows data
+    renderAll();
+    updatePhasePill();
+    refreshActive();
     if(changed){
-      renderAll();
-      updatePhasePill();
-      refreshActive();
       buildNotifications();
       showSyncIndicator();
-      console.log('🔄 Synced from Firebase — tasks:', tasks.length);
     }
+    console.log('🔄 Firebase snapshot — tasks:', tasks.length);
   });
 }
 
@@ -1737,44 +1739,26 @@ function dropTop3(e, targetIdx){
 ════════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded',()=>{
   updateGCalUI();
-  document.getElementById('hdrDate').textContent=new Date().toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
-  // Load archives from localStorage on startup
-  const savedArchives = localStorage.getItem('tf_archives');
-  if(savedArchives){ try{ _archives = JSON.parse(savedArchives); }catch(e){} }
-  renderAll();renderTop3();updatePomUI();
-  /* Check push permission state */
-  if(localStorage.getItem('tf_push')==='granted'&&Notification.permission==='granted'){
-    document.getElementById('pushPermBtn').textContent='✓ Push notifications on';
-    document.getElementById('pushPermBtn').style.color='#16a34a';
+  const hdrDate=document.getElementById('hdrDate');
+  if(hdrDate) hdrDate.textContent=new Date().toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
+  try{ const a=localStorage.getItem('tf_archives'); if(a) _archives=JSON.parse(a); }catch(e){}
+  renderAll(); renderTop3(); updatePomUI();
+  const ppb=document.getElementById('pushPermBtn');
+  if(ppb&&localStorage.getItem('tf_push')==='granted'&&Notification.permission==='granted'){
+    ppb.textContent='✓ Push notifications on'; ppb.style.color='#16a34a';
   }
-  /* Build initial notifications */
-  setTimeout(buildNotifications, 1000);
-  /* Re-check every 5 minutes */
-  setInterval(buildNotifications, 5*60*1000);
+  setTimeout(buildNotifications,2000);
+  setInterval(buildNotifications,5*60*1000);
   window.addEventListener('message',handleOAuthMsg);
 
-  /* Fallback: if Firebase SDK loads before event fires */
-  setTimeout(()=>{
-    if(tasks.length===0){
-      console.log('Firebase fallback sync attempt 1...');
-      startFirebaseSync();
-    }
-  }, 2000);
-  setTimeout(()=>{
-    if(tasks.length===0){
-      console.log('Firebase fallback sync attempt 2...');
-      startFirebaseSync();
-    }
-  }, 5000);
-
-  /* Firebase syncs once SDK module finishes loading */
-  window.addEventListener('firebase-ready', ()=>{
-    console.log('🔥 Firebase connected');
-    startFirebaseSync();
-  });
-
-  /* If firebase-ready already fired before DOMContentLoaded (unlikely but safe) */
-  if(window._fbReady) startFirebaseSync();
+  /* ── Firebase: poll every 300ms until _fbListen is available ── */
+  function connectFirebase(){
+    if(_fbListening) return;
+    if(window._fbListen){ startFirebaseSync(); }
+    else { setTimeout(connectFirebase, 300); }
+  }
+  connectFirebase();
+  window.addEventListener('firebase-ready',()=>{ if(!_fbListening) startFirebaseSync(); });
 });
 
 function renderAll(){updatePhasePill();renderOverview();}
