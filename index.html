@@ -319,6 +319,40 @@ tbody tr:hover td{background:#f7fafc;}
 @media(max-width:768px){.wsum-grid{grid-template-columns:repeat(3,1fr);gap:8px;}.wsum-val{font-size:18px;}}
 
 
+
+/* ── ARCHIVE ── */
+.archive-month{background:#fff;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:12px;overflow:hidden;}
+.archive-month-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;transition:background .15s;}
+.archive-month-hdr:hover{background:#f7fafc;}
+.archive-month-title{font-size:15px;font-weight:700;color:#1a3a5c;}
+.archive-month-stats{display:flex;gap:12px;align-items:center;}
+.archive-stat{text-align:center;}
+.archive-stat-val{font-size:16px;font-weight:700;color:#2d3748;}
+.archive-stat-lbl{font-size:9.5px;color:#a0aec0;text-transform:uppercase;letter-spacing:.05em;}
+.archive-stat-divider{width:1px;height:28px;background:#e2e8f0;}
+.archive-completion{font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;}
+.archive-month-body{border-top:1px solid #e2e8f0;padding:14px 18px;display:none;}
+.archive-month-body.open{display:block;}
+.archive-chevron{font-size:12px;color:#a0aec0;transition:transform .2s;}
+.archive-chevron.open{transform:rotate(90deg);}
+.archive-task-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f0f4f8;font-size:13px;}
+.archive-task-row:last-child{border-bottom:none;}
+.archive-task-title{flex:1;min-width:0;color:#2d3748;}
+.archive-task-title.done{text-decoration:line-through;color:#a0aec0;}
+.archive-restore-btn{font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid #e2e8f0;background:#f7fafc;color:#2b6cb0;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .15s;}
+.archive-restore-btn:hover{background:#ebf8ff;border-color:#90cdf4;}
+.archive-empty{text-align:center;padding:40px;color:#a0aec0;font-size:14px;}
+/* Archive prompt banner */
+.archive-banner{background:linear-gradient(135deg,#1a3a5c,#2b6cb0);border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.archive-banner-text{color:#fff;}
+.archive-banner-title{font-size:14px;font-weight:700;margin-bottom:3px;}
+.archive-banner-sub{font-size:12px;color:rgba(255,255,255,.65);}
+.archive-banner-btns{display:flex;gap:8px;flex-shrink:0;}
+.archive-banner-btn{padding:7px 16px;border-radius:8px;font-size:12.5px;font-family:'Inter',sans-serif;cursor:pointer;font-weight:500;transition:all .15s;}
+.archive-banner-btn.primary{background:#90cdf4;color:#0f2540;border:none;}
+.archive-banner-btn.secondary{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);}
+.archive-banner-btn:hover{filter:brightness(1.1);}
+
 /* ── CATEGORIES ── */
 .cat-chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:500;white-space:nowrap;}
 .cat-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
@@ -733,12 +767,14 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
   <div class="ntab" onclick="switchTab('quality',this)">Quality & Risk</div>
   <div class="ntab" onclick="switchTab('planner',this)">Planner</div>
   <div class="ntab" onclick="switchTab('ai',this)">✦ AI Assistant</div>
+  <div class="ntab" onclick="switchTab('archive',this)">🗂 Archive</div>
 </div>
 
 <div class="content">
 
 <!-- ══ OVERVIEW ══════════════════════════════ -->
 <div class="pane on" id="pane-overview">
+  <div id="archiveBanner" class="archive-banner" style="display:none;margin-bottom:16px;"></div>
   <div id="weeklySummary" style="margin-bottom:16px;"></div>
   <div class="stats-grid" id="statsGrid"></div>
   <div class="sec-hdr">
@@ -1023,6 +1059,15 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
   </div>
 </div>
 
+
+<!-- ══ ARCHIVE ════════════════════════════════ -->
+<div class="pane" id="pane-archive">
+  <div class="sec-hdr" style="margin-bottom:16px;">
+    <span class="sec-title">Monthly Archive</span>
+    <button class="btn primary" onclick="checkAndPromptArchive(true)">Archive current month</button>
+  </div>
+  <div id="archiveList"></div>
+</div>
 </div><!-- /content -->
 
 <div class="toast" id="toast"></div>
@@ -1254,6 +1299,7 @@ function fbSave(){
         calEvs:    JSON.stringify(calEvs),
         top3:      JSON.stringify(top3),
         gcal:      JSON.stringify(gcal),
+        archives:  JSON.stringify(_archives),
         updatedAt: now
       });
     }catch(e){ console.warn('Firebase save error:', e); }
@@ -1731,7 +1777,7 @@ function switchTab(id,el){
   document.getElementById('pane-'+id).classList.add('on');
   const fn={overview:renderOverview,tasks:renderTasksTab,schedule:renderSchedule,
     weekly:renderWeekly,monthly:renderMonthly,quality:renderQuality,planner:renderPlanner,
-    ai:updateAIContext};
+    ai:updateAIContext,archive:renderArchive};
   if(fn[id]) fn[id]();
 }
 
@@ -1827,6 +1873,7 @@ function renderWeeklySummary(){
 
 function renderOverview(){
   renderWeeklySummary();
+  setTimeout(()=>checkAndPromptArchive(false), 500);
   updatePhasePill();
   const total=tasks.length,done=tasks.filter(t=>t.done).length;
   const ov=tasks.filter(t=>isOverdue(t)).length,hi=tasks.filter(t=>t.priority==='Hi'&&!t.done).length;
@@ -2859,6 +2906,262 @@ function openTBDetail(blockId){
   document.getElementById('tbOv').classList.add('show');
   window._editingBlockId = blockId;
   window._editingBlockDate = b.date;
+}
+
+/* ════════════════════════════════════════════
+   MONTHLY ARCHIVE SYSTEM
+════════════════════════════════════════════ */
+let _archives = JSON.parse(localStorage.getItem('tf_archives') || '[]');
+
+function saveArchives(){
+  localStorage.setItem('tf_archives', JSON.stringify(_archives));
+  // Sync to Firebase
+  if(window._fbSaveDoc){
+    clearTimeout(window._archiveSaveTimer);
+    window._archiveSaveTimer = setTimeout(async()=>{
+      try{
+        await window._fbSaveDoc({
+          tasks: JSON.stringify(tasks),
+          calEvs: JSON.stringify(calEvs),
+          top3: JSON.stringify(top3),
+          gcal: JSON.stringify(gcal),
+          archives: JSON.stringify(_archives),
+          updatedAt: new Date().toISOString()
+        });
+      }catch(e){ console.warn('Archive save error:', e); }
+    }, 800);
+  }
+}
+
+function getMonthKey(date){
+  const d = date || new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+function getMonthLabel(key){
+  const [y,m] = key.split('-').map(Number);
+  const MON = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return `${MON[m-1]} ${y}`;
+}
+
+function checkAndPromptArchive(force){
+  const now = new Date();
+  const currentKey = getMonthKey(now);
+  const prevDate = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  const prevKey = getMonthKey(prevDate);
+
+  // Check if previous month already archived
+  const alreadyArchived = _archives.find(a=>a.monthKey===prevKey);
+  if(alreadyArchived && !force) return;
+
+  // Count tasks from previous month
+  const prevTasks = tasks.filter(t=>{
+    const d = t.dueDate || t.startDate || (t.createdAt?t.createdAt.substring(0,7):'');
+    return d && d.startsWith(prevKey);
+  });
+
+  const donePrev = prevTasks.filter(t=>t.done).length;
+  const openPrev = prevTasks.filter(t=>!t.done).length;
+
+  if(force){
+    // Archive current month's completed tasks
+    const currKey = getMonthKey(now);
+    const currTasks = tasks.filter(t=>{
+      const d = t.dueDate || t.startDate || (t.createdAt?t.createdAt.substring(0,7):'');
+      return (d && d.startsWith(currKey) && t.done) ||
+             (!t.dueDate && !t.startDate && t.done);
+    });
+    if(currTasks.length === 0){ toast('No completed tasks to archive this month','warn'); return; }
+    showArchiveConfirm(currKey, currTasks.length, currTasks.filter(t=>!t.done).length, currTasks);
+    return;
+  }
+
+  if(prevTasks.length === 0) return;
+
+  // Show banner on overview
+  showArchiveBanner(prevKey, donePrev, openPrev, prevTasks);
+}
+
+function showArchiveBanner(monthKey, doneCount, openCount, monthTasks){
+  const banner = document.getElementById('archiveBanner');
+  if(!banner) return;
+  const label = getMonthLabel(monthKey);
+  banner.style.display = 'flex';
+  banner.innerHTML = `
+    <div class="archive-banner-text">
+      <div class="archive-banner-title">📦 Archive ${label}?</div>
+      <div class="archive-banner-sub">${doneCount} completed task${doneCount!==1?'s':''} ready to archive · ${openCount} open task${openCount!==1?'s':''} will carry forward</div>
+    </div>
+    <div class="archive-banner-btns">
+      <button class="archive-banner-btn primary" onclick="archiveMonth('${monthKey}')">Archive ${label}</button>
+      <button class="archive-banner-btn secondary" onclick="document.getElementById('archiveBanner').style.display='none'">Later</button>
+    </div>`;
+}
+
+function showArchiveConfirm(monthKey, doneCount, openCount, monthTasks){
+  const label = getMonthLabel(monthKey);
+  if(!confirm(`Archive ${doneCount} completed tasks from ${label}?\n\nCompleted tasks will be moved to the archive.\nOpen tasks remain in your active list.`)) return;
+  archiveMonth(monthKey);
+}
+
+function archiveMonth(monthKey){
+  const label = getMonthLabel(monthKey);
+  const now = new Date();
+  const currKey = getMonthKey(now);
+
+  // Collect tasks for this month
+  const toArchive = tasks.filter(t=>{
+    if(!t.done) return false;
+    const d = t.dueDate || t.startDate || (t.createdAt?t.createdAt.substring(0,7)+'':'');
+    // Archive all done tasks if current month, else filter by month
+    if(monthKey === currKey) return t.done;
+    return d && d.startsWith(monthKey);
+  });
+
+  if(toArchive.length === 0){ toast('No completed tasks found for '+label,'warn'); return; }
+
+  // Build archive entry
+  const total = toArchive.length;
+  const done = toArchive.filter(t=>t.done).length;
+  const pct = total>0 ? Math.round((done/total)*100) : 0;
+
+  // Check if month already has archive entry, update it
+  const existing = _archives.findIndex(a=>a.monthKey===monthKey);
+  const entry = {
+    monthKey,
+    label,
+    archivedAt: new Date().toISOString(),
+    stats: { total, done, open: total-done, completion: pct },
+    tasks: toArchive.map(t=>({...t}))
+  };
+
+  if(existing >= 0) _archives[existing] = entry;
+  else _archives.unshift(entry);
+
+  // Remove archived tasks from active list
+  const archivedIds = new Set(toArchive.map(t=>t.id));
+  tasks = tasks.filter(t=>!archivedIds.has(t.id));
+
+  saveArchives();
+  save();
+  renderAll();
+
+  // Hide banner
+  const banner = document.getElementById('archiveBanner');
+  if(banner) banner.style.display = 'none';
+
+  toast(`📦 ${total} tasks archived to ${label}`,'ok');
+}
+
+function renderArchive(){
+  const list = document.getElementById('archiveList');
+  if(!list) return;
+
+  if(_archives.length === 0){
+    list.innerHTML = `<div class="archive-empty">
+      <div style="font-size:32px;margin-bottom:12px;">🗂</div>
+      <div style="font-weight:600;color:#2d3748;margin-bottom:6px;">No archives yet</div>
+      <div style="font-size:13px;">Complete and archive a month to see it here.</div>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = _archives.map((a,ai)=>{
+    const pct = a.stats.completion;
+    const pctColor = pct>=80?'#166534':pct>=50?'#92400e':'#9b2c2c';
+    const pctBg = pct>=80?'#f0fdf4':pct>=50?'#fffbeb':'#fff5f5';
+    return `
+    <div class="archive-month">
+      <div class="archive-month-hdr" onclick="toggleArchiveMonth(${ai})">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="archive-chevron" id="archChev_${ai}">▶</span>
+          <span class="archive-month-title">${a.label}</span>
+          <span style="font-size:11px;color:#a0aec0;">Archived ${new Date(a.archivedAt).toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'})}</span>
+        </div>
+        <div class="archive-month-stats">
+          <div class="archive-stat"><div class="archive-stat-val">${a.stats.total}</div><div class="archive-stat-lbl">Tasks</div></div>
+          <div class="archive-stat-divider"></div>
+          <div class="archive-stat"><div class="archive-stat-val" style="color:#166534">${a.stats.done}</div><div class="archive-stat-lbl">Done</div></div>
+          <div class="archive-stat-divider"></div>
+          <div class="archive-stat"><div class="archive-stat-val" style="color:#9b2c2c">${a.stats.open}</div><div class="archive-stat-lbl">Open</div></div>
+          <div class="archive-stat-divider"></div>
+          <span class="archive-completion" style="color:${pctColor};background:${pctBg};">${pct}% complete</span>
+        </div>
+      </div>
+      <div class="archive-month-body" id="archBody_${ai}">
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+          <button class="btn sm primary" onclick="restoreAllFromMonth(${ai})">↩ Restore all to active</button>
+          <button class="btn sm danger" onclick="deleteArchiveMonth(${ai})">Delete archive</button>
+        </div>
+        ${a.tasks.map((t,ti)=>`
+          <div class="archive-task-row">
+            <div style="width:8px;height:8px;border-radius:50%;background:${t.done?'#22c55e':'#94a3b8'};flex-shrink:0;"></div>
+            <div class="archive-task-title ${t.done?'done':''}" style="flex:1">${esc(t.title)}</div>
+            <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+              ${t.dueDate?`<span style="font-size:11px;color:#a0aec0;">${fmtS(t.dueDate)}</span>`:''}
+              ${priBadge(t.priority||'Med')}
+              <button class="archive-restore-btn" onclick="restoreTask(${ai},${ti})">↩ Restore</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleArchiveMonth(idx){
+  const body = document.getElementById('archBody_'+idx);
+  const chev = document.getElementById('archChev_'+idx);
+  if(!body) return;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  if(chev) chev.classList.toggle('open', !isOpen);
+}
+
+function restoreTask(archIdx, taskIdx){
+  const archive = _archives[archIdx];
+  if(!archive) return;
+  const t = archive.tasks[taskIdx];
+  if(!t) return;
+  // Reset status and add back to active tasks
+  const restored = {...t, done:false, status:'Open', synced:false, restoredFrom:archive.label, createdAt:new Date().toISOString()};
+  tasks.unshift(restored);
+  // Remove from archive
+  archive.tasks.splice(taskIdx, 1);
+  archive.stats.total--;
+  archive.stats.done = archive.tasks.filter(t=>t.done).length;
+  archive.stats.open = archive.tasks.length - archive.stats.done;
+  archive.stats.completion = archive.stats.total>0?Math.round((archive.stats.done/archive.stats.total)*100):0;
+  if(archive.tasks.length === 0) _archives.splice(archIdx, 1);
+  saveArchives();
+  save();
+  renderArchive();
+  toast(`↩ Task restored to active list`,'ok');
+}
+
+function restoreAllFromMonth(archIdx){
+  const archive = _archives[archIdx];
+  if(!archive) return;
+  if(!confirm(`Restore all ${archive.tasks.length} tasks from ${archive.label} to your active list?`)) return;
+  archive.tasks.forEach(t=>{
+    const restored = {...t, done:false, status:'Open', synced:false, restoredFrom:archive.label, createdAt:new Date().toISOString()};
+    tasks.unshift(restored);
+  });
+  _archives.splice(archIdx, 1);
+  saveArchives();
+  save();
+  renderArchive();
+  renderOverview();
+  toast(`↩ All tasks restored from ${archive.label}`,'ok');
+}
+
+function deleteArchiveMonth(archIdx){
+  const archive = _archives[archIdx];
+  if(!archive) return;
+  if(!confirm(`Permanently delete the ${archive.label} archive? This cannot be undone.`)) return;
+  _archives.splice(archIdx, 1);
+  saveArchives();
+  renderArchive();
+  toast('Archive deleted','');
 }
 
 /* ════════════════════════════════════════════
