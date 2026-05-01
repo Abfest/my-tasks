@@ -1761,7 +1761,11 @@ window.addEventListener('DOMContentLoaded',()=>{
   window.addEventListener('firebase-ready',()=>{ if(!_fbListening) startFirebaseSync(); });
 });
 
-function renderAll(){updatePhasePill();renderOverview();}
+function renderAll(){
+  updatePhasePill();
+  renderOverview();
+  refreshActive();
+}
 
 function updatePhasePill(){
   const total=tasks.length,done=tasks.filter(t=>t.done).length;
@@ -3791,16 +3795,19 @@ function closeEvModal(){document.getElementById('evOv').classList.remove('show')
 ════════════════════════════════════════════ */
 function refreshActive(){
   updatePhasePill();
+  renderTop3();
   const active=document.querySelector('.ntab.on');
-  if(!active)return;
+  if(!active) return;
   const txt=active.textContent.trim();
-  if(txt==='Overview')renderOverview();
-  else if(txt==='Tasks & Actions')renderTasksTab();
-  else if(txt==='Schedule')renderSchedule();
-  else if(txt==='Weekly Calendar')renderWeekly();
-  else if(txt==='Monthly Calendar')renderMonthly();
-  else if(txt==='Quality & Risk')renderQuality();
-  else if(txt==='Planner')renderPlanner();
+  if(txt==='Overview') renderOverview();
+  else if(txt==='Tasks & Actions') renderTasksTab();
+  else if(txt==='Schedule') renderSchedule();
+  else if(txt==='Weekly Calendar') renderWeekly();
+  else if(txt==='Monthly Calendar') renderMonthly();
+  else if(txt==='Quality & Risk') renderQuality();
+  else if(txt==='Planner') renderPlanner();
+  else if(txt.includes('AI')) updateAIContext();
+  else if(txt.includes('Archive')) renderArchive();
 }
 
 /* ════════════════════════════════════════════
