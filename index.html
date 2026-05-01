@@ -1729,6 +1729,9 @@ function dropTop3(e, targetIdx){
 window.addEventListener('DOMContentLoaded',()=>{
   updateGCalUI();
   document.getElementById('hdrDate').textContent=new Date().toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
+  // Load archives from localStorage on startup
+  const savedArchives = localStorage.getItem('tf_archives');
+  if(savedArchives){ try{ _archives = JSON.parse(savedArchives); }catch(e){} }
   renderAll();renderTop3();updatePomUI();
   /* Check push permission state */
   if(localStorage.getItem('tf_push')==='granted'&&Notification.permission==='granted'){
@@ -1743,11 +1746,17 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   /* Fallback: if Firebase SDK loads before event fires */
   setTimeout(()=>{
-    if(tasks.length===0 && window._fbSaveDoc){
-      console.log('Firebase fallback sync...');
+    if(tasks.length===0){
+      console.log('Firebase fallback sync attempt 1...');
       startFirebaseSync();
     }
-  }, 3000);
+  }, 2000);
+  setTimeout(()=>{
+    if(tasks.length===0){
+      console.log('Firebase fallback sync attempt 2...');
+      startFirebaseSync();
+    }
+  }, 5000);
 
   /* Firebase syncs once SDK module finishes loading */
   window.addEventListener('firebase-ready', ()=>{
@@ -3055,13 +3064,13 @@ function archiveMonth(monthKey){
 
 function renderArchive(){
   const list = document.getElementById('archiveList');
-  if(!list) return;
+  if(!list){ setTimeout(renderArchive, 200); return; }
 
   if(_archives.length === 0){
     list.innerHTML = `<div class="archive-empty">
-      <div style="font-size:32px;margin-bottom:12px;">🗂</div>
-      <div style="font-weight:600;color:#2d3748;margin-bottom:6px;">No archives yet</div>
-      <div style="font-size:13px;">Complete and archive a month to see it here.</div>
+      <div style="font-size:48px;margin-bottom:12px;">🗂</div>
+      <div style="font-size:15px;font-weight:600;color:#2d3748;margin-bottom:8px;">No archives yet</div>
+      <div style="font-size:13px;max-width:340px;margin:0 auto;line-height:1.6;">Completed tasks will appear here after you archive a month.<br>Use the <strong>Archive current month</strong> button above, or wait for the automatic prompt at the start of next month.</div>
     </div>`;
     return;
   }
