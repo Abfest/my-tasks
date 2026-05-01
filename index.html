@@ -3049,6 +3049,116 @@ function openTBDetail(blockId){
 }
 
 /* ════════════════════════════════════════════
+   BULK TASK SELECTION & ARCHIVE SELECTED
+════════════════════════════════════════════ */
+let _selectedTaskIds = new Set();
+
+function onTaskCheckbox(cb){
+  const id = parseInt(cb.dataset.id);
+  if(cb.checked) _selectedTaskIds.add(id);
+  else _selectedTaskIds.delete(id);
+  updateBulkBar();
+}
+
+function toggleSelectAllTasks(checked){
+  _selectedTaskIds.clear();
+  if(checked){
+    document.querySelectorAll('.task-sel-chk').forEach(cb=>{
+      cb.checked=true;
+      _selectedTaskIds.add(parseInt(cb.dataset.id));
+    });
+  } else {
+    document.querySelectorAll('.task-sel-chk').forEach(cb=>cb.checked=false);
+  }
+  updateBulkBar();
+}
+
+function updateBulkBar(){
+  const bar=document.getElementById('bulkBar');
+  const count=document.getElementById('bulkCount');
+  if(!bar) return;
+  if(_selectedTaskIds.size>0){
+    bar.style.display='flex';
+    if(count) count.textContent=`${_selectedTaskIds.size} task${_selectedTaskIds.size>1?'s':''} selected`;
+  } else {
+    bar.style.display='none';
+  }
+}
+
+function clearSelection(){
+  _selectedTaskIds.clear();
+  document.querySelectorAll('.task-sel-chk').forEach(cb=>cb.checked=false);
+  const sa=document.getElementById('selectAllTasks');
+  if(sa) sa.checked=false;
+  updateBulkBar();
+}
+
+function bulkArchiveSelected(){
+  if(_selectedTaskIds.size===0) return;
+  const toArchive=tasks.filter(t=>_selectedTaskIds.has(t.id)&&t.done);
+  const notDone=tasks.filter(t=>_selectedTaskIds.has(t.id)&&!t.done);
+  if(toArchive.length===0){
+    toast('Only closed tasks can be archived. Mark tasks as done first.','warn');
+    return;
+  }
+  if(!confirm(`Archive ${toArchive.length} closed task${toArchive.length>1?'s':''}?
+${notDone.length>0?`
+${notDone.length} open task(s) will be skipped.`:''}`)) return;
+
+  // Group by month
+  const monthGroups={};
+  toArchive.forEach(t=>{
+    const key=t.dueDate?t.dueDate.substring(0,7):new Date().toISOString().substring(0,7);
+    if(!monthGroups[key]) monthGroups[key]=[];
+    monthGroups[key].push(t);
+  });
+
+  Object.entries(monthGroups).forEach(([monthKey,mTasks])=>{
+    const label=getMonthLabel(monthKey);
+    const existing=_archives.findIndex(a=>a.monthKey===monthKey);
+    if(existing>=0){
+      _archives[existing].tasks.push(...mTasks);
+      _archives[existing].stats.total+=mTasks.length;
+      _archives[existing].stats.done+=mTasks.filter(t=>t.done).length;
+      _archives[existing].stats.completion=Math.round((_archives[existing].stats.done/_archives[existing].stats.total)*100);
+    } else {
+      _archives.unshift({
+        monthKey,label,archivedAt:new Date().toISOString(),
+        stats:{total:mTasks.length,done:mTasks.filter(t=>t.done).length,open:0,completion:100},
+        tasks:mTasks.map(t=>({...t}))
+      });
+    }
+  });
+
+  const archivedIds=new Set(toArchive.map(t=>t.id));
+  tasks=tasks.filter(t=>!archivedIds.has(t.id));
+  saveArchives();
+  save();
+  clearSelection();
+  renderAll();
+  toast(`📦 ${toArchive.length} task${toArchive.length>1?'s':''} archived`,'ok');
+}
+
+function bulkMarkDone(){
+  if(_selectedTaskIds.size===0) return;
+  tasks.forEach(t=>{ if(_selectedTaskIds.has(t.id)) t.done=true; });
+  save();
+  clearSelection();
+  renderAll();
+  toast(`✓ ${_selectedTaskIds.size} tasks marked done`,'ok');
+}
+
+function bulkDelete(){
+  if(_selectedTaskIds.size===0) return;
+  if(!confirm(`Delete ${_selectedTaskIds.size} task${_selectedTaskIds.size>1?'s':''}? This cannot be undone.`)) return;
+  tasks=tasks.filter(t=>!_selectedTaskIds.has(t.id));
+  save();
+  clearSelection();
+  renderAll();
+  toast(`Deleted ${_selectedTaskIds.size} tasks`,'');
+}
+
+/* ════════════════════════════════════════════
    OVERDUE BANNER
 ════════════════════════════════════════════ */
 let _bannerDismissed = false;
@@ -3904,16 +4014,59 @@ function openNewCalEvent(dateStr){
   document.getElementById('evModal').innerHTML=`
     <div class="modal-title">Add calendar event</div>
     <div class="form-grid">
-      <div class="ff full"><label class="flbl">Title <span class="req">*</span></label><input id="evTitle" placeholder="Event name…"/></div>
-      <div class="ff"><label class="flbl">Date <span class="req">*</span></label><input type="date" id="evDate" value="${dateStr||''}"/></div>
-      <div class="ff"><label class="flbl">End date</label><input type="date" id="evEndDate"/></div>
-      <div class="ff"><label class="flbl">Start time</label><input type="time" id="evTime"/></div>
-      <div class="ff"><label class="flbl">End time</label><input type="time" id="evEndTime"/></div>
-      <div class="ff"><label class="flbl">Color</label>
-        <div style="display:flex;gap:8px;padding:8px 0">
-          ${['#1a3a5c','#9b2c2c','#276749','#744210','#553c9a','#0e7490'].map((col,i)=>
-            `<div onclick="window._evCol='${col}';document.querySelectorAll('.colsw').forEach(s=>s.style.outline='none');this.style.outline='2px solid #1a202c'"
-              class="colsw" style="width:22px;height:22px;border-radius:50%;background:${col};cursor:pointer;${i===0?'outline:2px solid #1a202c':''}"></div>`).join('')}
+      <div class="ff full"><label class="flbl">Title <span class="req">*</span></label>
+        <input id="evTitle" placeholder="Event name…"/></div>
+      <!-- All day toggle -->
+      <div class="ff full" style="display:flex;align-items:center;gap:10px;padding:4px 0;">
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#2d3748;">
+          <input type="checkbox" id="evAllDay" onchange="toggleEvAllDay(this.checked)" style="width:15px;height:15px;cursor:pointer;accent-color:#1a3a5c;"/>
+          All day event
+        </label>
+      </div>
+      <div class="ff"><label class="flbl">Start date <span class="req">*</span></label>
+        <input type="date" id="evDate" value="${dateStr||''}"/></div>
+      <div class="ff"><label class="flbl">End date</label>
+        <input type="date" id="evEndDate" value="${dateStr||''}"/></div>
+      <div class="ff" id="evTimeWrap"><label class="flbl">Start time</label>
+        <input type="time" id="evTime" value="09:00"/></div>
+      <div class="ff" id="evEndTimeWrap"><label class="flbl">End time</label>
+        <input type="time" id="evEndTime" value="10:00"/></div>
+      <!-- Repeat -->
+      <div class="ff"><label class="flbl">Repeat</label>
+        <select id="evRepeat" style="width:100%">
+          <option value="">Does not repeat</option>
+          <option value="daily">Every day</option>
+          <option value="weekly">Every week</option>
+          <option value="weekdays">Every weekday (Mon–Fri)</option>
+          <option value="monthly">Every month</option>
+          <option value="yearly">Every year</option>
+        </select>
+      </div>
+      <!-- Notification -->
+      <div class="ff"><label class="flbl">Notification</label>
+        <select id="evNotif" style="width:100%">
+          <option value="">None</option>
+          <option value="0">At time of event</option>
+          <option value="5">5 minutes before</option>
+          <option value="10">10 minutes before</option>
+          <option value="15" selected>15 minutes before</option>
+          <option value="30">30 minutes before</option>
+          <option value="60">1 hour before</option>
+          <option value="1440">1 day before</option>
+        </select>
+      </div>
+      <!-- Location -->
+      <div class="ff full"><label class="flbl">Location</label>
+        <input id="evLocation" placeholder="Add location…"/></div>
+      <!-- Description -->
+      <div class="ff full"><label class="flbl">Description</label>
+        <textarea id="evDesc" placeholder="Add notes or description…" style="height:60px;resize:vertical;"></textarea></div>
+      <!-- Color -->
+      <div class="ff full"><label class="flbl">Color</label>
+        <div style="display:flex;gap:8px;padding:6px 0;flex-wrap:wrap;">
+          ${[['#1a3a5c','Navy'],['#9b2c2c','Red'],['#276749','Green'],['#744210','Brown'],['#553c9a','Purple'],['#0e7490','Teal'],['#d97706','Amber'],['#be185d','Pink']].map(([col,lbl],i)=>
+            `<div onclick="window._evCol='${col}';document.querySelectorAll('.colsw').forEach(s=>{s.style.outline='none';s.style.transform='scale(1)'});this.style.outline='2px solid '+this.style.background;this.style.transform='scale(1.2)'" title="${lbl}"
+              class="colsw" style="width:22px;height:22px;border-radius:50%;background:${col};cursor:pointer;transition:transform .15s;${i===0?'outline:2px solid #1a3a5c;transform:scale(1.2)':''}"></div>`).join('')}
         </div>
       </div>
     </div>
@@ -3924,19 +4077,65 @@ function openNewCalEvent(dateStr){
   window._evCol='#1a3a5c';
   document.getElementById('evOv').classList.add('show');
 }
+
+function toggleEvAllDay(isAllDay){
+  const tw=document.getElementById('evTimeWrap');
+  const etw=document.getElementById('evEndTimeWrap');
+  if(tw) tw.style.display=isAllDay?'none':'';
+  if(etw) etw.style.display=isAllDay?'none':'';
+}
 function saveCalEvent(){
   const title=document.getElementById('evTitle').value.trim();
   const date=document.getElementById('evDate').value;
-  if(!title||!date){alert('Title and date are required');return;}
-  const ev={id:'ev_'+Date.now(),title,date,
-    endDate:document.getElementById('evEndDate').value||date,
-    time:document.getElementById('evTime').value,
-    endTime:document.getElementById('evEndTime').value,
+  if(!title||!date){toast('Title and date are required','warn');return;}
+  const allDay=document.getElementById('evAllDay')?.checked||false;
+  const repeat=document.getElementById('evRepeat')?.value||'';
+  const notif=document.getElementById('evNotif')?.value||'15';
+  const location=document.getElementById('evLocation')?.value.trim()||'';
+  const desc=document.getElementById('evDesc')?.value.trim()||'';
+  const endDate=document.getElementById('evEndDate').value||date;
+
+  const ev={id:'ev_'+Date.now(),title,date,endDate,
+    time:allDay?'':document.getElementById('evTime').value,
+    endTime:allDay?'':document.getElementById('evEndTime').value,
+    allDay,repeat,notif,location,desc,
     color:window._evCol||'#1a3a5c',gcalId:null,calUrl:null,source:'local',synced:false};
-  calEvs.push(ev);
+
+  // Handle recurring — create multiple events
+  if(repeat && repeat!==''){
+    const events=generateRecurringEvents(ev);
+    events.forEach(e=>calEvs.push(e));
+    toast(`${events.length} recurring events added`+(gcal?' & synced':''),'ok');
+  } else {
+    calEvs.push(ev);
+    toast('Event added'+(gcal?' & synced':''),'ok');
+  }
+
   if(gcal){pushCalEv(ev).then(()=>{save();refreshActive();});}
   else{save();refreshActive();}
-  closeEvModal();toast('Event added'+(gcal?' & synced':''),'ok');
+  closeEvModal();
+}
+
+function generateRecurringEvents(baseEv){
+  const events=[{...baseEv}];
+  const base=new Date(baseEv.date+'T00:00:00');
+  const maxOccurrences=52; // max 1 year
+  for(let i=1;i<maxOccurrences;i++){
+    const d=new Date(base);
+    if(baseEv.repeat==='daily') d.setDate(d.getDate()+i);
+    else if(baseEv.repeat==='weekly') d.setDate(d.getDate()+i*7);
+    else if(baseEv.repeat==='weekdays'){
+      let count=0,day=new Date(base);
+      while(count<i){day.setDate(day.getDate()+1);if(day.getDay()!==0&&day.getDay()!==6)count++;}
+      d.setTime(day.getTime());
+    }
+    else if(baseEv.repeat==='monthly'){d.setMonth(d.getMonth()+i);if(i>=12)break;}
+    else if(baseEv.repeat==='yearly'){d.setFullYear(d.getFullYear()+i);if(i>=3)break;}
+    else break;
+    const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    events.push({...baseEv,id:'ev_'+Date.now()+i,date:ds,endDate:ds,synced:false});
+  }
+  return events;
 }
 function openEvDetail(id,type){
   const modal=document.getElementById('evModal');
