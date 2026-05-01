@@ -2857,12 +2857,29 @@ function renderPlanner(){
   const subEl = document.getElementById('dpDateSub');
   if(titleEl) titleEl.textContent = `${DOW[d.getDay()]}, ${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}${isToday?' — Today':''}`;
 
-  // Get blocks for this day
+  // Get time blocks and calendar events for this day
   const dayBlocks = _timeBlocks.filter(b => b.date === ds);
+  // Merge calendar events into the planner view
+  const dayCalEvs = calEvs.filter(e => {
+    if(!e.time) return false; // only timed events
+    return e.date === ds || (e.endDate && e.date <= ds && e.endDate >= ds);
+  });
+  // Convert cal events to display blocks
+  const calDisplayBlocks = dayCalEvs.map(e => ({
+    id: 'cal_'+e.id,
+    date: ds,
+    taskId: null,
+    label: e.title,
+    start: e.time||'09:00',
+    end: e.endTime||e.time||'10:00',
+    color: e.color||'#0e7490',
+    isCal: true,
+    calId: e.id
+  }));
 
   // Calculate summary
   let totalMins = 0;
-  dayBlocks.forEach(b => {
+  allDayBlocks.forEach(b => {
     const [sh,sm] = b.start.split(':').map(Number);
     const [eh,em] = b.end.split(':').map(Number);
     totalMins += Math.max(0, (eh*60+em) - (sh*60+sm));
@@ -2917,10 +2934,11 @@ function renderPlanner(){
   const tbody = document.getElementById('dpTbody');
   if(!tbody) return;
 
-  // Map blocks to slots
+  // Map blocks to slots (time blocks + calendar events)
+  const allDayBlocks = [...dayBlocks, ...calDisplayBlocks];
   const slotMap = {}; // slot -> block
   const coveredSlots = new Set();
-  dayBlocks.forEach(b => {
+  allDayBlocks.forEach(b => {
     const [sh,sm] = b.start.split(':').map(Number);
     const [eh,em] = b.end.split(':').map(Number);
     const startSlot = sh*2 + (sm>=30?1:0);
@@ -4061,13 +4079,9 @@ function openNewCalEvent(dateStr){
       <!-- Description -->
       <div class="ff full"><label class="flbl">Description</label>
         <textarea id="evDesc" placeholder="Add notes or description…" style="height:60px;resize:vertical;"></textarea></div>
-      <!-- Color -->
-      <div class="ff full"><label class="flbl">Color</label>
-        <div style="display:flex;gap:8px;padding:6px 0;flex-wrap:wrap;">
-          ${[['#1a3a5c','Navy'],['#9b2c2c','Red'],['#276749','Green'],['#744210','Brown'],['#553c9a','Purple'],['#0e7490','Teal'],['#d97706','Amber'],['#be185d','Pink']].map(([col,lbl],i)=>
-            `<div onclick="window._evCol='${col}';document.querySelectorAll('.colsw').forEach(s=>{s.style.outline='none';s.style.transform='scale(1)'});this.style.outline='2px solid '+this.style.background;this.style.transform='scale(1.2)'" title="${lbl}"
-              class="colsw" style="width:22px;height:22px;border-radius:50%;background:${col};cursor:pointer;transition:transform .15s;${i===0?'outline:2px solid #1a3a5c;transform:scale(1.2)':''}"></div>`).join('')}
-        </div>
+      <!-- Color / Calendar label -->
+      <div class="ff full"><label class="flbl">Calendar / Color</label>
+        <div id="evColorPicker" style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px;margin-top:4px;"></div>
       </div>
     </div>
     <div class="mac">
@@ -4075,7 +4089,56 @@ function openNewCalEvent(dateStr){
       <button class="mbtn save" onclick="saveCalEvent()">Add event</button>
     </div>`;
   window._evCol='#1a3a5c';
+  window._evCalLabel='Work Calendar';
+  renderEvColorPicker();
   document.getElementById('evOv').classList.add('show');
+}
+
+function renderEvColorPicker(){
+  const calendars = [
+    {col:'#1a73e8', label:'Personal Calendar'},
+    {col:'#e67c73', label:'Antonio Franco iPhone'},
+    {col:'#33b679', label:'Appointments'},
+    {col:'#8e24aa', label:'Personal Development'},
+    {col:'#f6c026', label:'Church'},
+    {col:'#039be5', label:'Exercise Calendar'},
+    {col:'#7986cb', label:'Family'},
+    {col:'#ff7043', label:'Fun Calendar'},
+    {col:'#0b8043', label:'GQueues'},
+    {col:'#e4c441', label:'Sons Calendar'},
+    {col:'#616161', label:'Tasks Calendar'},
+    {col:'#d81b60', label:'Work Calendar'},
+    {col:'#795548', label:'University of Portsmouth'},
+    {col:'#009688', label:'Holidays in Singapore'},
+  ];
+
+  const picker = document.getElementById('evColorPicker');
+  if(!picker) return;
+
+  picker.innerHTML = calendars.map((c,i)=>`
+    <div class="ev-cal-option ${i===0?'selected':''}" data-col="${c.col}" data-label="${c.label}"
+      onclick="selectEvCal(this,'${c.col}','${c.label}')"
+      style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:7px;border:1.5px solid ${i===0?c.col:'#e2e8f0'};cursor:pointer;transition:all .15s;background:${i===0?c.col+'18':'#fff'};">
+      <div style="width:14px;height:14px;border-radius:50%;background:${c.col};flex-shrink:0;"></div>
+      <span style="font-size:12px;color:#2d3748;font-weight:${i===0?'600':'400'}">${c.label}</span>
+    </div>`).join('');
+
+  window._evCol = calendars[0].col;
+  window._evCalLabel = calendars[0].label;
+}
+
+function selectEvCal(el, col, label){
+  document.querySelectorAll('.ev-cal-option').forEach(opt=>{
+    const c = opt.dataset.col;
+    opt.style.border = '1.5px solid #e2e8f0';
+    opt.style.background = '#fff';
+    opt.querySelector('span').style.fontWeight = '400';
+  });
+  el.style.border = `1.5px solid ${col}`;
+  el.style.background = col+'18';
+  el.querySelector('span').style.fontWeight = '600';
+  window._evCol = col;
+  window._evCalLabel = label;
 }
 
 function toggleEvAllDay(isAllDay){
@@ -4084,6 +4147,37 @@ function toggleEvAllDay(isAllDay){
   if(tw) tw.style.display=isAllDay?'none':'';
   if(etw) etw.style.display=isAllDay?'none':'';
 }
+function openEditCalEvent(id){
+  const c = calEvs.find(e=>e.id===id);
+  if(!c) return;
+  closeEvModal();
+  // Open add modal pre-filled with event data
+  setTimeout(()=>{
+    openEvModal(c.date);
+    setTimeout(()=>{
+      const setVal = (elId, val) => { const el=document.getElementById(elId); if(el) el.value=val||''; };
+      setVal('evTitle', c.title);
+      setVal('evDate', c.date);
+      setVal('evEndDate', c.endDate||c.date);
+      setVal('evTime', c.time||'');
+      setVal('evEndTime', c.endTime||'');
+      setVal('evRepeat', c.repeat||'');
+      setVal('evNotif', c.notif||'15');
+      setVal('evLocation', c.location||'');
+      setVal('evDesc', c.desc||'');
+      const allDayEl = document.getElementById('evAllDay');
+      if(allDayEl){ allDayEl.checked=c.allDay||false; toggleEvAllDay(c.allDay||false); }
+      window._evCol = c.color||'#1a3a5c';
+      window._editingCalId = id;
+      document.querySelector('.mbtn.save').textContent = 'Update event';
+      // Highlight the matching calendar label
+      document.querySelectorAll('.ev-cal-option').forEach(opt=>{
+        if(opt.dataset.col===c.color){ selectEvCal(opt,c.color,opt.dataset.label); }
+      });
+    }, 100);
+  }, 150);
+}
+
 function saveCalEvent(){
   const title=document.getElementById('evTitle').value.trim();
   const date=document.getElementById('evDate').value;
@@ -4095,14 +4189,20 @@ function saveCalEvent(){
   const desc=document.getElementById('evDesc')?.value.trim()||'';
   const endDate=document.getElementById('evEndDate').value||date;
 
-  const ev={id:'ev_'+Date.now(),title,date,endDate,
+  const isEdit = window._editingCalId;
+  const ev={id:isEdit||('ev_'+Date.now()),title,date,endDate,
     time:allDay?'':document.getElementById('evTime').value,
     endTime:allDay?'':document.getElementById('evEndTime').value,
     allDay,repeat,notif,location,desc,
-    color:window._evCol||'#1a3a5c',gcalId:null,calUrl:null,source:'local',synced:false};
+    color:window._evCol||'#1a3a5c',calLabel:window._evCalLabel||'',gcalId:null,calUrl:null,source:'local',synced:false};
 
   // Handle recurring — create multiple events
-  if(repeat && repeat!==''){
+  if(isEdit){
+    const idx=calEvs.findIndex(e=>e.id===isEdit);
+    if(idx>=0) calEvs[idx]=ev;
+    window._editingCalId=null;
+    toast('Event updated','ok');
+  } else if(repeat && repeat!==''){
     const events=generateRecurringEvents(ev);
     events.forEach(e=>calEvs.push(e));
     toast(`${events.length} recurring events added`+(gcal?' & synced':''),'ok');
@@ -4160,13 +4260,23 @@ function openEvDetail(id,type){
     const c=calEvs.find(e=>e.id===id);if(!c)return;
     modal.innerHTML=`
       <div class="modal-title">Event detail</div>
-      <div style="font-size:16px;font-weight:700;color:#1a202c;margin-bottom:10px">${esc(c.title)}</div>
-      <div style="font-size:13px;color:#718096;margin-bottom:4px">Date: ${fmtD(c.date)}${c.endDate&&c.endDate!==c.date?' → '+fmtD(c.endDate):''}</div>
-      ${c.time?`<div style="font-size:13px;color:#718096;margin-bottom:8px">Time: ${c.time}${c.endTime?' – '+c.endTime:''}</div>`:''}
-      ${c.source==='gcal'?'<span class="badge b-gcal" style="margin-bottom:12px;display:inline-flex">🗓 From Google Calendar</span>':''}
+      <div style="font-size:15px;font-weight:700;color:#1a202c;margin-bottom:10px">${esc(c.title)}</div>
+      <div style="background:#f7fafc;border-radius:8px;padding:11px 13px;margin-bottom:12px;">
+        <div style="font-size:12.5px;color:#718096;margin-bottom:5px;display:flex;align-items:center;gap:7px;">
+          <span>📅</span><span>${fmtD(c.date)}${c.endDate&&c.endDate!==c.date?' → '+fmtD(c.endDate):''}</span>
+        </div>
+        ${c.time?`<div style="font-size:12.5px;color:#718096;margin-bottom:5px;display:flex;align-items:center;gap:7px;"><span>🕐</span><span>${c.time}${c.endTime?' – '+c.endTime:''}</span></div>`:''}
+        ${c.allDay?`<div style="font-size:12.5px;color:#718096;margin-bottom:5px;">All day event</div>`:''}
+        ${c.location?`<div style="font-size:12.5px;color:#718096;margin-bottom:5px;display:flex;align-items:center;gap:7px;"><span>📍</span><span>${esc(c.location)}</span></div>`:''}
+        ${c.repeat?`<div style="font-size:12.5px;color:#718096;margin-bottom:5px;display:flex;align-items:center;gap:7px;"><span>🔁</span><span>${c.repeat}</span></div>`:''}
+        ${c.calLabel?`<div style="font-size:12.5px;color:#718096;display:flex;align-items:center;gap:7px;"><span style="width:10px;height:10px;border-radius:50%;background:${c.color||'#1a3a5c'};flex-shrink:0;display:inline-block;"></span><span>${esc(c.calLabel)}</span></div>`:''}
+      </div>
+      ${c.desc?`<div style="font-size:13px;color:#4a5568;background:#f7fafc;border-radius:8px;padding:10px 13px;margin-bottom:12px;line-height:1.6;">${esc(c.desc)}</div>`:''}
+      ${c.source==='gcal'?'<div style="margin-bottom:10px;"><span class="badge b-gcal">🗓 From Google Calendar</span></div>':''}
       <div class="mac">
         <button class="mbtn cancel" onclick="closeEvModal()">Close</button>
-        ${c.calUrl?`<button class="mbtn save" onclick="window.open('${c.calUrl}','_blank')">Open in GCal</button>`:''}
+        ${c.source!=='gcal'?`<button class="mbtn save" onclick="openEditCalEvent('${c.id}')">Edit</button>`:''}
+        ${c.calUrl?`<button class="mbtn" onclick="window.open('${c.calUrl}','_blank')">Open in GCal</button>`:''}
         <button class="mbtn" style="background:#fff5f5;color:#9b2c2c;border-color:#fed7d7" onclick="deleteCalEv('${c.id}');closeEvModal()">Delete</button>
       </div>`;
   }
