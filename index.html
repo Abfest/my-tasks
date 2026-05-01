@@ -1106,6 +1106,7 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
       <button class="add-st-btn" onclick="addSubtask()">+ Add subtask</button>
     </div>
 
+    <input type="checkbox" id="fGcal" style="display:none"/>
     <div class="mac">
       <button class="mbtn cancel" onclick="closeTaskModal()">Cancel</button>
       <button class="mbtn save" onclick="saveTask()">Save task</button>
@@ -3221,10 +3222,11 @@ function openEditTask(id){
 }
 function closeTaskModal(){document.getElementById('taskOv').classList.remove('show');}
 function saveTask(){
+  try{
   const title=document.getElementById('fTitle').value.trim();
   if(!title){toast('Task name is required','warn');return;}
   const repeat=document.getElementById('fRepeat').value||'';
-  const gcal=document.getElementById('fGcal').checked;
+  const gcalEl=document.getElementById('fGcal'); const gcal=gcalEl?gcalEl.checked:false;
   const data={title,tags:[document.getElementById('fTag').value||'Work'],
     priority:document.getElementById('fPriority').value,
     startDate:document.getElementById('fStart').value,
@@ -3245,6 +3247,7 @@ function saveTask(){
   save();refreshActive();closeTaskModal();
   toast(editId?'Task updated':'Task added'+(gcal?' & synced':''),'ok');
   setTimeout(refreshNotifications,500);
+  }catch(err){console.error('saveTask error:',err);toast('Error saving: '+err.message,'warn');}
 }
 
 /* ════════════════════════════════════════════
