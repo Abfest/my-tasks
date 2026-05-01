@@ -305,6 +305,34 @@ tbody tr:hover td{background:#f7fafc;}
 
 
 
+
+/* ── WEEKLY SUMMARY ── */
+.wsum-card{background:linear-gradient(135deg,#1a3a5c 0%,#2b6cb0 100%);border-radius:12px;padding:16px 20px;color:#fff;margin-bottom:0;}
+.wsum-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.6);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.wsum-title span{color:rgba(255,255,255,.45);font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;}
+.wsum-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+.wsum-item{text-align:center;}
+.wsum-val{font-size:22px;font-weight:800;color:#fff;line-height:1;}
+.wsum-lbl{font-size:10px;color:rgba(255,255,255,.55);margin-top:3px;line-height:1.3;}
+.wsum-trend{font-size:11px;margin-top:2px;}
+.wsum-trend.up{color:#86efac;}.wsum-trend.down{color:#fca5a5;}.wsum-trend.flat{color:rgba(255,255,255,.4);}
+@media(max-width:768px){.wsum-grid{grid-template-columns:repeat(3,1fr);gap:8px;}.wsum-val{font-size:18px;}}
+
+
+/* ── CATEGORIES ── */
+.cat-chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:500;white-space:nowrap;}
+.cat-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+/* Category picker in modal */
+.cat-picker{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;}
+.cat-pick-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1.5px solid transparent;font-size:11.5px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:500;transition:all .15s;background:var(--cat-bg);color:var(--cat-fg);border-color:var(--cat-bg);}
+.cat-pick-btn:hover{filter:brightness(.95);}
+.cat-pick-btn.selected{border-color:var(--cat-dot);box-shadow:0 0 0 2px var(--cat-bg);}
+/* Category filter bar */
+.cat-filter-bar{display:flex;gap:5px;flex-wrap:wrap;padding:10px 20px 0;background:#fff;border-bottom:1px solid #e2e8f0;}
+.cat-filter-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 11px;border-radius:20px;border:1px solid #e2e8f0;font-size:11.5px;cursor:pointer;font-family:'Inter',sans-serif;background:#f7fafc;color:#718096;transition:all .15s;}
+.cat-filter-btn:hover{border-color:#cbd5e0;color:#2d3748;}
+.cat-filter-btn.active{color:var(--cat-fg);background:var(--cat-bg);border-color:var(--cat-dot);}
+
 /* ── TASK DETAIL POPUP ── */
 .td-overlay{position:fixed;inset:0;background:rgba(15,37,64,.55);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s;}
 .td-overlay.show{opacity:1;pointer-events:all;}
@@ -391,6 +419,38 @@ tbody tr:hover td{background:#f7fafc;}
   .dp-sidebar{display:none;}
   .dp-grid-wrap{height:60vh;border-right:none;}
 }
+
+
+
+/* ── PLANNER WEEK VIEW ── */
+.dp-week-grid{display:grid;gap:0;}
+.dp-week-time-col{width:52px;flex-shrink:0;}
+.dp-week-col{flex:1;min-width:0;border-left:1px solid #e2e8f0;position:relative;}
+.dp-week-col-hdr{padding:6px 4px;text-align:center;border-bottom:1px solid #e2e8f0;position:sticky;top:0;background:#f7fafc;z-index:4;}
+.dp-week-col-hdr.today{background:#1a3a5c;color:#fff;border-radius:6px 6px 0 0;}
+.dp-week-col-hdr .wd{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#a0aec0;}
+.dp-week-col-hdr .today .wd{color:rgba(255,255,255,.6);}
+.dp-week-col-hdr .wdn{font-size:16px;font-weight:700;color:#1a3a5c;line-height:1;}
+.dp-week-col-hdr.today .wdn{color:#fff;}
+.dp-week-slot{height:26px;border-bottom:0.5px solid #f0f4f8;position:relative;cursor:pointer;transition:background .1s;}
+.dp-week-slot:hover{background:rgba(144,205,244,.08);}
+.dp-week-slot.hour-slot{border-bottom:1px solid #e2e8f0;}
+.dp-week-slot.now-slot{background:#fffbeb;}
+.dp-week-block{position:absolute;left:2px;right:2px;border-radius:4px;padding:2px 5px;overflow:hidden;cursor:pointer;z-index:2;transition:opacity .15s;}
+.dp-week-block:hover{opacity:.85;}
+.dp-week-block-title{font-size:10px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;}
+.dp-week-block-time{font-size:9px;color:rgba(255,255,255,.7);line-height:1.2;}
+.dp-week-now-line{position:absolute;left:0;right:0;height:2px;background:#ef4444;z-index:5;pointer-events:none;}
+.dp-week-now-dot{position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:#ef4444;}
+
+/* ── PLANNER DRAG & RESIZE ── */
+.dp-block{position:relative;}
+.dp-resize-handle{position:absolute;bottom:0;left:0;right:0;height:6px;cursor:ns-resize;background:rgba(255,255,255,.15);border-radius:0 0 6px 6px;display:flex;align-items:center;justify-content:center;}
+.dp-resize-handle::after{content:'';width:20px;height:2px;background:rgba(255,255,255,.5);border-radius:1px;}
+.dp-block.dragging{opacity:.6;cursor:grabbing;}
+.dp-time-row.drag-over .dp-task-col{background:rgba(144,205,244,.15) !important;outline:2px dashed #90cdf4;outline-offset:-2px;}
+.dp-block-drag-handle{position:absolute;top:4px;right:6px;cursor:grab;color:rgba(255,255,255,.5);font-size:11px;line-height:1;}
+.dp-block-drag-handle:hover{color:rgba(255,255,255,.9);}
 
 /* ── SUBTASKS ── */
 .st-section{margin-top:16px;border-top:1px solid #e2e8f0;padding-top:14px;}
@@ -679,6 +739,7 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
 
 <!-- ══ OVERVIEW ══════════════════════════════ -->
 <div class="pane on" id="pane-overview">
+  <div id="weeklySummary" style="margin-bottom:16px;"></div>
   <div class="stats-grid" id="statsGrid"></div>
   <div class="sec-hdr">
     <span class="sec-title">Task Register</span>
@@ -696,11 +757,13 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
 </div>
 
 <!-- ══ TASKS ══════════════════════════════════ -->
-<div class="pane" id="pane-tasks">
-  <div class="sec-hdr">
+<div class="pane" id="pane-tasks" style="padding:0;">
+  <div class="sec-hdr" style="padding:14px 20px 10px;">
     <span class="sec-title">All Tasks & Actions</span>
     <button class="btn primary" onclick="openAddTask()">+ Add task</button>
   </div>
+  <div class="cat-filter-bar" id="catFilterBar" style="display:none;"></div>
+  <div style="padding:10px 20px 0;">
   <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
     <select id="fStatus" onchange="renderTasksTab()" style="font-size:12.5px;padding:7px 10px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;outline:none;">
       <option value="all">All status</option>
@@ -800,9 +863,14 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
       <div class="dp-hdr-sub" id="dpDateSub"></div>
     </div>
     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-      <button class="dp-nav-btn" onclick="dpNavigate(-1)">‹ Prev</button>
+      <!-- Day / Week toggle -->
+      <div style="display:flex;background:rgba(255,255,255,.1);border-radius:7px;padding:2px;gap:2px;">
+        <button id="dpDayBtn" class="dp-nav-btn active" onclick="dpSetView('day')" style="padding:3px 12px;font-size:11px;">Day</button>
+        <button id="dpWeekBtn" class="dp-nav-btn" onclick="dpSetView('week')" style="padding:3px 12px;font-size:11px;">Week</button>
+      </div>
+      <button class="dp-nav-btn" id="dpPrevBtn" onclick="dpNavigate(-1)">‹ Prev</button>
       <button class="dp-nav-btn active" onclick="dpGoToday()">Today</button>
-      <button class="dp-nav-btn" onclick="dpNavigate(1)">Next ›</button>
+      <button class="dp-nav-btn" id="dpNextBtn" onclick="dpNavigate(1)">Next ›</button>
       <button class="dp-add-btn" onclick="openAddTimeBlock()">+ Add block</button>
     </div>
   </div>
@@ -810,10 +878,13 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
   <div class="dp-wrap">
     <!-- Time grid -->
     <div class="dp-grid-wrap" id="dpGridWrap">
-      <div class="dp-col-hdr">
+      <div class="dp-col-hdr" id="dpColHdr">
         <div class="dp-col-lbl" style="flex:1;padding-left:8px;">Schedule — 30 min intervals</div>
       </div>
-      <table class="dp-time-table" id="dpTable"><tbody id="dpTbody"></tbody></table>
+      <!-- Day view table -->
+      <table class="dp-time-table" id="dpTable" style="display:table;"><tbody id="dpTbody"></tbody></table>
+      <!-- Week view grid -->
+      <div id="dpWeekView" style="display:none;"></div>
     </div>
     <!-- Sidebar -->
     <div class="dp-sidebar">
@@ -993,8 +1064,9 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
     <div class="modal-title" id="taskModalTitle">Add task</div>
     <div class="form-grid">
       <div class="ff full"><label class="flbl">Task name <span class="req">*</span></label><input id="fTitle" placeholder="e.g. Review NCR report"/></div>
-      <div class="ff"><label class="flbl">Category</label>
-        <select id="fTag"><option>Work</option><option>Quality</option><option>Urgent</option><option>Health</option><option>Finance</option><option>Personal</option><option>Learning</option></select>
+      <div class="ff full"><label class="flbl">Category</label>
+        <input type="hidden" id="fTag" value="Work"/>
+        <div class="cat-picker" id="catPicker"></div>
       </div>
       <div class="ff"><label class="flbl">Priority</label>
         <select id="fPriority"><option value="Hi">High</option><option value="Med" selected>Medium</option><option value="Lo">Low</option></select>
@@ -1009,6 +1081,14 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
           <option value="Pending External">Pending External</option>
           <option value="Under Review">Under Review / Verification</option>
           <option value="Closed">Closed</option>
+        </select>
+      </div>
+      <div class="ff"><label class="flbl">Repeat</label>
+        <select id="fRepeat">
+          <option value="">None</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
         </select>
       </div>
       <div class="ff full"><label class="flbl">Notes / observations</label><textarea id="fNotes" placeholder="Key issues, context, or flags…"></textarea></div>
@@ -1522,6 +1602,81 @@ function refreshNotifications(){
 }
 
 /* ════════════════════════════════════════════
+   TOP 3 PRIORITIES
+════════════════════════════════════════════ */
+function renderTop3(){
+  const slots = document.getElementById('top3Slots');
+  const dz = document.getElementById('top3DropZone');
+  if(!slots) return;
+  slots.innerHTML = top3.map((p,i)=>`
+    <div class="top3-item" draggable="true"
+      ondragstart="event.dataTransfer.setData('top3idx','${i}')"
+      ondragover="event.preventDefault()"
+      ondrop="dropTop3(event,${i})">
+      <div class="top3-num">${i+1}</div>
+      <div class="top3-body">
+        <input class="top3-inp" value="${esc(p.text||'')}" placeholder="Priority ${i+1}…"
+          oninput="top3[${i}].text=this.value"
+          onblur="saveTop3()"/>
+      </div>
+      <div class="top3-chk ${p.done?'on':''}" onclick="toggleTop3(${i})">${p.done?'✓':''}</div>
+      <button class="top3-del" onclick="removeTop3(${i})">×</button>
+    </div>`).join('');
+  if(dz) dz.style.display = top3.length >= 5 ? 'none' : 'flex';
+}
+
+function addPrioritySlot(){
+  if(top3.length >= 5){ toast('Max 5 priorities','warn'); return; }
+  top3.push({text:'',done:false});
+  renderTop3();
+}
+
+function removeTop3(i){
+  top3.splice(i,1);
+  saveTop3();
+  renderTop3();
+}
+
+function toggleTop3(i){
+  top3[i].done = !top3[i].done;
+  saveTop3();
+  renderTop3();
+}
+
+function saveTop3(){
+  writeLocal(TOP3_KEYS, top3);
+  fbSave();
+}
+
+function clearDonePriorities(){
+  top3 = top3.filter(p=>!p.done);
+  saveTop3();
+  renderTop3();
+}
+
+function dropTop3(e, targetIdx){
+  e.preventDefault();
+  const fromIdx = parseInt(e.dataTransfer.getData('top3idx'));
+  if(!isNaN(fromIdx) && fromIdx !== targetIdx){
+    const [moved] = top3.splice(fromIdx, 1);
+    top3.splice(targetIdx, 0, moved);
+    saveTop3();
+    renderTop3();
+    return;
+  }
+  // Task dropped from task list
+  const taskId = e.dataTransfer.getData('taskId');
+  if(taskId){
+    const t = tasks.find(t=>String(t.id)===String(taskId));
+    if(t && top3.length < 5){
+      top3.push({text:t.title, done:false});
+      saveTop3();
+      renderTop3();
+    }
+  }
+}
+
+/* ════════════════════════════════════════════
    INIT
 ════════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded',()=>{
@@ -1574,7 +1729,95 @@ function switchTab(id,el){
 /* ════════════════════════════════════════════
    OVERVIEW
 ════════════════════════════════════════════ */
+function getWeekStart(d){
+  const day=new Date(d);
+  const dow=day.getDay();
+  const diff=dow===0?-6:1-dow;
+  day.setDate(day.getDate()+diff);
+  day.setHours(0,0,0,0);
+  return day;
+}
+
+function renderWeeklySummary(){
+  const now=new Date();
+  const weekStart=getWeekStart(now);
+  const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);weekEnd.setHours(23,59,59,999);
+
+  const inThisWeek=(dateStr)=>{
+    if(!dateStr) return false;
+    const d=new Date(dateStr+'T00:00:00');
+    return d>=weekStart&&d<=weekEnd;
+  };
+
+  const completedThisWeek=tasks.filter(t=>t.done&&t.dueDate&&inThisWeek(t.dueDate)).length;
+  const addedThisWeek=tasks.filter(t=>t.createdAt&&new Date(t.createdAt)>=weekStart).length;
+  const overdueNow=tasks.filter(t=>isOverdue(t)).length;
+  const totalActive=tasks.filter(t=>!t.done).length;
+  const hiPri=tasks.filter(t=>t.priority==='Hi'&&!t.done).length;
+
+  // Time logged this week from planner blocks
+  const weekBlocks=_timeBlocks.filter(b=>{
+    if(!b.date) return false;
+    const d=new Date(b.date+'T00:00:00');
+    return d>=weekStart&&d<=weekEnd;
+  });
+  let totalLoggedMins=0;
+  weekBlocks.forEach(b=>{
+    const[sh,sm]=b.start.split(':').map(Number);
+    const[eh,em]=b.end.split(':').map(Number);
+    totalLoggedMins+=Math.max(0,(eh*60+em)-(sh*60+sm));
+  });
+  const hm=m=>m>=60?`${Math.floor(m/60)}h${m%60>0?' '+m%60+'m':''}`:m+'m';
+
+  // Top category
+  const catCount={};
+  tasks.filter(t=>!t.done).forEach(t=>(t.tags||[]).forEach(g=>catCount[g]=(catCount[g]||0)+1));
+  const topCat=Object.entries(catCount).sort((a,b)=>b[1]-a[1])[0];
+
+  const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const wsLabel=`${DOW[weekStart.getDay()]} ${weekStart.getDate()}/${weekStart.getMonth()+1}`;
+  const weLabel=`${DOW[weekEnd.getDay()]} ${weekEnd.getDate()}/${weekEnd.getMonth()+1}`;
+
+  const el=document.getElementById('weeklySummary');
+  if(!el) return;
+  el.innerHTML=`
+  <div class="wsum-card">
+    <div class="wsum-title">
+      Week in review
+      <span>${wsLabel} — ${weLabel}</span>
+    </div>
+    <div class="wsum-grid">
+      <div class="wsum-item">
+        <div class="wsum-val">${completedThisWeek}</div>
+        <div class="wsum-lbl">Completed<br>this week</div>
+        <div class="wsum-trend flat">${completedThisWeek>0?'✓ good progress':'—'}</div>
+      </div>
+      <div class="wsum-item">
+        <div class="wsum-val">${addedThisWeek}</div>
+        <div class="wsum-lbl">New tasks<br>this week</div>
+        <div class="wsum-trend flat">added</div>
+      </div>
+      <div class="wsum-item">
+        <div class="wsum-val" style="color:${overdueNow>0?'#fca5a5':'#86efac'}">${overdueNow}</div>
+        <div class="wsum-lbl">Overdue<br>items</div>
+        <div class="wsum-trend ${overdueNow>0?'down':'up'}">${overdueNow>0?'⚠ attention':'✓ on track'}</div>
+      </div>
+      <div class="wsum-item">
+        <div class="wsum-val">${totalLoggedMins>0?hm(totalLoggedMins):'—'}</div>
+        <div class="wsum-lbl">Time logged<br>in planner</div>
+        <div class="wsum-trend flat">${weekBlocks.length} block${weekBlocks.length!==1?'s':''}</div>
+      </div>
+      <div class="wsum-item">
+        <div class="wsum-val" style="font-size:${topCat?'15px':'22px'}">${topCat?topCat[0]:'—'}</div>
+        <div class="wsum-lbl">Top active<br>category</div>
+        <div class="wsum-trend flat">${topCat?topCat[1]+' tasks':'no data'}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderOverview(){
+  renderWeeklySummary();
   updatePhasePill();
   const total=tasks.length,done=tasks.filter(t=>t.done).length;
   const ov=tasks.filter(t=>isOverdue(t)).length,hi=tasks.filter(t=>t.priority==='Hi'&&!t.done).length;
@@ -1609,7 +1852,7 @@ function renderOverview(){
         </div>
         ${hasSubs?`<div id="${rowId}" style="display:none">${renderSubtasksInRow(t)}</div>`:''}
       </td>
-      <td>${(t.tags||[]).map(g=>`<span class="tag-chip">${g}</span>`).join('')}</td>
+      <td>${(t.tags||[]).map(g=>catChipHtml(g)).join('')}</td>
       <td>${priBadge(t.priority||'Med')}</td>
       <td style="font-size:12.5px;color:${isOverdue(t)?'#9b2c2c':'#718096'}">${fmtS(t.dueDate)}${isOverdue(t)?' ⚠':''}</td>
       <td>${statusBadge(t)}</td>
@@ -1635,6 +1878,7 @@ function toggleShowDone(){
 }
 
 function renderTasksTab(){
+  renderCatFilterBar();
   const fs=document.getElementById('fStatus').value;
   const fp=document.getElementById('fPri').value;
   const fq=(document.getElementById('fSearch').value||'').toLowerCase();
@@ -1642,6 +1886,7 @@ function renderTasksTab(){
   const matchesFilter = t => {
     if(fq&&!t.title.toLowerCase().includes(fq)&&!(t.tags||[]).join(' ').toLowerCase().includes(fq))return false;
     if(fp!=='all'&&(t.priority||'Med')!==fp)return false;
+    if(_catFilter&&!(t.tags||[]).includes(_catFilter))return false;
     if(fs!=='all'){
       const s=t.done?'Closed':(isOverdue(t)&&fs==='Overdue'?'Overdue':(t.status||'Open'));
       if(fs==='Overdue'){if(!isOverdue(t))return false;}
@@ -1666,7 +1911,7 @@ function renderTasksTab(){
         <div style="display:flex;align-items:flex-start;gap:6px">
           ${hasSubs?`<button onclick="toggleExpandRow('trow_${t.id}')" id="exp_trow_${t.id}" style="width:16px;height:16px;border-radius:3px;border:0.5px solid #e2e8f0;background:#f7fafc;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;flex-shrink:0;margin-top:2px;color:#718096;">▶</button>`:'<span style="width:16px;flex-shrink:0"></span>'}
           <div style="min-width:0;flex:1">
-            <span class="task-link" onclick="event.stopPropagation();openTaskDetail(${t.id})" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'inherit'}">${esc(t.title)}</span>
+            <span class="task-link" onclick="event.stopPropagation();openTaskDetail(${t.id})" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'inherit'}">${esc(t.title)}</span>${t.repeat?`<span style="font-size:9.5px;background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:1px 6px;margin-left:5px;font-weight:500;">↻ ${t.repeat}</span>`:''}
             ${t.notes?`<div style="font-size:11px;color:#a0aec0;margin-top:2px">${esc(t.notes).substring(0,55)}${t.notes.length>55?'…':''}</div>`:''}
             ${hasSubs?`<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><div style="height:3px;width:50px;background:#e2e8f0;border-radius:2px;overflow:hidden"><div style="height:100%;width:${Math.round((sDone/subs.length)*100)}%;background:#1a3a5c;border-radius:2px"></div></div><span style="font-size:10.5px;color:#718096">${sDone}/${subs.length} subtasks</span></div>`:''}
           </div>
@@ -2175,10 +2420,194 @@ function renderQuality(){
 }
 
 /* ════════════════════════════════════════════
+   PLANNER — WEEK VIEW
+════════════════════════════════════════════ */
+function renderPlannerWeek(){
+  const ws = dpWeekStart();
+  const today = todayStr();
+  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  // Build 7 day date strings
+  const weekDays = Array.from({length:7},(_,i)=>{
+    const d = new Date(ws);
+    d.setDate(ws.getDate()+i);
+    return {
+      d,
+      ds: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
+      isToday: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` === today,
+      dow: DAYS[i],
+      day: d.getDate(),
+      mon: MON[d.getMonth()]
+    };
+  });
+
+  const weEnd = weekDays[6].d;
+  const titleEl = document.getElementById('dpDateTitle');
+  const subEl = document.getElementById('dpDateSub');
+  if(titleEl) titleEl.textContent = `Week of ${ws.getDate()} ${MON[ws.getMonth()]} – ${weEnd.getDate()} ${MON[weEnd.getMonth()]} ${weEnd.getFullYear()}`;
+
+  // Count total blocks this week
+  const weekBlocks = _timeBlocks.filter(b=>weekDays.some(wd=>wd.ds===b.date));
+  let totalMins = 0;
+  weekBlocks.forEach(b=>{
+    const[sh,sm]=b.start.split(':').map(Number);
+    const[eh,em]=b.end.split(':').map(Number);
+    totalMins += Math.max(0,(eh*60+em)-(sh*60+sm));
+  });
+  const hm = m => m>=60 ? `${Math.floor(m/60)}h${m%60>0?' '+m%60+'m':''}` : m+'m';
+  if(subEl) subEl.textContent = `${weekBlocks.length} blocks · ${hm(totalMins)} scheduled this week`;
+
+  const taskColors = ['#1a3a5c','#2b6cb0','#276749','#744210','#553c9a','#0e7490','#9b2c2c','#d97706'];
+  const now = new Date();
+  const nowSlot = today===weekDays.find(wd=>wd.isToday)?.ds ? now.getHours()*2+(now.getMinutes()>=30?1:0) : -1;
+
+  const wrap = document.getElementById('dpWeekView');
+  if(!wrap) return;
+
+  // Build header row
+  let hdrHtml = `<div style="display:flex;position:sticky;top:0;z-index:6;background:#f7fafc;border-bottom:1px solid #e2e8f0;">
+    <div style="width:52px;flex-shrink:0;"></div>`;
+  weekDays.forEach(wd=>{
+    hdrHtml += `<div class="dp-week-col-hdr${wd.isToday?' today':''}" style="flex:1;min-width:0;">
+      <div class="wd" style="${wd.isToday?'color:rgba(255,255,255,.7)':'color:#a0aec0'}">${wd.dow}</div>
+      <div class="wdn" style="${wd.isToday?'color:#fff':'color:#1a3a5c'}">${wd.day}</div>
+    </div>`;
+  });
+  hdrHtml += '</div>';
+
+  // Build 48 time rows
+  let bodyHtml = '<div style="overflow-y:auto;max-height:calc(100vh - 230px);" id="dpWeekScroll"><div style="display:flex;">';
+
+  // Time labels column
+  bodyHtml += '<div style="width:52px;flex-shrink:0;">';
+  for(let slot=0;slot<48;slot++){
+    const h=Math.floor(slot/2),isHour=slot%2===0;
+    bodyHtml += `<div style="height:26px;padding-right:10px;text-align:right;${isHour?'border-top:1px solid #e2e8f0;':'border-top:0.5px dashed #f0f4f8;'}display:flex;align-items:flex-start;justify-content:flex-end;padding-top:2px;">
+      ${isHour?`<span style="font-size:11px;font-weight:600;color:#2d3748;">${h.toString().padStart(2,'0')}:00</span>`:
+               `<span style="font-size:9.5px;color:#a0aec0;">${h.toString().padStart(2,'0')}:30</span>`}
+    </div>`;
+  }
+  bodyHtml += '</div>';
+
+  // Day columns
+  weekDays.forEach((wd,colIdx)=>{
+    const dayBlocks = _timeBlocks.filter(b=>b.date===wd.ds);
+    const coveredSlots = new Set();
+    const slotMap = {};
+    dayBlocks.forEach(b=>{
+      const[sh,sm]=b.start.split(':').map(Number);
+      const[eh,em]=b.end.split(':').map(Number);
+      const startSlot=sh*2+(sm>=30?1:0);
+      const endSlot=Math.ceil((eh*60+em)/30);
+      const span=Math.max(1,endSlot-startSlot);
+      slotMap[startSlot]={...b,span};
+      for(let s=startSlot;s<startSlot+span;s++) coveredSlots.add(s);
+    });
+
+    bodyHtml += `<div style="flex:1;min-width:0;border-left:1px solid #e2e8f0;position:relative;">`;
+    for(let slot=0;slot<48;slot++){
+      const h=Math.floor(slot/2),isHour=slot%2===0;
+      const isNow=wd.isToday&&slot===nowSlot;
+      const rowBg = isNow?'background:#fffbeb;':'';
+      const borderStyle = isHour?'border-top:1px solid #e2e8f0;':'border-top:0.5px dashed #f0f4f8;';
+
+      let blockHtml = '';
+      if(slotMap[slot]){
+        const b=slotMap[slot];
+        const t=tasks.find(t=>String(t.id)===String(b.taskId));
+        const colorIdx=t?tasks.indexOf(t)%taskColors.length:0;
+        const color=taskColors[colorIdx];
+        const heightPx=Math.max(22,b.span*26-3);
+        blockHtml = `<div class="dp-week-block" style="background:${color};top:2px;height:${heightPx}px;"
+          onclick="openTBDetail('${b.id}')">
+          <div class="dp-week-block-title">${esc(t?t.title.substring(0,20):b.label||'Block')}</div>
+          <div class="dp-week-block-time">${b.start}–${b.end}</div>
+        </div>`;
+      }
+
+      const nowLine = isNow ? `<div class="dp-week-now-line" style="top:${((now.getMinutes()%30)/30*26)}px;"><div class="dp-week-now-dot"></div></div>` : '';
+
+      if(!coveredSlots.has(slot)||slotMap[slot]){
+        bodyHtml += `<div style="height:26px;${borderStyle}${rowBg}position:relative;"
+          ondragover="event.preventDefault();this.style.background='rgba(144,205,244,.15)'"
+          ondragleave="this.style.background=''"
+          ondrop="dropOnSlot(event,${slot},'${wd.ds}')"
+          onclick="if(!event.defaultPrevented)openAddTimeBlock('','${Math.floor(slot/2).toString().padStart(2,'0')}:${slot%2===0?'00':'30'}','${Math.min(23,Math.floor(slot/2)+1).toString().padStart(2,'0')}:${slot%2===0?'00':'30'}','${wd.ds}')">
+          ${blockHtml}${nowLine}
+        </div>`;
+      }
+    }
+    bodyHtml += '</div>';
+  });
+
+  bodyHtml += '</div></div>';
+
+  // Update sidebar for week
+  const sumEl = document.getElementById('dpSummary');
+  if(sumEl){
+    const byDay = weekDays.map(wd=>({
+      dow: wd.dow,
+      count: _timeBlocks.filter(b=>b.date===wd.ds).length
+    }));
+    sumEl.innerHTML = byDay.map(d=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:0.5px solid #f0f4f8;font-size:12px;">
+        <span style="color:#718096;">${d.dow}</span>
+        <strong style="color:${d.count>0?'#1d4ed8':'#a0aec0'}">${d.count>0?d.count+' block'+(d.count>1?'s':''):'—'}</strong>
+      </div>`).join('');
+  }
+  const bar = document.getElementById('dpSummaryBar');
+  const pctEl = document.getElementById('dpSummaryPct');
+  const maxMins = 8*60*5; // 8h x 5 days
+  const pct = Math.min(100, Math.round((totalMins/maxMins)*100));
+  if(bar) bar.style.width = pct+'%';
+  if(pctEl) pctEl.textContent = `${hm(totalMins)} logged this week`;
+
+  // Unscheduled sidebar
+  const unschEl = document.getElementById('dpUnscheduled');
+  if(unschEl){
+    const scheduled = new Set(_timeBlocks.filter(b=>weekDays.some(wd=>wd.ds===b.date)).map(b=>String(b.taskId)));
+    const unsch = tasks.filter(t=>!t.done&&!scheduled.has(String(t.id)));
+    unschEl.innerHTML = unsch.length===0
+      ? '<div style="font-size:12px;color:#a0aec0;text-align:center;padding:8px 0;">All tasks scheduled!</div>'
+      : unsch.slice(0,8).map(t=>`
+        <div class="dp-unscheduled-item" draggable="true"
+          ondragstart="event.dataTransfer.setData('taskId','${t.id}');event.dataTransfer.setData('type','unscheduled')">
+          <span class="dp-drag-handle">⠿</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:500;color:#2d3748;line-height:1.3;">${esc(t.title.substring(0,38))}${t.title.length>38?'…':''}</div>
+            <div style="font-size:10px;color:#a0aec0;margin-top:2px;">${t.dueDate?'Due '+fmtS(t.dueDate):'No due date'}</div>
+          </div>
+        </div>`).join('');
+  }
+
+  wrap.innerHTML = hdrHtml + bodyHtml;
+
+  // Scroll to 8am
+  setTimeout(()=>{
+    const sc = document.getElementById('dpWeekScroll');
+    if(sc) sc.scrollTop = 16*26;
+  },50);
+
+  updatePomUI2();
+}
+
+/* ════════════════════════════════════════════
    DAILY PLANNER — 24h / 30min time blocks
 ════════════════════════════════════════════ */
-let _dpOffset = 0; // days from today
+let _dpOffset = 0; // days from today (day view) or weeks (week view)
+let _dpView = 'day'; // 'day' or 'week'
 let _timeBlocks = JSON.parse(localStorage.getItem('dp_blocks') || '[]');
+
+function dpSetView(v){
+  _dpView = v;
+  _dpOffset = 0;
+  document.getElementById('dpDayBtn').classList.toggle('active', v==='day');
+  document.getElementById('dpWeekBtn').classList.toggle('active', v==='week');
+  document.getElementById('dpTable').style.display = v==='day' ? 'table' : 'none';
+  document.getElementById('dpWeekView').style.display = v==='week' ? 'block' : 'none';
+  renderPlanner();
+}
 
 function saveBlocks(){
   localStorage.setItem('dp_blocks', JSON.stringify(_timeBlocks));
@@ -2207,7 +2636,19 @@ function dpGoToday(){
   renderPlanner();
 }
 
+function dpWeekStart(){
+  // Get Monday of the current week + offset weeks
+  const d = new Date();
+  const dow = d.getDay();
+  const diff = dow===0 ? -6 : 1-dow;
+  d.setDate(d.getDate() + diff + _dpOffset*7);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
 function renderPlanner(){
+  if(_dpView === 'week'){ renderPlannerWeek(); return; }
+
   const d = dpDate();
   const ds = dpDateStr();
   const today = todayStr();
@@ -2411,6 +2852,220 @@ function openTBDetail(blockId){
   window._editingBlockDate = b.date;
 }
 
+/* ════════════════════════════════════════════
+   CATEGORY SYSTEM
+════════════════════════════════════════════ */
+const CATS = {
+  'Work':        {bg:'#eff6ff', fg:'#1d4ed8', dot:'#3b82f6'},
+  'Quality':     {bg:'#fff7ed', fg:'#9a3412', dot:'#f97316'},
+  'Personal':    {bg:'#fdf4ff', fg:'#7e22ce', dot:'#a855f7'},
+  'Home':        {bg:'#f0fdf4', fg:'#166534', dot:'#22c55e'},
+  'Development': {bg:'#f0f9ff', fg:'#0c4a6e', dot:'#0ea5e9'},
+  'Health':      {bg:'#fff1f2', fg:'#9f1239', dot:'#f43f5e'},
+  'Finance':     {bg:'#fefce8', fg:'#713f12', dot:'#eab308'},
+  'Learning':    {bg:'#f5f3ff', fg:'#4c1d95', dot:'#8b5cf6'},
+  'Urgent':      {bg:'#fff5f5', fg:'#9b2c2c', dot:'#ef4444'},
+};
+const DEFAULT_CAT = {bg:'#edf2f7', fg:'#4a5568', dot:'#a0aec0'};
+
+function catStyle(name){
+  return CATS[name] || DEFAULT_CAT;
+}
+
+function catChipHtml(name){
+  if(!name) return '';
+  const c = catStyle(name);
+  return `<span class="cat-chip" style="background:${c.bg};color:${c.fg};">
+    <span class="cat-dot" style="background:${c.dot};"></span>${name}
+  </span>`;
+}
+
+let _catFilter = ''; // active category filter
+
+function setCatFilter(cat){
+  _catFilter = _catFilter===cat ? '' : cat;
+  // Update filter bar buttons
+  document.querySelectorAll('.cat-filter-btn').forEach(b=>{
+    const bc = b.dataset.cat;
+    b.classList.toggle('active', bc===_catFilter);
+    if(bc && CATS[bc]){
+      const c = catStyle(bc);
+      b.style.setProperty('--cat-bg', c.bg);
+      b.style.setProperty('--cat-fg', c.fg);
+      b.style.setProperty('--cat-dot', c.dot);
+    }
+  });
+  renderTasksTab();
+}
+
+function renderCatPicker(selected){
+  const allCats = Object.keys(CATS);
+  const picker = document.getElementById('catPicker');
+  if(!picker) return;
+  picker.innerHTML = allCats.map(c=>{
+    const cs = catStyle(c);
+    const isSel = c === selected;
+    return `<button type="button" class="cat-pick-btn${isSel?' selected':''}"
+      style="--cat-bg:${cs.bg};--cat-fg:${cs.fg};--cat-dot:${cs.dot};background:${cs.bg};color:${cs.fg};${isSel?`border-color:${cs.dot};`:''}"
+      onclick="selectCat('${c}')">
+      <span style="width:7px;height:7px;border-radius:50%;background:${cs.dot};display:inline-block;"></span>
+      ${c}
+    </button>`;
+  }).join('');
+  document.getElementById('fTag').value = selected || 'Work';
+}
+
+function selectCat(name){
+  document.getElementById('fTag').value = name;
+  renderCatPicker(name);
+}
+
+function renderCatFilterBar(){
+  // Get categories actually in use
+  const used = [...new Set(tasks.flatMap(t=>t.tags||[]))].filter(c=>CATS[c]||true);
+  const wrap = document.getElementById('catFilterBar');
+  if(!wrap) return;
+  if(used.length === 0){ wrap.style.display='none'; return; }
+  wrap.style.display='flex';
+  wrap.innerHTML = `
+    <button class="cat-filter-btn ${_catFilter===''?'active':''}" data-cat="" onclick="setCatFilter('')"
+      style="--cat-bg:#1a3a5c;--cat-fg:#fff;--cat-dot:#90cdf4;${_catFilter===''?'background:#1a3a5c;color:#fff;border-color:#1a3a5c;':''}">
+      All
+    </button>
+    ${used.map(c=>{
+      const cs=catStyle(c);
+      return `<button class="cat-filter-btn ${_catFilter===c?'active':''}" data-cat="${c}" onclick="setCatFilter('${c}')"
+        style="--cat-bg:${cs.bg};--cat-fg:${cs.fg};--cat-dot:${cs.dot};">
+        <span style="width:6px;height:6px;border-radius:50%;background:${cs.dot};display:inline-block;"></span>
+        ${c}
+      </button>`;
+    }).join('')}`;
+}
+
+/* ════════════════════════════════════════════
+   RECURRING TASKS
+════════════════════════════════════════════ */
+function spawnNextRecurring(t){
+  if(!t.repeat || !t.dueDate) return;
+  const due = new Date(t.dueDate + 'T00:00:00');
+  const next = new Date(due);
+  if(t.repeat === 'daily')   next.setDate(next.getDate()+1);
+  if(t.repeat === 'weekly')  next.setDate(next.getDate()+7);
+  if(t.repeat === 'monthly') next.setMonth(next.getMonth()+1);
+  const nextStr = localStr(next);
+  // Check not already exists
+  if(tasks.find(x=>x.title===t.title&&x.dueDate===nextStr)) return;
+  const newTask = {
+    id: Date.now()+Math.floor(Math.random()*1000),
+    title: t.title,
+    tags: [...(t.tags||[])],
+    priority: t.priority,
+    startDate: nextStr,
+    dueDate: nextStr,
+    owner: t.owner||'',
+    status: 'Open',
+    done: false,
+    notes: t.notes||'',
+    repeat: t.repeat,
+    subtasks: [],
+    createdAt: new Date().toISOString()
+  };
+  tasks.push(newTask);
+  toast(`↻ Next ${t.repeat} task created: ${fmtS(nextStr)}`, 'ok');
+}
+
+/* ════════════════════════════════════════════
+   PLANNER — DRAG & RESIZE BLOCKS
+════════════════════════════════════════════ */
+let _draggingBlockId = null;
+
+function startBlockDrag(e, blockId){
+  _draggingBlockId = blockId;
+  e.dataTransfer.setData('blockId', blockId);
+  e.dataTransfer.setData('type', 'move-block');
+  e.currentTarget.classList.add('dragging');
+  setTimeout(()=>{ const el=document.querySelector(`[data-bid="${blockId}"]`); if(el) el.style.opacity='.5'; }, 0);
+}
+
+function dropOnSlot(e, slot, ds){
+  e.preventDefault();
+  e.currentTarget.style.background = '';
+  const type = e.dataTransfer.getData('type');
+  const blockId = e.dataTransfer.getData('blockId');
+  const taskId = e.dataTransfer.getData('taskId');
+
+  const hour = Math.floor(slot/2);
+  const min = slot%2===0 ? '00' : '30';
+  const startTime = `${hour.toString().padStart(2,'0')}:${min}`;
+
+  if(type === 'move-block' && blockId){
+    // Move existing block to new slot
+    const b = _timeBlocks.find(b=>b.id===blockId);
+    if(b){
+      const [sh,sm] = b.start.split(':').map(Number);
+      const [eh,em] = b.end.split(':').map(Number);
+      const dur = (eh*60+em) - (sh*60+sm);
+      const newStartMins = hour*60 + (slot%2===0?0:30);
+      const newEndMins = Math.min(23*60+30, newStartMins + dur);
+      b.start = `${Math.floor(newStartMins/60).toString().padStart(2,'0')}:${(newStartMins%60).toString().padStart(2,'0')}`;
+      b.end   = `${Math.floor(newEndMins/60).toString().padStart(2,'0')}:${(newEndMins%60).toString().padStart(2,'0')}`;
+      b.date  = ds;
+      saveBlocks();
+      renderPlanner();
+      toast(`Block moved to ${b.start}`, 'ok');
+    }
+    _draggingBlockId = null;
+    return;
+  }
+
+  // New task dropped — open modal pre-filled
+  const endHour = Math.min(23, hour+1);
+  const endTime = `${endHour.toString().padStart(2,'0')}:${min}`;
+  openAddTimeBlock(taskId||'', startTime, endTime, ds);
+}
+
+// Resize by dragging bottom edge
+let _resizeState = null;
+function startBlockResize(e, blockId){
+  e.preventDefault();
+  e.stopPropagation();
+  const b = _timeBlocks.find(b=>b.id===blockId);
+  if(!b) return;
+  const [eh,em] = b.end.split(':').map(Number);
+  _resizeState = { blockId, startY: e.clientY, origEndMins: eh*60+em };
+
+  const onMove = (ev) => {
+    if(!_resizeState) return;
+    const dy = ev.clientY - _resizeState.startY;
+    const slotsPx = 26; // px per 30-min slot
+    const deltaSlots = Math.round(dy / slotsPx);
+    const newEndMins = Math.max(_resizeState.origEndMins + 30, Math.min(23*60+30, _resizeState.origEndMins + deltaSlots*30));
+    const b = _timeBlocks.find(b=>b.id===_resizeState.blockId);
+    if(b){
+      b.end = `${Math.floor(newEndMins/60).toString().padStart(2,'0')}:${(newEndMins%60).toString().padStart(2,'0')}`;
+      // Live update display
+      const wrap = document.getElementById('dpTbody');
+      if(wrap){
+        const meta = wrap.querySelector(`[data-bid="${_resizeState.blockId}"] .dp-block-meta span`);
+        const s = _timeBlocks.find(b=>b.id===_resizeState.blockId);
+        if(meta && s) meta.textContent = `${s.start} – ${s.end}`;
+      }
+    }
+  };
+  const onUp = () => {
+    if(_resizeState){
+      saveBlocks();
+      renderPlanner();
+      toast('Block resized', 'ok');
+    }
+    _resizeState = null;
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  };
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
 function saveTimeBlock(){
   const taskId = document.getElementById('tbTask').value;
   const start = document.getElementById('tbStart').value;
@@ -2523,6 +3178,8 @@ function openAddTask(){
   editId=null;
   document.getElementById('taskModalTitle').textContent='Add task';
   ['fTitle','fOwner','fNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fRepeat').value='';
+  renderCatPicker('Work');
   document.getElementById('fStart').value='';
   document.getElementById('fDue').value='';
   document.getElementById('fPriority').value='Med';
@@ -2539,6 +3196,8 @@ function openEditTask(id){
   document.getElementById('fTitle').value=t.title||'';
   document.getElementById('fOwner').value=t.owner||'';
   document.getElementById('fNotes').value=t.notes||'';
+  document.getElementById('fRepeat').value=t.repeat||'';
+  renderCatPicker((t.tags&&t.tags[0])||'Work');
   document.getElementById('fStart').value=t.startDate||'';
   document.getElementById('fDue').value=t.dueDate||'';
   document.getElementById('fPriority').value=t.priority||'Med';
@@ -2558,6 +3217,7 @@ function saveTask(){
     dueDate:document.getElementById('fDue').value,
     owner:document.getElementById('fOwner').value,
     status:document.getElementById('fStatusM').value,
+    repeat:repeat||'',
     notes:document.getElementById('fNotes').value,
     subtasks: collectSubtasks()};
   if(editId!==null){
