@@ -825,6 +825,7 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
       <tbody id="tasksTbl"></tbody>
     </table>
   </div>
+  </div>
 </div>
 
 <!-- ══ SCHEDULE ═══════════════════════════════ -->
@@ -1780,11 +1781,18 @@ function switchTab(id,el){
   document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
   el.classList.add('on');
-  document.getElementById('pane-'+id).classList.add('on');
+  const pane = document.getElementById('pane-'+id);
+  if(pane) pane.classList.add('on');
   const fn={overview:renderOverview,tasks:renderTasksTab,schedule:renderSchedule,
     weekly:renderWeekly,monthly:renderMonthly,quality:renderQuality,planner:renderPlanner,
     ai:updateAIContext,archive:renderArchive};
-  if(fn[id]) fn[id]();
+  if(fn[id]){
+    try{ fn[id](); }
+    catch(e){
+      console.error('Tab render error ['+id+']:', e);
+      if(pane) pane.innerHTML='<div style="padding:32px;color:#dc2626;font-size:13px;">⚠ Error loading tab: '+e.message+'</div>';
+    }
+  }
 }
 
 /* ════════════════════════════════════════════
