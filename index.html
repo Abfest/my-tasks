@@ -2235,16 +2235,18 @@ function getWeekDays(off){
   return Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
 }
 function renderWeekly(){
+  // Guard: ensure required elements exist
+  if(!document.getElementById('weekTitle')) return;
   const days=getWeekDays(wkOff);
   const ts=localStr(new Date());
   const DOW=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const wsStr=localStr(days[0]);
   const weStr=localStr(days[6]);
 
-  document.getElementById('weekTitle').textContent=
+  const weekTitleEl=document.getElementById('weekTitle'); if(weekTitleEl) weekTitleEl.textContent=
     days[0].toLocaleDateString('en-SG',{day:'numeric',month:'short'})+' – '+
     days[6].toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
-  document.getElementById('wkGcalStatus').textContent=gcal?'🟢 Calendar connected':'';
+  const wkGcalEl=document.getElementById('wkGcalStatus'); if(wkGcalEl) wkGcalEl.textContent=gcal?'🟢 Calendar connected':'';
 
   const gridEl=document.getElementById('weekGrid');
   if(window._wkBarsEl){window._wkBarsEl.remove();window._wkBarsEl=null;}
@@ -2385,10 +2387,12 @@ function renderWeekDetail(){
    MONTHLY  — with multi-day spanning bars
 ════════════════════════════════════════════ */
 function renderMonthly(){
+  // Guard: ensure required elements exist
+  if(!document.getElementById('monthTitle')) return;
   const now=new Date();
   const tgt=new Date(now.getFullYear(),now.getMonth()+moOff,1);
   const ts=localStr(new Date());
-  document.getElementById('monthTitle').textContent=tgt.toLocaleDateString('en-SG',{month:'long',year:'numeric'});
+  const monthTitleEl=document.getElementById('monthTitle'); if(monthTitleEl) monthTitleEl.textContent=tgt.toLocaleDateString('en-SG',{month:'long',year:'numeric'});
   const DOW=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   document.getElementById('dowRow').innerHTML=DOW.map(d=>`<div class="dow-hdr">${d}</div>`).join('');
 
@@ -3805,7 +3809,7 @@ function togglePom(){
       pomRemain--;
       if(pomRemain<=0){
         clearInterval(pomTmr);pomRun=false;pomRemain=0;
-        document.getElementById('pomBtn').textContent='Start';
+        const pb2=document.getElementById('pomBtn'); if(pb2) pb2.textContent='Start';
         toast('⏰ Pomodoro done!','ok');
         if('vibrate'in navigator)navigator.vibrate([200,100,200]);
       }
@@ -3816,7 +3820,7 @@ function togglePom(){
 function resetPom(){
   clearInterval(pomTmr);pomRun=false;
   pomRemain=pomTotal=POM[pomMode];
-  document.getElementById('pomBtn').textContent='Start';
+  const pb3=document.getElementById('pomBtn'); if(pb3) pb3.textContent='Start';
   updatePomUI();
 }
 function updatePomUI(){
@@ -3856,7 +3860,7 @@ function deleteTask(id){
 }
 function openAddTask(){
   editId=null;
-  document.getElementById('taskModalTitle').textContent='Add task';
+  const tmt1=document.getElementById('taskModalTitle'); if(tmt1) tmt1.textContent='Add task';
   ['fTitle','fOwner','fNotes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fRepeat').value='';
   renderCatPicker('Work');
@@ -3872,7 +3876,7 @@ function openAddTask(){
 function openEditTask(id){
   const t=tasks.find(t=>t.id===id||t.id==id);if(!t)return;
   editId=id;
-  document.getElementById('taskModalTitle').textContent='Edit task';
+  const tmt2=document.getElementById('taskModalTitle'); if(tmt2) tmt2.textContent='Edit task';
   document.getElementById('fTitle').value=t.title||'';
   document.getElementById('fOwner').value=t.owner||'';
   document.getElementById('fNotes').value=t.notes||'';
@@ -4727,11 +4731,11 @@ INSTRUCTIONS:
 function updateAIContext(){
   const overdue=tasks.filter(t=>isOverdue(t)).length;
   const hi=tasks.filter(t=>t.priority==='Hi'&&!t.done).length;
-  document.getElementById('ctxTasks').textContent=tasks.length;
-  document.getElementById('ctxActive').textContent=tasks.filter(t=>!t.done).length;
+  const ctxT=document.getElementById('ctxTasks'); if(ctxT) ctxT.textContent=tasks.length;
+  const ctxA=document.getElementById('ctxActive'); if(ctxA) ctxA.textContent=tasks.filter(t=>!t.done).length;
   document.getElementById('ctxOverdue').textContent=overdue;
-  document.getElementById('ctxHi').textContent=hi;
-  document.getElementById('ctxCal').textContent=calEvs.length;
+  const ctxH=document.getElementById('ctxHi'); if(ctxH) ctxH.textContent=hi;
+  const ctxC=document.getElementById('ctxCal'); if(ctxC) ctxC.textContent=calEvs.length;
 }
 
 function renderMarkdown(text){
