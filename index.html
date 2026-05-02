@@ -1412,24 +1412,8 @@ function writeLocal(keys, value){
 ════════════════════════════════════════════ */
 let tasks  = readLocal(TASK_KEYS, '[]').map(normaliseTask);
 let calEvs = readLocal(CAL_KEYS,  '[]');
-// Migration: fix gcal events that were stored with hardcoded #276749
-(function migrateCalColors(){
-  const CAL_COLOR_MAP = {
-    'Personal Calendar':'#1a73e8','Antonio Franco iPhone':'#e67c73',
-    'Appointments':'#33b679','Personal Development':'#8e24aa',
-    'Church':'#f6c026','Exercise Calendar':'#039be5','Family':'#7986cb',
-    'Fun Calendar':'#ff7043','GQueues':'#0b8043','Sons Calendar':'#e4c441',
-    'Tasks Calendar':'#616161','Work Calendar':'#d81b60',
-    'University of Portsmouth':'#795548','Holidays in Singapore':'#009688'
-  };
-  let changed = false;
-  calEvs.forEach(e => {
-    if(e.color === '#276749' && e.calLabel && CAL_COLOR_MAP[e.calLabel]){
-      e.color = CAL_COLOR_MAP[e.calLabel]; changed = true;
-    }
-  });
-  if(changed) save();
-})();
+// Migration: fix gcal events stored with hardcoded #276749 — runs after save() is defined
+window._pendingCalColorMigration = true;
 let top3   = readLocal(TOP3_KEYS, '[{"text":"","done":false},{"text":"","done":false},{"text":"","done":false}]');
 let gcal   = readLocal(GCAL_KEYS, 'null');
 
@@ -1450,6 +1434,28 @@ function save(){
   writeLocal(TOP3_KEYS, top3);
   writeLocal(GCAL_KEYS, gcal);
   fbSave();
+}
+
+// Run colour migration now that save() is available
+if(window._pendingCalColorMigration){
+  window._pendingCalColorMigration = false;
+  (function migrateCalColors(){
+    const CAL_COLOR_MAP = {
+      'Personal Calendar':'#1a73e8','Antonio Franco iPhone':'#e67c73',
+      'Appointments':'#33b679','Personal Development':'#8e24aa',
+      'Church':'#f6c026','Exercise Calendar':'#039be5','Family':'#7986cb',
+      'Fun Calendar':'#ff7043','GQueues':'#0b8043','Sons Calendar':'#e4c441',
+      'Tasks Calendar':'#616161','Work Calendar':'#d81b60',
+      'University of Portsmouth':'#795548','Holidays in Singapore':'#009688'
+    };
+    let changed = false;
+    calEvs.forEach(e => {
+      if(e.color === '#276749' && e.calLabel && CAL_COLOR_MAP[e.calLabel]){
+        e.color = CAL_COLOR_MAP[e.calLabel]; changed = true;
+      }
+    });
+    if(changed) save();
+  })();
 }
 
 let _fbSaveTimer = null;
