@@ -384,6 +384,22 @@ tbody tr:hover td{background:#f7fafc;}
   .overdue-banner-actions{width:100%;}
 }
 
+
+/* ── CALENDAR MANAGER ── */
+.cal-mgr-modal{background:#fff;border-radius:14px;padding:22px;width:520px;max-width:95vw;max-height:85vh;overflow-y:auto;}
+.cal-mgr-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid #f0f4f8;}
+.cal-mgr-row:last-child{border-bottom:none;}
+.cal-mgr-dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;cursor:pointer;border:2px solid transparent;transition:transform .15s;}
+.cal-mgr-dot:hover{transform:scale(1.2);}
+.cal-mgr-name{flex:1;font-size:13px;color:#2d3748;background:transparent;border:none;outline:none;font-family:'Inter',sans-serif;padding:2px 4px;border-radius:4px;cursor:pointer;}
+.cal-mgr-name:focus{background:#f7fafc;border:1px solid #e2e8f0;cursor:text;}
+.cal-mgr-del{background:none;border:none;color:#cbd5e0;cursor:pointer;font-size:18px;padding:0 4px;transition:color .15s;line-height:1;}
+.cal-mgr-del:hover{color:#e53e3e;}
+.cal-color-swatch{display:flex;flex-wrap:wrap;gap:5px;padding:8px 0;}
+.cal-swatch-dot{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;}
+.cal-swatch-dot:hover{transform:scale(1.15);}
+.cal-swatch-dot.active{border-color:#2d3748;transform:scale(1.15);}
+
 /* ── ARCHIVE ── */
 .archive-month{background:#fff;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:12px;overflow:hidden;}
 .archive-month-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;transition:background .15s;}
@@ -1262,6 +1278,29 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
 <!-- ── EVENT MODAL ── -->
 <div class="overlay" id="evOv" onclick="if(event.target===this)closeEvModal()">
   <div class="modal" id="evModal"></div>
+</div>
+
+<!-- ── CALENDAR MANAGER MODAL ── -->
+<div class="overlay" id="calMgrOv" onclick="if(event.target===this)closeCalManager()">
+  <div class="cal-mgr-modal modal">
+    <div class="modal-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>Manage Calendars</span>
+      <button onclick="closeCalManager()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#a0aec0;line-height:1;">×</button>
+    </div>
+    <div id="calMgrList"></div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid #e2e8f0;">
+      <div style="font-size:12px;font-weight:600;color:#2d3748;margin-bottom:8px;">Add new calendar</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input id="newCalName" placeholder="Calendar name…" style="flex:1;min-width:140px;font-size:12.5px;padding:7px 10px;border-radius:7px;border:1px solid #e2e8f0;font-family:'Inter',sans-serif;outline:none;"/>
+        <div id="newCalColorPicker" style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;"></div>
+        <button onclick="addNewCalendar()" class="btn primary sm" style="white-space:nowrap;">+ Add</button>
+      </div>
+    </div>
+    <div class="mac" style="margin-top:14px;">
+      <button onclick="resetToDefaultCalendars()" class="btn sm" style="color:#718096;">Reset to defaults</button>
+      <button onclick="closeCalManager()" class="mbtn save">Done</button>
+    </div>
+  </div>
 </div>
 
 <!-- ── GCAL MODAL ── -->
@@ -2221,9 +2260,8 @@ function renderWeekly(){
   }).join('');
 
   // Colour palette (same as monthly)
-  const TASK_COLORS=['#2b6cb0','#9b2c2c','#276749','#744210','#553c9a','#0e7490','#1a3a5c'];
   const taskColorMap={};
-  tasks.forEach((t,i)=>{taskColorMap[t.id]=TASK_COLORS[i%TASK_COLORS.length];});
+  tasks.forEach((t,i)=>{taskColorMap[t.id]=TASK_PALETTE[i%TASK_PALETTE.length];});
 
   // Collect spanning bars for this week
   const allBars=[];
@@ -2366,9 +2404,8 @@ function renderMonthly(){
   for(let i=0;i<cells.length;i+=7) weeks.push(cells.slice(i,i+7));
 
   // Colour palette for tasks (cycle by index)
-  const TASK_COLORS=['#2b6cb0','#9b2c2c','#276749','#744210','#553c9a','#0e7490','#1a3a5c'];
   const taskColorMap={};
-  tasks.forEach((t,i)=>{ taskColorMap[t.id]=TASK_COLORS[i%TASK_COLORS.length]; });
+  tasks.forEach((t,i)=>{ taskColorMap[t.id]=TASK_PALETTE[i%TASK_PALETTE.length]; });
 
   // Build the grid — each week is a relative-positioned row
   // We render cell backgrounds first, then absolutely-position spanning bars on top
@@ -2654,7 +2691,7 @@ function renderPlannerWeek(){
   const hm = m => m>=60 ? `${Math.floor(m/60)}h${m%60>0?' '+m%60+'m':''}` : m+'m';
   if(subEl) subEl.textContent = `${weekBlocks.length} blocks · ${hm(totalMins)} scheduled this week`;
 
-  const taskColors = ['#1a3a5c','#2b6cb0','#276749','#744210','#553c9a','#0e7490','#9b2c2c','#d97706'];
+  const taskColors = TASK_PALETTE;
   const now = new Date();
   const nowSlot = today===weekDays.find(wd=>wd.isToday)?.ds ? now.getHours()*2+(now.getMinutes()>=30?1:0) : -1;
 
@@ -3712,10 +3749,15 @@ function saveTimeBlock(){
     const b = _timeBlocks.find(b=>b.id===window._editingBlockId);
     if(b){ b.taskId=taskId; b.start=start; b.end=end; b.notes=notes; }
   } else {
+      // Assign consistent colour based on task index
+    const taskForColor = tasks.find(t=>String(t.id)===String(taskId));
+    const taskColorIdx = taskForColor ? tasks.indexOf(taskForColor) % TASK_PALETTE.length : 0;
+    const blockColor = taskForColor ? TASK_PALETTE[taskColorIdx] : '#1a3a5c';
     _timeBlocks.push({
       id:'tb_'+Date.now(),
       date: window._editingBlockDate || dpDateStr(),
       taskId, start, end, notes,
+      color: blockColor,
       label: taskId ? '' : 'Time block'
     });
   }
@@ -4082,8 +4124,12 @@ function openNewCalEvent(dateStr){
       <div class="ff full"><label class="flbl">Description</label>
         <textarea id="evDesc" placeholder="Add notes or description…" style="height:60px;resize:vertical;"></textarea></div>
       <!-- Color / Calendar label -->
-      <div class="ff full"><label class="flbl">Calendar / Color</label>
-        <div id="evColorPicker" style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px;margin-top:4px;"></div>
+      <div class="ff full">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <label class="flbl" style="margin-bottom:0;">Calendar / Color</label>
+          <button type="button" onclick="openCalManager()" style="font-size:11px;color:#2b6cb0;background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;padding:0;">⚙ Manage calendars</button>
+        </div>
+        <div id="evColorPicker" style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px;"></div>
       </div>
     </div>
     <div class="mac">
@@ -4096,23 +4142,130 @@ function openNewCalEvent(dateStr){
   document.getElementById('evOv').classList.add('show');
 }
 
+/* Load user calendars from localStorage or use defaults */
+const DEFAULT_CALENDARS = [
+  {col:'#1a73e8', label:'Personal Calendar'},
+  {col:'#e67c73', label:'Antonio Franco iPhone'},
+  {col:'#33b679', label:'Appointments'},
+  {col:'#8e24aa', label:'Personal Development'},
+  {col:'#f6c026', label:'Church'},
+  {col:'#039be5', label:'Exercise Calendar'},
+  {col:'#7986cb', label:'Family'},
+  {col:'#ff7043', label:'Fun Calendar'},
+  {col:'#0b8043', label:'GQueues'},
+  {col:'#e4c441', label:'Sons Calendar'},
+  {col:'#616161', label:'Tasks Calendar'},
+  {col:'#d81b60', label:'Work Calendar'},
+  {col:'#795548', label:'University of Portsmouth'},
+  {col:'#009688', label:'Holidays in Singapore'},
+];
+
+let _userCalendars = JSON.parse(localStorage.getItem('tf_calendars') || 'null') || DEFAULT_CALENDARS;
+
+function saveUserCalendars(){
+  localStorage.setItem('tf_calendars', JSON.stringify(_userCalendars));
+  if(window._fbSaveDoc) fbSave();
+}
+
+/* ════════════════════════════════════════════
+   CALENDAR MANAGER
+════════════════════════════════════════════ */
+const COLOR_PALETTE = [
+  '#1a73e8','#e67c73','#33b679','#8e24aa','#f6c026','#039be5',
+  '#7986cb','#ff7043','#0b8043','#e4c441','#616161','#d81b60',
+  '#795548','#009688','#f4511e','#e91e63','#9e9e9e','#4caf50',
+];
+
+let _newCalColor = COLOR_PALETTE[0];
+
+function openCalManager(){
+  renderCalMgrList();
+  renderNewCalColorPicker();
+  document.getElementById('calMgrOv').classList.add('show');
+}
+
+function closeCalManager(){
+  document.getElementById('calMgrOv').classList.remove('show');
+  // Refresh the event modal picker if open
+  renderEvColorPicker();
+}
+
+function renderCalMgrList(){
+  const list = document.getElementById('calMgrList');
+  if(!list) return;
+  list.innerHTML = _userCalendars.map((c,i)=>`
+    <div class="cal-mgr-row">
+      <div class="cal-mgr-dot" style="background:${c.col};" onclick="openSwatchFor(${i})" title="Change colour"></div>
+      <div id="swatch_${i}" style="display:none;position:absolute;z-index:10;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);">
+        <div class="cal-color-swatch">
+          ${COLOR_PALETTE.map(col=>`<div class="cal-swatch-dot ${col===c.col?'active':''}" style="background:${col};" onclick="changeCalColor(${i},'${col}',this)"></div>`).join('')}
+        </div>
+      </div>
+      <input class="cal-mgr-name" value="${esc(c.label)}" onblur="renameCalendar(${i},this.value)" onkeydown="if(event.key==='Enter')this.blur()"/>
+      <button class="cal-mgr-del" onclick="deleteCalendar(${i})" title="Delete">×</button>
+    </div>`).join('');
+}
+
+function openSwatchFor(idx){
+  // Close all other swatches
+  document.querySelectorAll('[id^="swatch_"]').forEach(s=>s.style.display='none');
+  const sw = document.getElementById('swatch_'+idx);
+  if(sw){ sw.style.display = sw.style.display==='none'?'block':'none'; }
+}
+
+function changeCalColor(idx, col, dotEl){
+  _userCalendars[idx].col = col;
+  saveUserCalendars();
+  // Close swatch
+  const sw = document.getElementById('swatch_'+idx);
+  if(sw) sw.style.display='none';
+  renderCalMgrList();
+}
+
+function renameCalendar(idx, name){
+  const trimmed = name.trim();
+  if(!trimmed) return;
+  _userCalendars[idx].label = trimmed;
+  saveUserCalendars();
+}
+
+function deleteCalendar(idx){
+  if(_userCalendars.length <= 1){ alert('You need at least one calendar.'); return; }
+  if(!confirm(`Delete "${_userCalendars[idx].label}"?`)) return;
+  _userCalendars.splice(idx, 1);
+  saveUserCalendars();
+  renderCalMgrList();
+}
+
+function renderNewCalColorPicker(){
+  const picker = document.getElementById('newCalColorPicker');
+  if(!picker) return;
+  picker.innerHTML = COLOR_PALETTE.map(col=>`
+    <div class="cal-swatch-dot ${col===_newCalColor?'active':''}" style="background:${col};"
+      onclick="_newCalColor='${col}';document.querySelectorAll('#newCalColorPicker .cal-swatch-dot').forEach(d=>{d.classList.remove('active');if(d.style.background==='${col}')d.classList.add('active');})"></div>`).join('');
+}
+
+function addNewCalendar(){
+  const name = document.getElementById('newCalName').value.trim();
+  if(!name){ alert('Please enter a calendar name.'); return; }
+  if(_userCalendars.find(c=>c.label.toLowerCase()===name.toLowerCase())){
+    alert('A calendar with this name already exists.'); return;
+  }
+  _userCalendars.push({col:_newCalColor, label:name});
+  saveUserCalendars();
+  document.getElementById('newCalName').value='';
+  renderCalMgrList();
+}
+
+function resetToDefaultCalendars(){
+  if(!confirm('Reset to default calendars? Your custom calendars will be removed.')) return;
+  _userCalendars = [...DEFAULT_CALENDARS];
+  saveUserCalendars();
+  renderCalMgrList();
+}
+
 function renderEvColorPicker(){
-  const calendars = [
-    {col:'#1a73e8', label:'Personal Calendar'},
-    {col:'#e67c73', label:'Antonio Franco iPhone'},
-    {col:'#33b679', label:'Appointments'},
-    {col:'#8e24aa', label:'Personal Development'},
-    {col:'#f6c026', label:'Church'},
-    {col:'#039be5', label:'Exercise Calendar'},
-    {col:'#7986cb', label:'Family'},
-    {col:'#ff7043', label:'Fun Calendar'},
-    {col:'#0b8043', label:'GQueues'},
-    {col:'#e4c441', label:'Sons Calendar'},
-    {col:'#616161', label:'Tasks Calendar'},
-    {col:'#d81b60', label:'Work Calendar'},
-    {col:'#795548', label:'University of Portsmouth'},
-    {col:'#009688', label:'Holidays in Singapore'},
-  ];
+  const calendars = _userCalendars;
 
   const picker = document.getElementById('evColorPicker');
   if(!picker) return;
