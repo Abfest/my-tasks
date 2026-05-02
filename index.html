@@ -39,6 +39,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#f0f2f5;color:#1a202c;d
 .content{flex:1;overflow:hidden;position:relative;}
 .pane{display:none;height:100%;overflow-y:auto;padding:22px 24px 32px;}
 .pane.on{display:block;}
+.pane.on[id="pane-weekly"]{display:flex;}
 .pane::-webkit-scrollbar{width:5px;}
 .pane::-webkit-scrollbar-thumb{background:#cbd5e0;border-radius:3px;}
 
@@ -102,8 +103,8 @@ tbody tr:hover td{background:#f7fafc;}
 .week-title-txt{font-size:15px;font-weight:700;color:#1a202c;}
 .nav-arrow{width:30px;height:30px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#718096;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
 .nav-arrow:hover{background:#f7fafc;border-color:#cbd5e0;color:#2d3748;}
-.week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:16px;position:relative;}
-.dcol{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 8px 10px 8px;min-height:130px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
+.week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:16px;position:relative;flex:1;}
+.dcol{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 8px 10px 8px;min-height:calc(100vh - 280px);cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
 .dcol:hover{border-color:#90cdf4;box-shadow:0 1px 4px rgba(0,0,0,.06);}
 .dcol.today{border-color:#1a3a5c;border-width:2px;}
 .dcol.sel{border-color:#2b6cb0;background:#ebf8ff;}
@@ -960,7 +961,7 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
 </div>
 
 <!-- ══ WEEKLY ═════════════════════════════════ -->
-<div class="pane" id="pane-weekly">
+<div class="pane" id="pane-weekly" style="display:none;flex-direction:column;">
   <div class="week-nav">
     <button class="nav-arrow" onclick="wkOff--;renderWeekly()">‹</button>
     <div class="week-title-txt" id="weekTitle"></div>
@@ -971,7 +972,7 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
     <button class="btn sm primary" onclick="openNewCalEvent(todayStr())">+ Add event</button>
     <span style="font-size:11.5px;color:#a0aec0;margin-left:auto" id="wkGcalStatus"></span>
   </div>
-  <div class="week-grid" id="weekGrid"></div>
+  <div class="week-grid" id="weekGrid" style="flex:1;min-height:0;"></div>
   <div id="weekDetail"></div>
 </div>
 
@@ -1411,6 +1412,24 @@ function writeLocal(keys, value){
 ════════════════════════════════════════════ */
 let tasks  = readLocal(TASK_KEYS, '[]').map(normaliseTask);
 let calEvs = readLocal(CAL_KEYS,  '[]');
+// Migration: fix gcal events that were stored with hardcoded #276749
+(function migrateCalColors(){
+  const CAL_COLOR_MAP = {
+    'Personal Calendar':'#1a73e8','Antonio Franco iPhone':'#e67c73',
+    'Appointments':'#33b679','Personal Development':'#8e24aa',
+    'Church':'#f6c026','Exercise Calendar':'#039be5','Family':'#7986cb',
+    'Fun Calendar':'#ff7043','GQueues':'#0b8043','Sons Calendar':'#e4c441',
+    'Tasks Calendar':'#616161','Work Calendar':'#d81b60',
+    'University of Portsmouth':'#795548','Holidays in Singapore':'#009688'
+  };
+  let changed = false;
+  calEvs.forEach(e => {
+    if(e.color === '#276749' && e.calLabel && CAL_COLOR_MAP[e.calLabel]){
+      e.color = CAL_COLOR_MAP[e.calLabel]; changed = true;
+    }
+  });
+  if(changed) save();
+})();
 let top3   = readLocal(TOP3_KEYS, '[{"text":"","done":false},{"text":"","done":false},{"text":"","done":false}]');
 let gcal   = readLocal(GCAL_KEYS, 'null');
 
@@ -2997,7 +3016,9 @@ function renderPlanner(){
   });
 
   const nowSlot = isToday ? now.getHours()*2 + (now.getMinutes()>=30?1:0) : -1;
-  const taskColors = ['#1a3a5c','#2b6cb0','#276749','#744210','#553c9a','#0e7490','#9b2c2c','#d97706'];
+  // Build consistent task→colour map using shared TASK_PALETTE
+  const plannerTaskColorMap = {};
+  tasks.forEach((t,i) => { plannerTaskColorMap[t.id] = TASK_PALETTE[i % TASK_PALETTE.length]; });
 
   let html = '';
   for(let slot=0; slot<48; slot++){
@@ -3013,8 +3034,8 @@ function renderPlanner(){
     if(slotMap[slot]){
       const b = slotMap[slot];
       const t = tasks.find(t => String(t.id) === String(b.taskId));
-      const colorIdx = tasks.indexOf(t);
-      const color = t ? taskColors[colorIdx % taskColors.length] : '#1a3a5c';
+      // Use TASK_PALETTE for tasks, stored colour for cal events
+      const color = b.isCal ? (b.color||'#0e7490') : (t ? plannerTaskColorMap[t.id] : '#0288D1');
       const heightPx = Math.max(24, b.span * 26 - 4);
       taskCell = `<td rowspan="${b.span}" class="dp-task-col ${borderClass}" style="${isNow?'background:#fffbeb;':''}vertical-align:top;">
         <div class="dp-block" style="background:${color};min-height:${heightPx}px;"
@@ -4316,8 +4337,7 @@ function openEditCalEvent(id){
   if(!c) return;
   closeEvModal();
   // Open add modal pre-filled with event data
-  setTimeout(()=>{
-    openEvModal(c.date);
+  setTimeout(()=>{\n    openNewCalEvent(c.date);
     setTimeout(()=>{
       const setVal = (elId, val) => { const el=document.getElementById(elId); if(el) el.value=val||''; };
       setVal('evTitle', c.title);
@@ -4333,13 +4353,15 @@ function openEditCalEvent(id){
       if(allDayEl){ allDayEl.checked=c.allDay||false; toggleEvAllDay(c.allDay||false); }
       window._evCol = c.color||'#1a3a5c';
       window._editingCalId = id;
-      document.querySelector('.mbtn.save').textContent = 'Update event';
+      const saveBtn = document.querySelector('.mbtn.save');
+      if(saveBtn) saveBtn.textContent = 'Update event';
       // Highlight the matching calendar label
       document.querySelectorAll('.ev-cal-option').forEach(opt=>{
+        opt.classList.remove('selected');
         if(opt.dataset.col===c.color){ selectEvCal(opt,c.color,opt.dataset.label); }
       });
-    }, 100);
-  }, 150);
+    }, 150);
+  }, 200);
 }
 
 function saveCalEvent(){
@@ -4664,15 +4686,23 @@ async function importFromGCal(){
     const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(now.toISOString())}&timeMax=${encodeURIComponent(max.toISOString())}&singleEvents=true&maxResults=100`,
       {headers:{Authorization:'Bearer '+gcal.accessToken}});
     const d=await r.json();if(!d.items)throw new Error('No items');
+    // Google Calendar colorId → hex mapping
+    const GCAL_COLORS = {
+      '1':'#a4bdfc','2':'#7ae7bf','3':'#dbadff','4':'#ff887c',
+      '5':'#fbd75b','6':'#ffb878','7':'#46d6db','8':'#e1e1e1',
+      '9':'#5484ed','10':'#51b749','11':'#dc2127'
+    };
     let added=0;
     for(const ev of d.items){
       if(calEvs.some(e=>e.gcalId===ev.id)||!ev.summary)continue;
+      const evColor = ev.colorId ? (GCAL_COLORS[ev.colorId]||'#0288D1') : '#0288D1';
       calEvs.push({id:'gcal_'+ev.id,title:ev.summary,
         date:ev.start?.date||ev.start?.dateTime?.split('T')[0]||'',
         endDate:ev.end?.date||ev.end?.dateTime?.split('T')[0]||'',
         time:ev.start?.dateTime?.split('T')[1]?.slice(0,5)||'',
         endTime:ev.end?.dateTime?.split('T')[1]?.slice(0,5)||'',
-        color:'#276749',gcalId:ev.id,calUrl:ev.htmlLink,source:'gcal',synced:true});
+        color:evColor,calLabel:ev.organizer?.displayName||'',
+        gcalId:ev.id,calUrl:ev.htmlLink,source:'gcal',synced:true});
       added++;
     }
     save();refreshActive();closeGCalModal();
