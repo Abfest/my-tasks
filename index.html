@@ -451,7 +451,7 @@ tbody tr:hover td{background:#f7fafc;}
 /* ── TASK DETAIL POPUP ── */
 .td-overlay{position:fixed;inset:0;background:rgba(15,37,64,.55);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s;}
 .td-overlay.show{opacity:1;pointer-events:all;}
-.td-modal{background:#fff;border-radius:16px;width:600px;max-width:100%;max-height:88vh;overflow-y:auto;transform:scale(.97) translateY(8px);transition:transform .25s cubic-bezier(.16,1,.3,1);box-shadow:0 24px 60px rgba(0,0,0,.2);}
+.td-modal{background:#fff;border-radius:16px;width:600px;max-width:100%;max-height:92vh;overflow-y:auto;transform:scale(.97) translateY(8px);transition:transform .25s cubic-bezier(.16,1,.3,1);box-shadow:0 24px 60px rgba(0,0,0,.2);}
 .td-overlay.show .td-modal{transform:scale(1) translateY(0);}
 .td-modal::-webkit-scrollbar{width:4px;}
 .td-modal::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:2px;}
@@ -466,7 +466,7 @@ tbody tr:hover td{background:#f7fafc;}
 .td-field-lbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#a0aec0;margin-bottom:3px;}
 .td-field-val{font-size:13px;color:#2d3748;font-weight:500;}
 .td-section-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#a0aec0;margin-bottom:8px;}
-.td-notes{background:#f7fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px 13px;font-size:13px;color:#2d3748;line-height:1.65;margin-bottom:16px;}
+.td-notes{background:#f7fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px 13px;font-size:13px;color:#2d3748;line-height:1.65;margin-bottom:16px;white-space:pre-wrap;word-break:break-word;}
 .td-st-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#f7fafc;border-radius:7px;margin-bottom:5px;border:1px solid #f0f4f8;}
 .td-st-item:last-child{margin-bottom:0;}
 .td-st-chk{width:15px;height:15px;border-radius:3px;border:1.5px solid #cbd5e0;background:#fff;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:8px;cursor:pointer;transition:all .15s;}
@@ -1283,7 +1283,27 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
   <div class="modal" id="evModal"></div>
 </div>
 
-<!-- ── CALENDAR MANAGER MODAL ── -->
+<!-- ══ RECURRING DELETE MODAL ══════════════════ -->
+<div class="overlay" id="recurDelOv" onclick="if(event.target===this)closeRecurDel()" style="z-index:2100;">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-title">Delete recurring event</div>
+    <div style="margin-bottom:18px;">
+      <label style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;cursor:pointer;margin-bottom:6px;border:1px solid #e2e8f0;">
+        <input type="radio" name="rdOpt" value="this" checked style="accent-color:#1a3a5c;width:16px;height:16px;"> <span style="font-size:13.5px;color:#2d3748;">This event</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;cursor:pointer;margin-bottom:6px;border:1px solid #e2e8f0;">
+        <input type="radio" name="rdOpt" value="following" style="accent-color:#1a3a5c;width:16px;height:16px;"> <span style="font-size:13.5px;color:#2d3748;">This and following events</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;cursor:pointer;border:1px solid #e2e8f0;">
+        <input type="radio" name="rdOpt" value="all" style="accent-color:#1a3a5c;width:16px;height:16px;"> <span style="font-size:13.5px;color:#2d3748;">All events</span>
+      </label>
+    </div>
+    <div class="mac">
+      <button class="mbtn cancel" onclick="closeRecurDel()">Cancel</button>
+      <button class="mbtn" style="background:#fff5f5;color:#9b2c2c;border-color:#fed7d7;" onclick="executeRecurDelete()">OK</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="calMgrOv" onclick="if(event.target===this)closeCalManager()">
   <div class="cal-mgr-modal modal">
     <div class="modal-title" style="display:flex;align-items:center;justify-content:space-between;">
@@ -4153,15 +4173,43 @@ function openNewCalEvent(dateStr){
       <div class="ff" id="evEndTimeWrap"><label class="flbl">End time</label>
         <input type="time" id="evEndTime" value="10:00"/></div>
       <!-- Repeat -->
-      <div class="ff"><label class="flbl">Repeat</label>
-        <select id="evRepeat" style="width:100%">
+      <div class="ff full"><label class="flbl">Repeat</label>
+        <select id="evRepeat" onchange="toggleCustomRecurrence()" style="width:100%">
           <option value="">Does not repeat</option>
           <option value="daily">Every day</option>
           <option value="weekly">Every week</option>
           <option value="weekdays">Every weekday (Mon–Fri)</option>
           <option value="monthly">Every month</option>
           <option value="yearly">Every year</option>
+          <option value="custom">Custom…</option>
         </select>
+      </div>
+      <!-- Custom recurrence panel -->
+      <div class="ff full" id="customRecurrencePanel" style="display:none;background:#f7fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;">
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+          <span style="font-size:13px;color:#2d3748;">Repeat every</span>
+          <input type="number" id="evRepeatEvery" value="1" min="1" max="99" style="width:60px;padding:5px 8px;border-radius:6px;border:1px solid #e2e8f0;font-family:'Inter',sans-serif;font-size:13px;text-align:center;"/>
+          <select id="evRepeatUnit" style="padding:5px 8px;border-radius:6px;border:1px solid #e2e8f0;font-family:'Inter',sans-serif;font-size:13px;">
+            <option value="daily">day(s)</option>
+            <option value="weekly" selected>week(s)</option>
+            <option value="monthly">month(s)</option>
+          </select>
+        </div>
+        <div style="margin-bottom:12px;">
+          <div style="font-size:12px;color:#718096;margin-bottom:6px;">Ends</div>
+          <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;cursor:pointer;font-size:13px;">
+            <input type="radio" name="evRepeatEnd" value="never" checked onchange="toggleRepeatEnd()" style="accent-color:#1a3a5c;"> Never
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;cursor:pointer;font-size:13px;">
+            <input type="radio" name="evRepeatEnd" value="on" onchange="toggleRepeatEnd()" style="accent-color:#1a3a5c;"> On date
+            <input type="date" id="evRepeatEndDate" style="padding:4px 8px;border-radius:6px;border:1px solid #e2e8f0;font-family:'Inter',sans-serif;font-size:12px;display:none;"/>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+            <input type="radio" name="evRepeatEnd" value="after" onchange="toggleRepeatEnd()" style="accent-color:#1a3a5c;"> After
+            <input type="number" id="evRepeatCount" value="10" min="1" max="365" style="width:60px;padding:4px 8px;border-radius:6px;border:1px solid #e2e8f0;font-family:'Inter',sans-serif;font-size:12px;display:none;text-align:center;"/>
+            <span id="evRepeatCountLbl" style="display:none;font-size:13px;color:#718096;">occurrences</span>
+          </label>
+        </div>
       </div>
       <!-- Notification -->
       <div class="ff"><label class="flbl">Notification</label>
@@ -4398,17 +4446,27 @@ function saveCalEvent(){
   const date=document.getElementById('evDate').value;
   if(!title||!date){toast('Title and date are required','warn');return;}
   const allDay=document.getElementById('evAllDay')?.checked||false;
-  const repeat=document.getElementById('evRepeat')?.value||'';
+  let repeat=document.getElementById('evRepeat')?.value||'';
   const notif=document.getElementById('evNotif')?.value||'15';
   const location=document.getElementById('evLocation')?.value.trim()||'';
   const desc=document.getElementById('evDesc')?.value.trim()||'';
   const endDate=document.getElementById('evEndDate').value||date;
 
+  // Custom recurrence fields
+  let repeatEvery=1, repeatEndDate='', repeatCount=0;
+  if(repeat==='custom'){
+    repeat=document.getElementById('evRepeatUnit')?.value||'weekly';
+    repeatEvery=parseInt(document.getElementById('evRepeatEvery')?.value)||1;
+    const endMode=document.querySelector('input[name="evRepeatEnd"]:checked')?.value||'never';
+    if(endMode==='on') repeatEndDate=document.getElementById('evRepeatEndDate')?.value||'';
+    else if(endMode==='after') repeatCount=parseInt(document.getElementById('evRepeatCount')?.value)||10;
+  }
+
   const isEdit = window._editingCalId;
   const ev={id:isEdit||('ev_'+Date.now()),title,date,endDate,
     time:allDay?'':document.getElementById('evTime').value,
     endTime:allDay?'':document.getElementById('evEndTime').value,
-    allDay,repeat,notif,location,desc,
+    allDay,repeat,repeatEvery,repeatEndDate,repeatCount,notif,location,desc,
     color:window._evCol||'#1a3a5c',calLabel:window._evCalLabel||'',gcalId:null,calUrl:null,source:'local',synced:false};
 
   // Handle recurring — create multiple events
@@ -4432,23 +4490,28 @@ function saveCalEvent(){
 }
 
 function generateRecurringEvents(baseEv){
-  const events=[{...baseEv}];
+  const seriesId = 'series_'+Date.now();
+  const events=[{...baseEv, seriesId, seriesStart: baseEv.date}];
   const base=new Date(baseEv.date+'T00:00:00');
-  const maxOccurrences=52; // max 1 year
+  let endDate = null;
+  if(baseEv.repeatEndDate) endDate = new Date(baseEv.repeatEndDate+'T23:59:59');
+  const maxOccurrences = baseEv.repeatCount ? Math.min(parseInt(baseEv.repeatCount),365) : 52;
+  const repeatN = parseInt(baseEv.repeatEvery)||1;
   for(let i=1;i<maxOccurrences;i++){
     const d=new Date(base);
-    if(baseEv.repeat==='daily') d.setDate(d.getDate()+i);
-    else if(baseEv.repeat==='weekly') d.setDate(d.getDate()+i*7);
+    if(baseEv.repeat==='daily') d.setDate(d.getDate()+i*repeatN);
+    else if(baseEv.repeat==='weekly') d.setDate(d.getDate()+i*7*repeatN);
     else if(baseEv.repeat==='weekdays'){
       let count=0,day=new Date(base);
       while(count<i){day.setDate(day.getDate()+1);if(day.getDay()!==0&&day.getDay()!==6)count++;}
       d.setTime(day.getTime());
     }
-    else if(baseEv.repeat==='monthly'){d.setMonth(d.getMonth()+i);if(i>=12)break;}
-    else if(baseEv.repeat==='yearly'){d.setFullYear(d.getFullYear()+i);if(i>=3)break;}
+    else if(baseEv.repeat==='monthly'){d.setMonth(d.getMonth()+i*repeatN);if(i>=24)break;}
+    else if(baseEv.repeat==='yearly'){d.setFullYear(d.getFullYear()+i);if(i>=5)break;}
     else break;
+    if(endDate && d > endDate) break;
     const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    events.push({...baseEv,id:'ev_'+Date.now()+i,date:ds,endDate:ds,synced:false});
+    events.push({...baseEv,id:'ev_'+Date.now()+'_'+i,date:ds,endDate:ds,synced:false,seriesId,seriesStart:baseEv.date});
   }
   return events;
 }
@@ -4492,13 +4555,55 @@ function openEvDetail(id,type){
         <button class="mbtn cancel" onclick="closeEvModal()">Close</button>
         ${c.source!=='gcal'?`<button class="mbtn save" onclick="openEditCalEvent('${c.id}')">Edit</button>`:''}
         ${c.calUrl?`<button class="mbtn" onclick="window.open('${c.calUrl}','_blank')">Open in GCal</button>`:''}
-        <button class="mbtn" style="background:#fff5f5;color:#9b2c2c;border-color:#fed7d7" onclick="deleteCalEv('${c.id}');closeEvModal()">Delete</button>
+        <button class="mbtn" style="background:#fff5f5;color:#9b2c2c;border-color:#fed7d7" onclick="${c.seriesId?`confirmDeleteRecurring('${c.id}','${c.seriesId}','${c.date}')`:`deleteCalEv('${c.id}');closeEvModal()`}">Delete</button>
       </div>`;
   }
   document.getElementById('evOv').classList.add('show');
 }
 function deleteCalEv(id){calEvs=calEvs.filter(e=>e.id!==id);save();refreshActive();toast('Event deleted','');}
 function closeEvModal(){document.getElementById('evOv').classList.remove('show');}
+
+function confirmDeleteRecurring(id, seriesId, date){
+  closeEvModal();
+  window._rdId = id;
+  window._rdSeriesId = seriesId;
+  window._rdDate = date;
+  document.querySelectorAll('input[name="rdOpt"]').forEach(r=>{ r.checked = r.value==='this'; });
+  document.getElementById('recurDelOv').classList.add('show');
+}
+function closeRecurDel(){ document.getElementById('recurDelOv').classList.remove('show'); }
+function executeRecurDelete(){
+  const opt = document.querySelector('input[name="rdOpt"]:checked')?.value || 'this';
+  const id = window._rdId;
+  const seriesId = window._rdSeriesId;
+  const date = window._rdDate;
+  if(opt === 'this'){
+    calEvs = calEvs.filter(e => e.id !== id);
+    toast('Event deleted','ok');
+  } else if(opt === 'following'){
+    calEvs = calEvs.filter(e => !(e.seriesId === seriesId && e.date >= date));
+    toast('This and following events deleted','ok');
+  } else {
+    calEvs = calEvs.filter(e => e.seriesId !== seriesId);
+    toast('All recurring events deleted','ok');
+  }
+  save(); refreshActive(); closeRecurDel();
+}
+
+function toggleCustomRecurrence(){
+  const val = document.getElementById('evRepeat')?.value;
+  const panel = document.getElementById('customRecurrencePanel');
+  if(panel) panel.style.display = val==='custom' ? 'block' : 'none';
+}
+function toggleRepeatEnd(){
+  const mode = document.querySelector('input[name="evRepeatEnd"]:checked')?.value||'never';
+  const endDateEl = document.getElementById('evRepeatEndDate');
+  const countEl = document.getElementById('evRepeatCount');
+  const countLbl = document.getElementById('evRepeatCountLbl');
+  if(endDateEl) endDateEl.style.display = mode==='on' ? 'inline-block' : 'none';
+  if(countEl) countEl.style.display = mode==='after' ? 'inline-block' : 'none';
+  if(countLbl) countLbl.style.display = mode==='after' ? 'inline' : 'none';
+}
 
 /* ════════════════════════════════════════════
    REFRESH ACTIVE PANE
