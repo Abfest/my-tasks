@@ -896,7 +896,6 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
     <span class="sec-title">All Tasks & Actions</span>
     <div style="display:flex;gap:7px;align-items:center;">
       <button id="toggleDoneBtn" onclick="toggleShowDone()" class="btn sm" style="white-space:nowrap;">Hide completed</button>
-      <button id="archiveDoneBtn" onclick="archiveAllDone()" class="btn sm" style="white-space:nowrap;background:#f0fdf4;color:#276749;border-color:#bbf7d0;display:none;">📦 Archive done</button>
       <button class="btn primary" onclick="openAddTask()">+ Add task</button>
     </div>
   </div>
@@ -962,7 +961,7 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
 </div>
 
 <!-- ══ WEEKLY ═════════════════════════════════ -->
-<div class="pane" id="pane-weekly" style="display:none;flex-direction:column;">
+<div class="pane" id="pane-weekly" style="flex-direction:column;">
   <div class="week-nav">
     <button class="nav-arrow" onclick="wkOff--;renderWeekly()">‹</button>
     <div class="week-title-txt" id="weekTitle"></div>
@@ -1025,6 +1024,8 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
       <button class="dp-nav-btn" id="dpPrevBtn" onclick="dpNavigate(-1)">‹ Prev</button>
       <button class="dp-nav-btn active" onclick="dpGoToday()">Today</button>
       <button class="dp-nav-btn" id="dpNextBtn" onclick="dpNavigate(1)">Next ›</button>
+      <input type="date" id="dpDatePicker" onchange="dpJumpToDate(this.value)"
+        style="padding:3px 7px;border-radius:6px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;font-size:11px;font-family:'Inter',sans-serif;cursor:pointer;outline:none;color-scheme:dark;">
       <button class="dp-add-btn" onclick="openAddTimeBlock()">+ Add block</button>
     </div>
   </div>
@@ -2094,7 +2095,6 @@ function renderOverview(){
       <td>${calBadge(t)}</td>
       <td style="display:flex;gap:5px;flex-wrap:nowrap">
         <button class="btn sm ${t.done?'':'success'}" onclick="toggleDone(${t.id})">${t.done?'Reopen':'✓ Done'}</button>
-        ${t.done?`<button class="btn sm" onclick="archiveSingleTask(${t.id})" style="background:#f0fdf4;color:#276749;border-color:#bbf7d0;">📦</button>`:''}
         <button class="btn sm" onclick="openEditTask(${t.id})">Edit</button>
         <button class="btn sm danger" onclick="deleteTask(${t.id})">Del</button>
       </td>
@@ -2115,9 +2115,6 @@ function toggleShowDone(){
 
 function renderTasksTab(){
   renderCatFilterBar();
-  // Show/hide Archive done button
-  const archBtn = document.getElementById('archiveDoneBtn');
-  if(archBtn) archBtn.style.display = tasks.some(t=>t.done) ? 'inline-flex' : 'none';
   // Populate owner dropdown
   const ownerSel=document.getElementById('fOwner');
   if(ownerSel){
@@ -2894,11 +2891,24 @@ function dpDateStr(){
 
 function dpNavigate(dir){
   _dpOffset += dir;
+  const picker = document.getElementById('dpDatePicker');
+  if(picker) picker.value = dpDateStr();
   renderPlanner();
 }
 
 function dpGoToday(){
   _dpOffset = 0;
+  const picker = document.getElementById('dpDatePicker');
+  if(picker) picker.value = dpDateStr();
+  renderPlanner();
+}
+
+function dpJumpToDate(val){
+  if(!val) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const target = new Date(val + 'T00:00:00');
+  const diff = Math.round((target - today) / 86400000);
+  _dpOffset = diff;
   renderPlanner();
 }
 
@@ -2921,6 +2931,10 @@ function renderPlanner(){
   const isToday = ds === today;
   const DOW = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // Sync date picker
+  const picker = document.getElementById('dpDatePicker');
+  if(picker && picker.value !== ds) picker.value = ds;
 
   // Update header
   const titleEl = document.getElementById('dpDateTitle');
@@ -3056,10 +3070,17 @@ function renderPlanner(){
         </div>
       </td>`;
     } else if(!coveredSlots.has(slot)){
-      taskCell = `<td class="dp-task-col ${borderClass}" style="${rowBg}"
+      const slotHour = Math.floor(slot/2).toString().padStart(2,'0');
+      const slotMin = slot%2===0 ? '00' : '30';
+      const slotStart = `${slotHour}:${slotMin}`;
+      const endHour = Math.floor((slot+2)/2).toString().padStart(2,'0');
+      const endMin = (slot+2)%2===0 ? '00' : '30';
+      const slotEnd = `${endHour}:${endMin}`;
+      taskCell = `<td class="dp-task-col ${borderClass}" style="${rowBg}cursor:pointer;"
+        onclick="openAddTimeBlock('','${slotStart}','${slotEnd}','${ds}')"
         ondragover="event.preventDefault();this.style.background='#ebf8ff'"
         ondragleave="this.style.background=''"
-        ondrop="dropOnSlot(event,${slot},'${ds}')">
+        ondrop="dropOnSlot(event,${slot},'${ds}');this.style.background=''">
       </td>`;
     }
 
@@ -3073,11 +3094,14 @@ function renderPlanner(){
   }
   tbody.innerHTML = html;
 
-  // Scroll to 8am (slot 16 = row 16, ~26px each)
+  // Scroll to current time if today, else 8am
   const wrap = document.getElementById('dpGridWrap');
-  if(wrap && _dpOffset === 0 && !wrap._scrolled){
-    wrap._scrolled = true;
-    setTimeout(() => { wrap.scrollTop = 16 * 26; }, 50);
+  if(wrap){
+    const targetSlot = isToday ? Math.max(0, nowSlot - 2) : 16; // 8am = slot 16
+    if(!wrap._lastScrollDay || wrap._lastScrollDay !== ds){
+      wrap._lastScrollDay = ds;
+      setTimeout(() => { wrap.scrollTop = targetSlot * 26; }, 50);
+    }
   }
 
   renderTop3();
@@ -3436,48 +3460,6 @@ function archiveMonth(monthKey){
   if(banner) banner.style.display = 'none';
 
   toast(`📦 ${total} tasks archived to ${label}`,'ok');
-}
-
-function archiveSingleTask(id){
-  const t = tasks.find(t=>t.id===id);
-  if(!t||!t.done) return;
-  const monthKey = getMonthKey(new Date());
-  const label = getMonthLabel(monthKey);
-  const existing = _archives.findIndex(a=>a.monthKey===monthKey);
-  if(existing >= 0){
-    _archives[existing].tasks.push({...t});
-    _archives[existing].stats.total++;
-    _archives[existing].stats.done++;
-    _archives[existing].stats.completion = Math.round((_archives[existing].stats.done/_archives[existing].stats.total)*100);
-  } else {
-    _archives.unshift({ monthKey, label, archivedAt: new Date().toISOString(),
-      stats:{total:1,done:1,open:0,completion:100}, tasks:[{...t}] });
-  }
-  tasks = tasks.filter(t=>t.id!==id);
-  saveArchives(); save(); renderAll();
-  toast(`📦 Task archived`,'ok');
-}
-
-function archiveAllDone(){
-  const done = tasks.filter(t=>t.done);
-  if(!done.length){ toast('No completed tasks to archive','warn'); return; }
-  if(!confirm(`Archive ${done.length} completed task${done.length>1?'s':''}?\n\nThey will be moved to the Archive tab.`)) return;
-  const monthKey = getMonthKey(new Date());
-  const label = getMonthLabel(monthKey);
-  const existing = _archives.findIndex(a=>a.monthKey===monthKey);
-  if(existing >= 0){
-    _archives[existing].tasks.push(...done.map(t=>({...t})));
-    _archives[existing].stats.total += done.length;
-    _archives[existing].stats.done += done.length;
-    _archives[existing].stats.completion = Math.round((_archives[existing].stats.done/_archives[existing].stats.total)*100);
-  } else {
-    _archives.unshift({ monthKey, label, archivedAt: new Date().toISOString(),
-      stats:{total:done.length,done:done.length,open:0,completion:100}, tasks:done.map(t=>({...t})) });
-  }
-  const doneIds = new Set(done.map(t=>t.id));
-  tasks = tasks.filter(t=>!doneIds.has(t.id));
-  saveArchives(); save(); renderAll();
-  toast(`📦 ${done.length} tasks archived`,'ok');
 }
 
 function renderArchive(){
