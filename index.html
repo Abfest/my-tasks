@@ -896,6 +896,7 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
     <span class="sec-title">All Tasks & Actions</span>
     <div style="display:flex;gap:7px;align-items:center;">
       <button id="toggleDoneBtn" onclick="toggleShowDone()" class="btn sm" style="white-space:nowrap;">Hide completed</button>
+      <button id="archiveDoneBtn" onclick="archiveAllDone()" class="btn sm" style="white-space:nowrap;background:#f0fdf4;color:#276749;border-color:#bbf7d0;display:none;">📦 Archive done</button>
       <button class="btn primary" onclick="openAddTask()">+ Add task</button>
     </div>
   </div>
@@ -961,7 +962,7 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
 </div>
 
 <!-- ══ WEEKLY ═════════════════════════════════ -->
-<div class="pane" id="pane-weekly" style="flex-direction:column;">
+<div class="pane" id="pane-weekly" style="display:none;flex-direction:column;">
   <div class="week-nav">
     <button class="nav-arrow" onclick="wkOff--;renderWeekly()">‹</button>
     <div class="week-title-txt" id="weekTitle"></div>
@@ -2093,6 +2094,7 @@ function renderOverview(){
       <td>${calBadge(t)}</td>
       <td style="display:flex;gap:5px;flex-wrap:nowrap">
         <button class="btn sm ${t.done?'':'success'}" onclick="toggleDone(${t.id})">${t.done?'Reopen':'✓ Done'}</button>
+        ${t.done?`<button class="btn sm" onclick="archiveSingleTask(${t.id})" style="background:#f0fdf4;color:#276749;border-color:#bbf7d0;">📦</button>`:''}
         <button class="btn sm" onclick="openEditTask(${t.id})">Edit</button>
         <button class="btn sm danger" onclick="deleteTask(${t.id})">Del</button>
       </td>
@@ -2113,6 +2115,9 @@ function toggleShowDone(){
 
 function renderTasksTab(){
   renderCatFilterBar();
+  // Show/hide Archive done button
+  const archBtn = document.getElementById('archiveDoneBtn');
+  if(archBtn) archBtn.style.display = tasks.some(t=>t.done) ? 'inline-flex' : 'none';
   // Populate owner dropdown
   const ownerSel=document.getElementById('fOwner');
   if(ownerSel){
@@ -3431,6 +3436,48 @@ function archiveMonth(monthKey){
   if(banner) banner.style.display = 'none';
 
   toast(`📦 ${total} tasks archived to ${label}`,'ok');
+}
+
+function archiveSingleTask(id){
+  const t = tasks.find(t=>t.id===id);
+  if(!t||!t.done) return;
+  const monthKey = getMonthKey(new Date());
+  const label = getMonthLabel(monthKey);
+  const existing = _archives.findIndex(a=>a.monthKey===monthKey);
+  if(existing >= 0){
+    _archives[existing].tasks.push({...t});
+    _archives[existing].stats.total++;
+    _archives[existing].stats.done++;
+    _archives[existing].stats.completion = Math.round((_archives[existing].stats.done/_archives[existing].stats.total)*100);
+  } else {
+    _archives.unshift({ monthKey, label, archivedAt: new Date().toISOString(),
+      stats:{total:1,done:1,open:0,completion:100}, tasks:[{...t}] });
+  }
+  tasks = tasks.filter(t=>t.id!==id);
+  saveArchives(); save(); renderAll();
+  toast(`📦 Task archived`,'ok');
+}
+
+function archiveAllDone(){
+  const done = tasks.filter(t=>t.done);
+  if(!done.length){ toast('No completed tasks to archive','warn'); return; }
+  if(!confirm(`Archive ${done.length} completed task${done.length>1?'s':''}?\n\nThey will be moved to the Archive tab.`)) return;
+  const monthKey = getMonthKey(new Date());
+  const label = getMonthLabel(monthKey);
+  const existing = _archives.findIndex(a=>a.monthKey===monthKey);
+  if(existing >= 0){
+    _archives[existing].tasks.push(...done.map(t=>({...t})));
+    _archives[existing].stats.total += done.length;
+    _archives[existing].stats.done += done.length;
+    _archives[existing].stats.completion = Math.round((_archives[existing].stats.done/_archives[existing].stats.total)*100);
+  } else {
+    _archives.unshift({ monthKey, label, archivedAt: new Date().toISOString(),
+      stats:{total:done.length,done:done.length,open:0,completion:100}, tasks:done.map(t=>({...t})) });
+  }
+  const doneIds = new Set(done.map(t=>t.id));
+  tasks = tasks.filter(t=>!doneIds.has(t.id));
+  saveArchives(); save(); renderAll();
+  toast(`📦 ${done.length} tasks archived`,'ok');
 }
 
 function renderArchive(){
