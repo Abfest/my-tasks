@@ -1237,7 +1237,7 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
       </div>
       <div class="ff"><label class="flbl">Start date</label><input type="date" id="fStart"/></div>
       <div class="ff"><label class="flbl">Due date</label><input type="date" id="fDue"/></div>
-      <div class="ff"><label class="flbl">Owner</label><input id="fOwner" placeholder="Full name"/></div>
+      <div class="ff"><label class="flbl">Owner</label><input id="fOwnerInput" placeholder="Full name"/></div>
       <div class="ff"><label class="flbl">Overall status</label>
         <select id="fStatusM">
           <option value="Open" selected>Open</option>
@@ -2477,7 +2477,7 @@ function renderMonthly(){
       const ds=localStr(d);
       const cell=document.createElement('div');
       cell.className=`mcell ${ds===ts?'today':''} ${!cur?'other':''} ${ds===selMoDay?'sel':''}`;
-      cell.style.minHeight='100px';
+      cell.style.minHeight='110px';
       cell.style.paddingTop='6px';
       cell.innerHTML=`<div class="mcn" style="margin-bottom:22px">${d.getDate()}</div>`;
       cell.onclick=()=>{ selMoDay=ds; renderMonthly(); };
@@ -2586,27 +2586,25 @@ function renderMonthly(){
       const colW=`calc((100% - ${totalGap}px) / 7)`;
       const leftPx=`calc(${bar.cs} * (${colW} + 3px))`;
       const widthPx=`calc(${bar.ce-bar.cs+1} * (${colW} + 3px) - 3px)`;
-      const topPx=26+bar.slot*19; // tighter spacing
+      const topPx=26+bar.slot*20;
 
       barEl.style.cssText=`
         position:absolute;
         left:${leftPx};
         width:${widthPx};
         top:${topPx}px;
-        height:16px;
+        min-height:16px;
         background:${bar.color};
-        border-radius:${bar.cs===0?'3px':'0 3px 3px 0'} ${bar.ce===6?'3px':'0 3px 3px 0'};
         border-radius:${bar.cs>0?'0':'3px'} ${bar.ce<6?'0':'3px'} ${bar.ce<6?'0':'3px'} ${bar.cs>0?'0':'3px'};
-        display:flex;align-items:center;
-        padding:0 6px;
+        display:block;
+        padding:2px 6px;
         font-size:10px;font-weight:600;color:#fff;
-        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+        white-space:normal;word-break:break-word;line-height:1.35;
         cursor:pointer;z-index:2;
         opacity:${bar.type==='task'?'1':'0.85'};
         box-shadow:0 1px 3px rgba(0,0,0,.15);
       `;
-      // Only show label on the first cell of this week (or start of bar)
-      barEl.textContent=bar.cs===0&&bar.sd<wsStr?'↩ '+bar.label.substring(0,18):bar.label.substring(0,22);
+      barEl.textContent=bar.cs===0&&bar.sd<wsStr?'↩ '+bar.label:bar.label;
       barEl.title=bar.label;
       barEl.onclick=(e)=>{ e.stopPropagation(); openEvDetail(bar.id,bar.type); };
       weekWrap.appendChild(barEl);
@@ -3937,7 +3935,7 @@ function deleteTask(id){
 function openAddTask(){
   editId=null;
   const tmt1=document.getElementById('taskModalTitle'); if(tmt1) tmt1.textContent='Add task';
-  ['fTitle','fOwner','fNotes'].forEach(id=>document.getElementById(id).value='');
+  ['fTitle','fOwnerInput','fNotes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fRepeat').value='';
   renderCatPicker('Work');
   document.getElementById('fStart').value='';
@@ -3954,7 +3952,7 @@ function openEditTask(id){
   editId=id;
   const tmt2=document.getElementById('taskModalTitle'); if(tmt2) tmt2.textContent='Edit task';
   document.getElementById('fTitle').value=t.title||'';
-  document.getElementById('fOwner').value=t.owner||'';
+  document.getElementById('fOwnerInput').value=t.owner||'';
   document.getElementById('fNotes').value=t.notes||'';
   document.getElementById('fRepeat').value=t.repeat||'';
   renderCatPicker((t.tags&&t.tags[0])||'Work');
@@ -3978,7 +3976,7 @@ function saveTask(){
     priority:document.getElementById('fPriority').value,
     startDate:document.getElementById('fStart').value,
     dueDate:document.getElementById('fDue').value,
-    owner:document.getElementById('fOwner').value,
+    owner:document.getElementById('fOwnerInput').value,
     status:document.getElementById('fStatusM').value,
     repeat:repeat,
     notes:document.getElementById('fNotes').value,
