@@ -1483,7 +1483,6 @@ function fbSave(){
     if(!window._fbSaveDoc) return;
     try{
       const now = new Date().toISOString();
-      _lastFbSaveTime = Date.now();
       await window._fbSaveDoc({
         tasks:     JSON.stringify(tasks),
         calEvs:    JSON.stringify(calEvs),
@@ -1492,6 +1491,7 @@ function fbSave(){
         archives:  JSON.stringify(_archives),
         updatedAt: now
       });
+      _lastFbSaveTime = new Date(now).getTime();
     }catch(e){ console.warn('Firebase save error:', e); }
   }, 800);
 }
@@ -1515,16 +1515,16 @@ function startFirebaseSync(){
 
     const data = snapshot.data();
 
-    /* Skip updates we just wrote ourselves (debounce window = 2s) — but NOT on initial load */
+    /* Skip updates we just wrote ourselves — only if updatedAt matches what we just saved */
     const updatedAt = new Date(data.updatedAt||0).getTime();
-    if(!_fbInitialLoad && _lastFbSaveTime && (updatedAt - _lastFbSaveTime) < 2000 && (updatedAt - _lastFbSaveTime) > -100) return;
-    _fbInitialLoad = false; // after first snapshot, apply normal debounce
+    if(!_fbInitialLoad && _lastFbSaveTime && Math.abs(updatedAt - _lastFbSaveTime) < 500) return;
+    _fbInitialLoad = false;
 
     let changed = false;
 
     try{
       const remote = JSON.parse(data.tasks||'[]').map(normaliseTask);
-      if(remote.length > 0 && JSON.stringify(remote) !== JSON.stringify(tasks)){
+      if(JSON.stringify(remote) !== JSON.stringify(tasks)){
         tasks = remote;
         writeLocal(TASK_KEYS, tasks);
         changed = true;
@@ -1542,7 +1542,7 @@ function startFirebaseSync(){
 
     try{
       const remote = JSON.parse(data.top3||'[]');
-      if(remote.length > 0 && JSON.stringify(remote) !== JSON.stringify(top3)){
+      if(JSON.stringify(remote) !== JSON.stringify(top3)){
         top3 = remote;
         writeLocal(TOP3_KEYS, top3);
         changed = true;
