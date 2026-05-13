@@ -1454,7 +1454,7 @@ let calEvs = readLocal(CAL_KEYS,  '[]');
       e.color = CAL_COLOR_MAP[e.calLabel]; changed = true;
     }
   });
-  if(changed) save();
+  if(changed) writeLocal(CAL_KEYS, calEvs); // local only — don't push to Firebase on startup
 })();
 let top3   = readLocal(TOP3_KEYS, '[{"text":"","done":false},{"text":"","done":false},{"text":"","done":false}]');
 let gcal   = readLocal(GCAL_KEYS, 'null');
@@ -1496,6 +1496,7 @@ async function forcePullFromCloud(){
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
     // Use the existing db reference via a one-shot read
     _lastFbSaveTime = null;
+    _fbStartupDone = false; // force accept next snapshot regardless of deviceId
     // Unsubscribe and re-subscribe to force a fresh snapshot
     if(window._fbUnsub) window._fbUnsub();
     _fbListening = false;
@@ -1533,22 +1534,25 @@ function fbSave(){
    FIREBASE REAL-TIME LISTENER
 ════════════════════════════════════════════ */
 let _fbListening = false;
+let _fbStartupDone = false;
 
 function startFirebaseSync(){
   if(!window._fbListen || _fbListening) return;
   _fbListening = true;
 
   window._fbUnsub = window._fbListen((snapshot)=>{
-    if(!snapshot.exists()) {
-      /* No data yet — push local data up */
+    if(!snapshot.exists()){
+      // Firebase empty — seed it with local data
       if(tasks.length > 0 || calEvs.length > 0) fbSave();
+      _fbStartupDone = true;
       return;
     }
 
     const data = snapshot.data();
 
-    // Skip ONLY updates saved by THIS device (echo suppression via deviceId)
-    if(data.deviceId && data.deviceId === _deviceId) return;
+    // On startup: always accept Firebase data (it's the source of truth)
+    // After startup: skip only our own echoes via deviceId
+    if(_fbStartupDone && data.deviceId && data.deviceId === _deviceId) return;
 
     let changed = false;
 
@@ -1598,7 +1602,8 @@ function startFirebaseSync(){
       buildNotifications();
       showSyncIndicator();
     }
-    console.log('🔄 Firebase snapshot — tasks:', tasks.length);
+    _fbStartupDone = true; // mark startup complete after first snapshot
+    console.log('🔄 Firebase snapshot — tasks:', tasks.length, '| from device:', data.deviceId||'unknown');
   });
 }
 
