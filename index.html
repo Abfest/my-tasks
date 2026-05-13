@@ -835,6 +835,10 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="opacity:.8"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.6"/><path d="M8 2v4M16 2v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       <span id="gcalLabel">Connect Calendar</span>
     </button>
+    <button onclick="forcePullFromCloud()" title="Force pull latest data from cloud" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:5px 10px;font-size:11.5px;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:'Inter',sans-serif;" id="forceSyncBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+      ☁ Sync
+    </button>
   </div>
 </div>
 
@@ -1476,6 +1480,34 @@ function save(){
 
 let _fbSaveTimer = null;
 let _lastFbSaveTime = null;
+// Unique device ID — used to skip echoes of our own saves
+const _deviceId = localStorage.getItem('tf_deviceId') || (()=>{
+  const id = 'dev_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+  localStorage.setItem('tf_deviceId', id);
+  return id;
+})();
+
+async function forcePullFromCloud(){
+  const btn = document.getElementById('forceSyncBtn');
+  if(btn){ btn.textContent = '⏳ Syncing…'; btn.disabled = true; }
+  try{
+    if(!window._fbListen){ toast('Firebase not connected','warn'); return; }
+    // Get a fresh snapshot directly from Firestore
+    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    // Use the existing db reference via a one-shot read
+    _lastFbSaveTime = null;
+    // Unsubscribe and re-subscribe to force a fresh snapshot
+    if(window._fbUnsub) window._fbUnsub();
+    _fbListening = false;
+    startFirebaseSync();
+    toast('☁ Pulled latest data from cloud','ok');
+  } catch(e){
+    toast('Sync error: '+e.message,'warn');
+    console.error(e);
+  } finally {
+    if(btn){ btn.disabled = false; btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg> ☁ Sync'; }
+  }
+}
 
 function fbSave(){
   clearTimeout(_fbSaveTimer);
@@ -1489,9 +1521,10 @@ function fbSave(){
         top3:      JSON.stringify(top3),
         gcal:      JSON.stringify(gcal),
         archives:  JSON.stringify(_archives),
-        updatedAt: now
+        updatedAt: now,
+        deviceId:  _deviceId
       });
-      _lastFbSaveTime = new Date(now).getTime();
+      _lastFbSaveTime = Date.now();
     }catch(e){ console.warn('Firebase save error:', e); }
   }, 800);
 }
@@ -1500,13 +1533,12 @@ function fbSave(){
    FIREBASE REAL-TIME LISTENER
 ════════════════════════════════════════════ */
 let _fbListening = false;
-let _fbInitialLoad = true; // flag to bypass debounce on first load
 
 function startFirebaseSync(){
   if(!window._fbListen || _fbListening) return;
   _fbListening = true;
 
-  window._fbListen((snapshot)=>{
+  window._fbUnsub = window._fbListen((snapshot)=>{
     if(!snapshot.exists()) {
       /* No data yet — push local data up */
       if(tasks.length > 0 || calEvs.length > 0) fbSave();
@@ -1515,10 +1547,8 @@ function startFirebaseSync(){
 
     const data = snapshot.data();
 
-    /* Skip updates we just wrote ourselves — only if updatedAt matches what we just saved */
-    const updatedAt = new Date(data.updatedAt||0).getTime();
-    if(!_fbInitialLoad && _lastFbSaveTime && Math.abs(updatedAt - _lastFbSaveTime) < 500) return;
-    _fbInitialLoad = false;
+    // Skip ONLY updates saved by THIS device (echo suppression via deviceId)
+    if(data.deviceId && data.deviceId === _deviceId) return;
 
     let changed = false;
 
