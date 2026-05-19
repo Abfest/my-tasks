@@ -104,7 +104,7 @@ tbody tr:hover td{background:#f7fafc;}
 .nav-arrow{width:30px;height:30px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#718096;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
 .nav-arrow:hover{background:#f7fafc;border-color:#cbd5e0;color:#2d3748;}
 .week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:16px;position:relative;flex:1;}
-.dcol{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 8px 10px 8px;min-height:calc(100vh - 280px);cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
+.dcol{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 8px 10px 8px;min-height:calc(100vh - 280px);cursor:pointer;transition:all .15s;position:relative;overflow:visible;}
 .dcol:hover{border-color:#90cdf4;box-shadow:0 1px 4px rgba(0,0,0,.06);}
 .dcol.today{border-color:#1a3a5c;border-width:2px;}
 .dcol.sel{border-color:#2b6cb0;background:#ebf8ff;}
@@ -116,7 +116,7 @@ tbody tr:hover td{background:#f7fafc;}
 .dcol:hover .dadd-btn{opacity:1;}
 .day-detail-panel{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;}
 .ddp-title{font-size:14px;font-weight:700;color:#1a202c;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
-.ev-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:#f7fafc;border:1px solid #e2e8f0;margin-bottom:6px;}
+.ev-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:#f7fafc;border:1px solid #e2e8f0;margin-bottom:6px;flex-wrap:wrap;}
 .ev-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 .ev-title{font-size:12.5px;font-weight:500;flex:1;color:#2d3748;}
 .ev-time{font-size:11px;color:#a0aec0;}
@@ -612,6 +612,20 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
 .sub-item-title.done-t{text-decoration:line-through;color:#a0aec0;}
 .sub-item-desc{font-size:11.5px;color:#a0aec0;margin-top:3px;line-height:1.4;}
 .sub-item-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;}
+/* ── SUBTASK DETAIL MODAL ── */
+.st-modal{background:#fff;border-radius:16px;width:540px;max-width:100%;max-height:88vh;overflow-y:auto;}
+.st-modal-hdr{background:#1a3a5c;padding:16px 20px;border-radius:16px 16px 0 0;position:relative;}
+.st-modal-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:4px;}
+.st-modal-parent{font-size:11px;color:rgba(255,255,255,.55);}
+.st-modal-close{position:absolute;top:12px;right:14px;width:26px;height:26px;border-radius:6px;border:none;background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
+.st-modal-close:hover{background:rgba(255,255,255,.25);}
+.st-modal-body{padding:18px 20px;}
+.st-modal-field{margin-bottom:14px;}
+.st-modal-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#a0aec0;margin-bottom:5px;}
+.st-modal-val{font-size:13px;color:#2d3748;background:#f7fafc;border:1px solid #e2e8f0;border-radius:7px;padding:8px 11px;width:100%;font-family:'Inter',sans-serif;outline:none;transition:border-color .15s;}
+.st-modal-val:focus{border-color:#1a3a5c;box-shadow:0 0 0 2px rgba(26,58,92,.08);}
+.st-modal-textarea{resize:vertical;min-height:70px;line-height:1.55;}
+.st-modal-select{background:#f7fafc;}
 
 @media(max-width:768px){
   /* ── GLOBAL LAYOUT ── */
@@ -704,7 +718,7 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
     grid-template-columns:repeat(7,minmax(0,1fr));
     gap:2px;margin-bottom:10px;
   }
-  .dcol{min-height:70px;padding:5px 3px;border-radius:7px;}
+  .dcol{min-height:110px;padding:5px 3px;border-radius:7px;}
   .dow-lbl{font-size:8px;letter-spacing:0;}
   .day-num{font-size:13px;margin-bottom:18px;}
   .dadd-btn{width:14px;height:14px;font-size:10px;bottom:3px;right:3px;}
@@ -1326,6 +1340,58 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
     <div class="mac" style="margin-top:14px;">
       <button onclick="resetToDefaultCalendars()" class="btn sm" style="color:#718096;">Reset to defaults</button>
       <button onclick="closeCalManager()" class="mbtn save">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SUBTASK DETAIL MODAL ── -->
+<div class="overlay" id="stDetailOv" onclick="if(event.target===this)closeSubtaskDetail()" style="z-index:600;">
+  <div class="st-modal">
+    <div class="st-modal-hdr">
+      <button class="st-modal-close" onclick="closeSubtaskDetail()">×</button>
+      <div class="st-modal-title" id="stModalTitle">Subtask</div>
+      <div class="st-modal-parent" id="stModalParent"></div>
+    </div>
+    <div class="st-modal-body">
+      <div class="st-modal-field">
+        <div class="st-modal-lbl">Title</div>
+        <input class="st-modal-val" id="stEditTitle" placeholder="Subtask title…"/>
+      </div>
+      <div class="st-modal-field">
+        <div class="st-modal-lbl">Description</div>
+        <textarea class="st-modal-val st-modal-textarea" id="stEditDesc" placeholder="Actions, context, notes…"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="st-modal-field">
+          <div class="st-modal-lbl">Status</div>
+          <select class="st-modal-val st-modal-select" id="stEditStatus">
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Pending External">Pending External</option>
+            <option value="Under Review">Under Review</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </div>
+        <div class="st-modal-field">
+          <div class="st-modal-lbl">Owner</div>
+          <input class="st-modal-val" id="stEditOwner" placeholder="Owner name…"/>
+        </div>
+        <div class="st-modal-field">
+          <div class="st-modal-lbl">Start date</div>
+          <input type="date" class="st-modal-val" id="stEditStart"/>
+        </div>
+        <div class="st-modal-field">
+          <div class="st-modal-lbl">Due date</div>
+          <input type="date" class="st-modal-val" id="stEditDue"/>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:18px;justify-content:space-between;align-items:center;padding-top:14px;border-top:1px solid #e2e8f0;">
+        <button class="btn sm danger" onclick="deleteSubtaskFromModal()">Delete subtask</button>
+        <div style="display:flex;gap:8px;">
+          <button class="mbtn cancel" onclick="closeSubtaskDetail()" style="padding:8px 18px;border-radius:8px;font-size:13px;cursor:pointer;border:1px solid #e2e8f0;background:#fff;color:#718096;font-family:'Inter',sans-serif;">Cancel</button>
+          <button class="mbtn save" onclick="saveSubtaskDetail()" style="padding:8px 18px;border-radius:8px;font-size:13px;cursor:pointer;background:#1a3a5c;color:#fff;border:none;font-family:'Inter',sans-serif;font-weight:600;">Save changes</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -2388,45 +2454,64 @@ function renderWeekly(){
     const overlayWrap=document.createElement('div');
     overlayWrap.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:3;';
 
-    const MAX_WK_BARS = 4;
-    // Add "+N more" to cells that overflow
+    const BAR_H = 20;      // fixed bar height px
+    const BAR_GAP = 3;     // gap between bars px
+    const BAR_TOP = 40;    // y offset from cell top (below date number)
+    const MAX_WK_BARS = 3; // max bars visible per column
+
+    // Count overflows per column
     const wkOverflow = {};
     allBars.forEach(bar=>{
       if(bar.slot >= MAX_WK_BARS){
         for(let c=bar.cs;c<=bar.ce;c++) wkOverflow[c]=(wkOverflow[c]||0)+1;
       }
     });
+
+    // Render +N more labels directly into cells (not overlay)
     Object.entries(wkOverflow).forEach(([col,count])=>{
       const cell = cells[parseInt(col)];
       if(cell){
         let more = cell.querySelector('.wk-more');
-        if(!more){ more=document.createElement('div'); more.className='wk-more'; more.style.cssText='position:absolute;bottom:4px;left:4px;font-size:9px;color:#718096;font-weight:600;background:rgba(255,255,255,.9);border-radius:3px;padding:1px 5px;z-index:4;'; cell.appendChild(more); }
-        more.textContent=`+${count} more`;
+        if(!more){
+          more = document.createElement('div');
+          more.className = 'wk-more';
+          more.style.cssText = 'position:absolute;font-size:9px;color:#718096;font-weight:600;'
+            +'background:rgba(255,255,255,.9);border-radius:3px;padding:1px 5px;z-index:4;cursor:pointer;';
+          cell.appendChild(more);
+        }
+        // Position below the last visible bar
+        more.style.top = (BAR_TOP + MAX_WK_BARS*(BAR_H+BAR_GAP) + 2) + 'px';
+        more.style.left = '4px';
+        more.textContent = '+' + count + ' more';
+        more.onclick = (e) => { e.stopPropagation(); selWkDay = localStr(days[parseInt(col)]); renderWeekly(); };
       }
     });
 
+    // Render visible bars using cell positions
     allBars.filter(bar=>bar.slot < MAX_WK_BARS).forEach(bar=>{
-      const startCell=cells[bar.cs];
-      const endCell=cells[bar.ce];
-      if(!startCell||!endCell) return;
-      const sr=startCell.getBoundingClientRect();
-      const er=endCell.getBoundingClientRect();
-      const left=sr.left-gridRect.left;
-      const width=er.right-sr.left;
-      const top=sr.top-gridRect.top+44+bar.slot*20;
+      const startCell = cells[bar.cs];
+      const endCell   = cells[bar.ce];
+      if(!startCell || !endCell) return;
 
-      const barEl=document.createElement('div');
-      const barHeight = 16 + Math.floor(bar.label.length / 18) * 10;
-      barEl.style.cssText=`position:absolute;left:${left+1}px;width:${Math.max(width-2,0)}px;top:${top}px;min-height:16px;`+
+      const sr = startCell.getBoundingClientRect();
+      const er = endCell.getBoundingClientRect();
+      const left  = sr.left - gridRect.left;
+      const width = er.right - sr.left;
+      const top   = sr.top - gridRect.top + BAR_TOP + bar.slot * (BAR_H + BAR_GAP);
+
+      const barEl = document.createElement('div');
+      barEl.style.cssText =
+        `position:absolute;left:${left+2}px;width:${Math.max(width-4,0)}px;`+
+        `top:${top}px;height:${BAR_H}px;`+
         `background:${bar.color};`+
         `border-radius:${bar.cs>0?'0':'4px'} ${bar.ce<6?'0':'4px'} ${bar.ce<6?'0':'4px'} ${bar.cs>0?'0':'4px'};`+
-        `display:flex;align-items:flex-start;padding:2px 5px;`+
-        `font-size:10px;font-weight:600;color:#fff;`+
-        `white-space:normal;word-break:break-word;line-height:1.3;`+
-        `pointer-events:all;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.15);z-index:3;`;
-      barEl.textContent=bar.cs===0&&bar.sd<wsStr?'\u21a9 '+bar.label:bar.label;
-      barEl.title=bar.label;
-      barEl.onclick=(e)=>{e.stopPropagation();openEvDetail(bar.id,bar.type);};
+        `display:flex;align-items:center;padding:0 5px;overflow:hidden;`+
+        `font-size:10px;font-weight:600;color:#fff;white-space:nowrap;`+
+        `pointer-events:all;cursor:pointer;`+
+        `box-shadow:0 1px 3px rgba(0,0,0,.15);z-index:3;`;
+      barEl.textContent = bar.cs===0&&bar.sd<wsStr ? '↩ '+bar.label : bar.label;
+      barEl.title = bar.label;
+      barEl.onclick = (e) => { e.stopPropagation(); openEvDetail(bar.id, bar.type); };
       overlayWrap.appendChild(barEl);
     });
 
@@ -2460,6 +2545,7 @@ function renderWeekDetail(){
           <div class="ev-title">${esc(c.title)}</div>
           ${c.time?`<span class="ev-time">${c.time}${c.endTime?' – '+c.endTime:''}</span>`:''}
           ${c.source==='gcal'?'<span class="badge b-gcal">🗓 From GCal</span>':''}
+          <button class="btn sm" onclick="openEvDetail('${c.id}','cal')">Edit</button>
           <button class="btn sm danger" onclick="deleteCalEv('${c.id}')">Del</button>
         </div>`).join('')}
     </div>`;
@@ -2683,6 +2769,7 @@ function renderMonthDetail(){
           <div class="ev-title">${esc(c.title)}</div>
           ${c.time?`<span class="ev-time">${c.time}</span>`:''}
           ${c.source==='gcal'?'<span class="badge b-gcal">🗓 From GCal</span>':''}
+          <button class="btn sm" onclick="openEvDetail('${c.id}','cal')">Edit</button>
           <button class="btn sm danger" onclick="deleteCalEv('${c.id}')">Del</button>
         </div>`).join('')}
     </div>`;
@@ -4164,12 +4251,13 @@ function renderSubtasksInRow(t){
             <div class="sub-item-title ${s.done?'done-t':''}">${esc(s.title)}</div>
             ${s.description?`<div class="sub-item-desc">${esc(s.description)}</div>`:''}
             <div class="sub-item-meta">
-              ${s.owner?`<span style="font-size:11px;color:#a0aec0">${esc(s.owner)}</span>`:''}
+              ${s.owner?`<span style="font-size:11px;color:#a0aec0">👤 ${esc(s.owner)}</span>`:''}
               ${s.startDate?`<span style="font-size:11px;color:#a0aec0">Start ${fmtS(s.startDate)}</span>`:''}
               ${s.dueDate?`<span style="font-size:11px;color:${isOverdue({dueDate:s.dueDate,done:s.done})?'#9b2c2c':'#a0aec0'}">Due ${fmtS(s.dueDate)}</span>`:''}
               ${statusBadge({status:s.status||'Open',done:s.done})}
             </div>
           </div>
+          <button class="btn sm" style="flex-shrink:0;align-self:center;" onclick="openSubtaskDetail(${t.id},'${s.id}')">Edit</button>
         </div>`).join('')}
     </div>`;
 }
@@ -5155,7 +5243,81 @@ function toggleSubtaskDoneFromDetail(taskId, stId){
 }
 
 // Close on Escape key
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeTD(); });
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){
+    closeTD();
+    closeSubtaskDetail();
+  }
+});
+
+/* ════════════════════════════════════════════
+   SUBTASK DETAIL MODAL
+════════════════════════════════════════════ */
+let _stEditTaskId = null;
+let _stEditSubId  = null;
+
+function openSubtaskDetail(taskId, stId){
+  const t = tasks.find(t=>t.id===taskId||t.id==taskId);
+  if(!t) return;
+  const s = (t.subtasks||[]).find(s=>s.id===stId);
+  if(!s) return;
+
+  _stEditTaskId = taskId;
+  _stEditSubId  = stId;
+
+  document.getElementById('stModalTitle').textContent  = s.title || 'Subtask';
+  document.getElementById('stModalParent').textContent = 'Parent task: ' + t.title.substring(0,55) + (t.title.length>55?'…':'');
+  document.getElementById('stEditTitle').value  = s.title       || '';
+  document.getElementById('stEditDesc').value   = s.description || '';
+  document.getElementById('stEditStatus').value = s.status      || 'Open';
+  document.getElementById('stEditOwner').value  = s.owner       || '';
+  document.getElementById('stEditStart').value  = s.startDate   || '';
+  document.getElementById('stEditDue').value    = s.dueDate     || '';
+
+  document.getElementById('stDetailOv').classList.add('show');
+}
+
+function closeSubtaskDetail(){
+  document.getElementById('stDetailOv').classList.remove('show');
+  _stEditTaskId = null;
+  _stEditSubId  = null;
+}
+
+function saveSubtaskDetail(){
+  if(!_stEditTaskId || !_stEditSubId) return;
+  const t = tasks.find(t=>t.id===_stEditTaskId||t.id==_stEditTaskId);
+  if(!t) return;
+  const s = (t.subtasks||[]).find(s=>s.id===_stEditSubId);
+  if(!s) return;
+
+  const newTitle = document.getElementById('stEditTitle').value.trim();
+  if(!newTitle){ toast('Subtask title is required','warn'); return; }
+
+  s.title       = newTitle;
+  s.description = document.getElementById('stEditDesc').value.trim();
+  s.status      = document.getElementById('stEditStatus').value;
+  s.done        = s.status === 'Closed';
+  s.owner       = document.getElementById('stEditOwner').value.trim();
+  s.startDate   = document.getElementById('stEditStart').value;
+  s.dueDate     = document.getElementById('stEditDue').value;
+
+  save();
+  refreshActive();
+  closeSubtaskDetail();
+  toast('Subtask updated','ok');
+}
+
+function deleteSubtaskFromModal(){
+  if(!_stEditTaskId || !_stEditSubId) return;
+  const t = tasks.find(t=>t.id===_stEditTaskId||t.id==_stEditTaskId);
+  if(!t) return;
+  if(!confirm('Delete this subtask?')) return;
+  t.subtasks = (t.subtasks||[]).filter(s=>s.id!==_stEditSubId);
+  save();
+  refreshActive();
+  closeSubtaskDetail();
+  toast('Subtask deleted','');
+}
 
 /* ════════════════════════════════════════════
    TOAST
