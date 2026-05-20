@@ -5451,19 +5451,22 @@ function renderKanban(){
     if(filterCat !== 'all' && !(t.tags||[]).includes(filterCat)) return;
     if(filterPri !== 'all' && t.priority !== filterPri) return;
 
-    // Parent task card (only if it has NO subtasks, or show as a summary)
     const subs = t.subtasks || [];
-    const parentColId = kanbanStatusToCol(t);
-    if(showClosed || parentColId !== 'closed'){
-      allCards.push({ type:'task', task:t, colId: parentColId });
-    }
 
-    // Each subtask as its own card
-    subs.forEach(s => {
-      const subColId = kanbanSubStatusToCol(s);
-      if(!showClosed && subColId === 'closed') return;
-      allCards.push({ type:'sub', task:t, sub:s, colId: subColId });
-    });
+    if(subs.length === 0){
+      // Tasks with NO subtasks show as a card themselves
+      const parentColId = kanbanStatusToCol(t);
+      if(showClosed || parentColId !== 'closed'){
+        allCards.push({ type:'task', task:t, colId: parentColId });
+      }
+    } else {
+      // Tasks WITH subtasks: show only the subtasks as cards, not the parent
+      subs.forEach(s => {
+        const subColId = kanbanSubStatusToCol(s);
+        if(!showClosed && subColId === 'closed') return;
+        allCards.push({ type:'sub', task:t, sub:s, colId: subColId });
+      });
+    }
   });
 
   wrap.innerHTML = KANBAN_COLS.map(col => {
