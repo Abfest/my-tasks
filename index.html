@@ -104,7 +104,7 @@ tbody tr:hover td{background:#f7fafc;}
 .nav-arrow{width:30px;height:30px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#718096;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
 .nav-arrow:hover{background:#f7fafc;border-color:#cbd5e0;color:#2d3748;}
 .week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:16px;position:relative;flex:1;}
-.dcol{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 8px 10px 8px;min-height:calc(100vh - 280px);cursor:pointer;transition:all .15s;position:relative;overflow:visible;}
+.dcol{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 8px 10px 8px;min-height:calc(100vh - 280px);cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
 .dcol:hover{border-color:#90cdf4;box-shadow:0 1px 4px rgba(0,0,0,.06);}
 .dcol.today{border-color:#1a3a5c;border-width:2px;}
 .dcol.sel{border-color:#2b6cb0;background:#ebf8ff;}
@@ -113,12 +113,22 @@ tbody tr:hover td{background:#f7fafc;}
 .dcol.today .day-num{color:#1a3a5c;}
 .dmore{font-size:9px;color:#a0aec0;padding:1px 5px;}
 .dadd-btn{position:absolute;bottom:5px;right:5px;width:18px;height:18px;border-radius:4px;background:#1a3a5c;border:none;color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;}
+.wk-bars-wrap{display:flex;flex-direction:column;gap:0;margin-top:2px;}
 .dcol:hover .dadd-btn{opacity:1;}
 .day-detail-panel{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;}
 .ddp-title{font-size:14px;font-weight:700;color:#1a202c;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
-.ev-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:#f7fafc;border:1px solid #e2e8f0;margin-bottom:6px;flex-wrap:wrap;}
+.ev-row{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;background:#f7fafc;border:1px solid #e2e8f0;margin-bottom:5px;flex-wrap:nowrap;min-width:0;}
+.ev-row-task{border-left:3px solid transparent;}
+.ev-row-cal{border-left:3px solid transparent;}
+.ev-title{font-size:12.5px;font-weight:500;flex:1;color:#2d3748;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ev-actions{display:flex;gap:5px;align-items:center;flex-shrink:0;}
+/* In-cell week bar chips */
+.wk-bar{display:block;margin:2px 0;padding:2px 5px;border-radius:3px;font-size:10px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.4;}
+.wk-bar:hover{opacity:.85;}
+.wk-more-lbl{font-size:10px;color:#718096;font-weight:600;padding:2px 4px;cursor:pointer;display:block;}
+.wk-more-lbl:hover{color:#2b6cb0;}
 .ev-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.ev-title{font-size:12.5px;font-weight:500;flex:1;color:#2d3748;}
+/* ev-title now in ev-row block */
 .ev-time{font-size:11px;color:#a0aec0;}
 
 /* ── MONTHLY ── */
@@ -718,7 +728,7 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
     grid-template-columns:repeat(7,minmax(0,1fr));
     gap:2px;margin-bottom:10px;
   }
-  .dcol{min-height:110px;padding:5px 3px;border-radius:7px;}
+  .dcol{min-height:70px;padding:5px 3px;border-radius:7px;}
   .dow-lbl{font-size:8px;letter-spacing:0;}
   .day-num{font-size:13px;margin-bottom:18px;}
   .dadd-btn{width:14px;height:14px;font-size:10px;bottom:3px;right:3px;}
@@ -810,6 +820,44 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
   .scard-val{font-size:20px;}
   .ai-layout > div:last-child{grid-template-columns:1fr;}
 }
+
+/* ── KANBAN BOARD ── */
+.kanban-wrap{display:flex;gap:12px;overflow-x:auto;padding-bottom:16px;align-items:flex-start;-webkit-overflow-scrolling:touch;}
+.kanban-wrap::-webkit-scrollbar{height:5px;}
+.kanban-wrap::-webkit-scrollbar-thumb{background:#cbd5e0;border-radius:3px;}
+.kanban-col{flex:0 0 280px;background:#f0f2f5;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 220px);}
+.kanban-col-hdr{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.kanban-col-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+.kanban-col-count{font-size:11px;font-weight:700;background:rgba(0,0,0,.08);border-radius:20px;padding:2px 8px;color:inherit;}
+.kanban-cards{padding:6px 8px 10px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px;}
+.kanban-cards::-webkit-scrollbar{width:3px;}
+.kanban-cards::-webkit-scrollbar-thumb{background:#cbd5e0;border-radius:2px;}
+.kanban-card{background:#fff;border-radius:10px;padding:12px 13px;border:1px solid #e2e8f0;cursor:pointer;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.kanban-card:hover{border-color:#90cdf4;box-shadow:0 3px 10px rgba(0,0,0,.08);transform:translateY(-1px);}
+.kanban-card-title{font-size:13px;font-weight:600;color:#1a202c;line-height:1.4;margin-bottom:8px;}
+.kanban-card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;}
+.kanban-due{font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;display:inline-flex;align-items:center;gap:3px;}
+.kanban-due.overdue{background:#fff5f5;color:#9b2c2c;}
+.kanban-due.today{background:#fffbeb;color:#92400e;}
+.kanban-due.upcoming{background:#f0fdf4;color:#166534;}
+.kanban-due.nodate{background:#f1f5f9;color:#64748b;}
+.kanban-subtasks{border-top:1px solid #f0f4f8;margin-top:8px;padding-top:8px;}
+.kanban-sub-row{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11.5px;color:#4a5568;}
+.kanban-sub-row:last-child{padding-bottom:0;}
+.kanban-sub-chk{width:13px;height:13px;border-radius:3px;border:1.5px solid #cbd5e0;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px;cursor:pointer;transition:all .15s;}
+.kanban-sub-chk.on{background:#1a3a5c;border-color:#1a3a5c;color:#fff;}
+.kanban-sub-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.kanban-sub-title.done{text-decoration:line-through;color:#a0aec0;}
+.kanban-sub-due{font-size:10px;color:#a0aec0;flex-shrink:0;}
+.kanban-sub-due.overdue{color:#9b2c2c;font-weight:600;}
+.kanban-add-btn{margin:0 8px 8px;padding:8px;border-radius:8px;border:1.5px dashed #cbd5e0;background:transparent;color:#a0aec0;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;width:calc(100% - 16px);}
+.kanban-add-btn:hover{border-color:#90cdf4;color:#2b6cb0;background:#f7fafc;}
+.kanban-filter-bar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
+@media(max-width:768px){
+  .kanban-col{flex:0 0 240px;}
+  .kanban-wrap{max-height:none;}
+  .kanban-col{max-height:70vh;}
+}
 </style>
 </head>
 <body>
@@ -866,6 +914,7 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
   <div class="ntab" onclick="switchTab('quality',this)">Quality & Risk</div>
   <div class="ntab" onclick="switchTab('planner',this)">Planner</div>
   <div class="ntab" onclick="switchTab('ai',this)">✦ AI Assistant</div>
+  <div class="ntab" onclick="switchTab('kanban',this)">📋 Kanban</div>
   <div class="ntab" onclick="switchTab('archive',this)">🗂 Archive</div>
 </div>
 
@@ -1198,6 +1247,25 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
 
 
 <!-- ══ ARCHIVE ════════════════════════════════ -->
+<div class="pane" id="pane-kanban" style="padding:20px 24px 32px;">
+  <div class="kanban-filter-bar">
+    <span class="sec-title" style="margin-right:4px;">Kanban Board</span>
+    <select id="kbFilter" onchange="renderKanban()" style="font-size:12px;padding:5px 8px;border-radius:7px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;outline:none;">
+      <option value="all">All categories</option>
+    </select>
+    <select id="kbPri" onchange="renderKanban()" style="font-size:12px;padding:5px 8px;border-radius:7px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;outline:none;">
+      <option value="all">All priorities</option>
+      <option value="Hi">High</option>
+      <option value="Med">Medium</option>
+      <option value="Lo">Low</option>
+    </select>
+    <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:#718096;cursor:pointer;">
+      <input type="checkbox" id="kbShowDone" onchange="renderKanban()" style="accent-color:#1a3a5c;"> Show closed
+    </label>
+  </div>
+  <div class="kanban-wrap" id="kanbanWrap"></div>
+</div>
+
 <div class="pane" id="pane-archive">
   <div class="sec-hdr" style="margin-bottom:16px;">
     <span class="sec-title">Monthly Archive</span>
@@ -2072,7 +2140,7 @@ function switchTab(id,el){
   if(pane) pane.classList.add('on');
   const fn={overview:renderOverview,tasks:renderTasksTab,schedule:renderSchedule,
     weekly:renderWeekly,monthly:renderMonthly,quality:renderQuality,planner:renderPlanner,
-    ai:updateAIContext,archive:renderArchive};
+    ai:updateAIContext,archive:renderArchive,kanban:renderKanban};
   if(fn[id]){
     try{ fn[id](); }
     catch(e){
@@ -2217,6 +2285,7 @@ function renderOverview(){
       <td style="display:flex;gap:5px;flex-wrap:nowrap">
         <button class="btn sm ${t.done?'':'success'}" onclick="toggleDone(${t.id})">${t.done?'Reopen':'✓ Done'}</button>
         <button class="btn sm" onclick="openEditTask(${t.id})">Edit</button>
+        <button class="btn sm" onclick="duplicateTask(${t.id})" title="Duplicate task">⧉</button>
         <button class="btn sm danger" onclick="deleteTask(${t.id})">Del</button>
       </td>
     </tr>`;}).join('');
@@ -2310,6 +2379,7 @@ function renderTasksTab(){
       <td style="display:flex;gap:4px;flex-wrap:nowrap">
         <button class="btn sm ${t.done?'':'success'}" onclick="toggleDone(${t.id})">${t.done?'Reopen':'Done'}</button>
         <button class="btn sm" onclick="openEditTask(${t.id})">Edit</button>
+        <button class="btn sm" onclick="duplicateTask(${t.id})" title="Duplicate task">⧉</button>
         <button class="btn sm danger" onclick="deleteTask(${t.id})">Del</button>
       </td>
     </tr>`;
@@ -2382,172 +2452,142 @@ function getWeekDays(off){
   return Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
 }
 function renderWeekly(){
-  // Guard: ensure required elements exist
   if(!document.getElementById('weekTitle')) return;
-  const days=getWeekDays(wkOff);
-  const ts=localStr(new Date());
-  const DOW=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const wsStr=localStr(days[0]);
-  const weStr=localStr(days[6]);
+  const days = getWeekDays(wkOff);
+  const ts   = localStr(new Date());
+  const DOW  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const wsStr = localStr(days[0]);
+  const weStr = localStr(days[6]);
 
-  const weekTitleEl=document.getElementById('weekTitle'); if(weekTitleEl) weekTitleEl.textContent=
-    days[0].toLocaleDateString('en-SG',{day:'numeric',month:'short'})+' – '+
+  const weekTitleEl = document.getElementById('weekTitle');
+  if(weekTitleEl) weekTitleEl.textContent =
+    days[0].toLocaleDateString('en-SG',{day:'numeric',month:'short'}) + ' – ' +
     days[6].toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
-  const wkGcalEl=document.getElementById('wkGcalStatus'); if(wkGcalEl) wkGcalEl.textContent=gcal?'🟢 Calendar connected':'';
+  const wkGcalEl = document.getElementById('wkGcalStatus');
+  if(wkGcalEl) wkGcalEl.textContent = gcal ? '🟢 Calendar connected' : '';
 
-  const gridEl=document.getElementById('weekGrid');
-  if(window._wkBarsEl){window._wkBarsEl.remove();window._wkBarsEl=null;}
+  // Collect all bars for this week
+  const taskColorMap = {};
+  tasks.forEach((t,i) => { taskColorMap[t.id] = TASK_PALETTE[i % TASK_PALETTE.length]; });
 
-  // Render cell backgrounds only
-  gridEl.innerHTML=days.map((d,i)=>{
-    const ds=localStr(d);
-    return`<div class="dcol ${ds===ts?'today':''} ${ds===selWkDay?'sel':''}" onclick="selWkDay='${ds}';renderWeekly()">
+  const allBars = [];
+  tasks.forEach(t => {
+    const sd = t.startDate || t.dueDate;
+    const ed = t.dueDate   || t.startDate;
+    if(!sd || !ed || ed < wsStr || sd > weStr) return;
+    allBars.push({id:t.id, type:'task', label:t.title, sd, ed, color: taskColorMap[t.id]||'#2b6cb0'});
+  });
+  calEvs.forEach(e => {
+    const sd = e.date;
+    const ed = e.endDate || e.date;
+    if(!sd || ed < wsStr || sd > weStr) return;
+    allBars.push({id:e.id, type:'cal', label:e.title, sd, ed, color: e.color||'#276749'});
+  });
+
+  // Assign track slots (so bars stack without overlap)
+  const trackSlots = [];
+  allBars.forEach(bar => {
+    const clipSd = bar.sd < wsStr ? wsStr : bar.sd;
+    const clipEd = bar.ed > weStr ? weStr : bar.ed;
+    const cs = days.findIndex(d => localStr(d) === clipSd);
+    const ce = days.findIndex(d => localStr(d) === clipEd);
+    bar.cs = cs < 0 ? 0 : cs;
+    bar.ce = ce < 0 ? 6 : ce;
+    let slot = 0;
+    while(trackSlots.some(s => s.slot===slot && !(s.ce < bar.cs || s.cs > bar.ce))) slot++;
+    trackSlots.push({slot, cs:bar.cs, ce:bar.ce});
+    bar.slot = slot;
+  });
+
+  const MAX_WK_BARS = 3; // bars shown per cell before "+N more"
+
+  // Build per-column bar lists
+  const colBars  = Array.from({length:7}, () => []);
+  const colExtra = Array.from({length:7}, () => 0);
+  allBars.forEach(bar => {
+    for(let c = bar.cs; c <= bar.ce; c++){
+      if(bar.slot < MAX_WK_BARS) colBars[c].push(bar);
+      else colExtra[c]++;
+    }
+  });
+
+  // Render cells with bars inline (no overlay, no bleed)
+  const gridEl = document.getElementById('weekGrid');
+  if(window._wkBarsEl){ window._wkBarsEl.remove(); window._wkBarsEl = null; }
+
+  gridEl.innerHTML = days.map((d,i) => {
+    const ds = localStr(d);
+    // Sort bars for this col by slot
+    const bars = colBars[i].slice().sort((a,b) => a.slot - b.slot);
+    const extra = colExtra[i];
+    const isFirst = c => c.cs === i;  // starts in this column
+
+    const barHtml = bars.map(bar => {
+      const label = bar.cs === 0 && bar.sd < wsStr ? '↩ ' + bar.label : bar.label;
+      return `<span class="wk-bar" style="background:${bar.color};"
+        onclick="event.stopPropagation();openEvDetail('${bar.id}','${bar.type}')"
+        title="${bar.label.replace(/'/g,'&#39;')}">${label}</span>`;
+    }).join('');
+
+    const moreHtml = extra > 0
+      ? `<span class="wk-more-lbl" onclick="event.stopPropagation();selWkDay='${ds}';renderWeekly()">+${extra} more</span>`
+      : '';
+
+    return `<div class="dcol ${ds===ts?'today':''} ${ds===selWkDay?'sel':''}" onclick="selWkDay='${ds}';renderWeekly()">
       <div class="dow-lbl">${DOW[i]}</div>
       <div class="day-num">${d.getDate()}</div>
+      <div class="wk-bars-wrap">${barHtml}${moreHtml}</div>
       <button class="dadd-btn" onclick="event.stopPropagation();openNewCalEvent('${ds}')">+</button>
     </div>`;
   }).join('');
 
-  // Colour palette (same as monthly)
-  const taskColorMap={};
-  tasks.forEach((t,i)=>{taskColorMap[t.id]=TASK_PALETTE[i%TASK_PALETTE.length];});
-
-  // Collect spanning bars for this week
-  const allBars=[];
-  tasks.forEach(t=>{
-    const sd=t.startDate||t.dueDate;
-    const ed=t.dueDate||t.startDate;
-    if(!sd||!ed||ed<wsStr||sd>weStr) return;
-    allBars.push({id:t.id,type:'task',label:t.title,sd,ed,color:taskColorMap[t.id]||'#2b6cb0'});
-  });
-  calEvs.forEach(e=>{
-    const sd=e.date;
-    const ed=e.endDate||e.date;
-    if(!sd||ed<wsStr||sd>weStr) return;
-    allBars.push({id:e.id,type:'cal',label:e.title,sd,ed,color:e.color||'#276749'});
-  });
-
-  // Assign vertical track slots so bars don't overlap
-  const trackSlots=[];
-  allBars.forEach(bar=>{
-    const clipSd=bar.sd<wsStr?wsStr:bar.sd;
-    const clipEd=bar.ed>weStr?weStr:bar.ed;
-    const cs=days.findIndex(d=>localStr(d)===clipSd);
-    const ce=days.findIndex(d=>localStr(d)===clipEd);
-    bar.cs=cs<0?0:cs;
-    bar.ce=ce<0?6:ce;
-    let slot=0;
-    while(trackSlots.some(s=>s.slot===slot&&!(s.ce<bar.cs||s.cs>bar.ce))) slot++;
-    trackSlots.push({slot,cs:bar.cs,ce:bar.ce});
-    bar.slot=slot;
-  });
-
-  if(!allBars.length){renderWeekDetail();return;}
-
-  // Use requestAnimationFrame so cell positions are available
-  requestAnimationFrame(()=>{
-    const grid=document.getElementById('weekGrid');
-    const cells=grid.querySelectorAll('.dcol');
-    if(!cells.length){renderWeekDetail();return;}
-    const gridRect=grid.getBoundingClientRect();
-
-    const overlayWrap=document.createElement('div');
-    overlayWrap.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:3;';
-
-    const BAR_H = 20;      // fixed bar height px
-    const BAR_GAP = 3;     // gap between bars px
-    const BAR_TOP = 40;    // y offset from cell top (below date number)
-    const MAX_WK_BARS = 3; // max bars visible per column
-
-    // Count overflows per column
-    const wkOverflow = {};
-    allBars.forEach(bar=>{
-      if(bar.slot >= MAX_WK_BARS){
-        for(let c=bar.cs;c<=bar.ce;c++) wkOverflow[c]=(wkOverflow[c]||0)+1;
-      }
-    });
-
-    // Render +N more labels directly into cells (not overlay)
-    Object.entries(wkOverflow).forEach(([col,count])=>{
-      const cell = cells[parseInt(col)];
-      if(cell){
-        let more = cell.querySelector('.wk-more');
-        if(!more){
-          more = document.createElement('div');
-          more.className = 'wk-more';
-          more.style.cssText = 'position:absolute;font-size:9px;color:#718096;font-weight:600;'
-            +'background:rgba(255,255,255,.9);border-radius:3px;padding:1px 5px;z-index:4;cursor:pointer;';
-          cell.appendChild(more);
-        }
-        // Position below the last visible bar
-        more.style.top = (BAR_TOP + MAX_WK_BARS*(BAR_H+BAR_GAP) + 2) + 'px';
-        more.style.left = '4px';
-        more.textContent = '+' + count + ' more';
-        more.onclick = (e) => { e.stopPropagation(); selWkDay = localStr(days[parseInt(col)]); renderWeekly(); };
-      }
-    });
-
-    // Render visible bars using cell positions
-    allBars.filter(bar=>bar.slot < MAX_WK_BARS).forEach(bar=>{
-      const startCell = cells[bar.cs];
-      const endCell   = cells[bar.ce];
-      if(!startCell || !endCell) return;
-
-      const sr = startCell.getBoundingClientRect();
-      const er = endCell.getBoundingClientRect();
-      const left  = sr.left - gridRect.left;
-      const width = er.right - sr.left;
-      const top   = sr.top - gridRect.top + BAR_TOP + bar.slot * (BAR_H + BAR_GAP);
-
-      const barEl = document.createElement('div');
-      barEl.style.cssText =
-        `position:absolute;left:${left+2}px;width:${Math.max(width-4,0)}px;`+
-        `top:${top}px;height:${BAR_H}px;`+
-        `background:${bar.color};`+
-        `border-radius:${bar.cs>0?'0':'4px'} ${bar.ce<6?'0':'4px'} ${bar.ce<6?'0':'4px'} ${bar.cs>0?'0':'4px'};`+
-        `display:flex;align-items:center;padding:0 5px;overflow:hidden;`+
-        `font-size:10px;font-weight:600;color:#fff;white-space:nowrap;`+
-        `pointer-events:all;cursor:pointer;`+
-        `box-shadow:0 1px 3px rgba(0,0,0,.15);z-index:3;`;
-      barEl.textContent = bar.cs===0&&bar.sd<wsStr ? '↩ '+bar.label : bar.label;
-      barEl.title = bar.label;
-      barEl.onclick = (e) => { e.stopPropagation(); openEvDetail(bar.id, bar.type); };
-      overlayWrap.appendChild(barEl);
-    });
-
-    grid.style.position='relative';
-    grid.appendChild(overlayWrap);
-    window._wkBarsEl=overlayWrap;
-    renderWeekDetail();
-  });
+  renderWeekDetail();
 }
 function renderWeekDetail(){
-  const c=document.getElementById('weekDetail');
-  if(!selWkDay){c.innerHTML='';return;}
-  const{te,ce}=eventsOn(selWkDay);
-  const d=new Date(selWkDay+'T00:00:00');
-  const lbl=d.toLocaleDateString('en-SG',{weekday:'long',day:'numeric',month:'long'});
-  c.innerHTML=`
+  const container = document.getElementById('weekDetail');
+  if(!selWkDay){ container.innerHTML=''; return; }
+  const {te, ce} = eventsOn(selWkDay);
+  const d   = new Date(selWkDay+'T00:00:00');
+  const lbl = d.toLocaleDateString('en-SG',{weekday:'long',day:'numeric',month:'long'});
+
+  const taskRows = te.map(t => {
+    const priColor = t.priority==='Hi'?'#e53e3e':t.priority==='Med'?'#d97706':'#2b6cb0';
+    const priLabel = t.priority==='Hi'?'High':t.priority==='Med'?'Medium':'Low';
+    return `<div class="ev-row" style="border-left:3px solid ${priColor};">
+      <div class="ev-dot" style="background:${priColor};flex-shrink:0;"></div>
+      <div class="ev-title">${esc(t.title)}</div>
+      <span style="font-size:11px;font-weight:600;color:${priColor};flex-shrink:0;">${priLabel}</span>
+      <div class="ev-actions">
+        <button class="btn sm" onclick="openTaskDetail(${t.id})">Detail</button>
+        <button class="btn sm" onclick="manualSyncTask(${t.id})">↑ Sync</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const calRows = ce.map(ev => {
+    return `<div class="ev-row" style="border-left:3px solid ${ev.color||'#38a169'};">
+      <div class="ev-dot" style="background:${ev.color||'#38a169'};flex-shrink:0;"></div>
+      <div class="ev-title">${esc(ev.title)}</div>
+      ${ev.time ? `<span class="ev-time" style="flex-shrink:0;">${ev.time}${ev.endTime?' – '+ev.endTime:''}</span>` : ''}
+      ${ev.source==='gcal'?'<span class="badge b-gcal" style="flex-shrink:0;">GCal</span>':''}
+      <div class="ev-actions">
+        <button class="btn sm" onclick="openEvDetail('${ev.id}','cal')">Edit</button>
+        <button class="btn sm danger" onclick="deleteCalEv('${ev.id}');renderWeekDetail()">Del</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  container.innerHTML = `
     <div class="day-detail-panel">
-      <div class="ddp-title"><span>${lbl}</span><button class="btn sm primary" onclick="openNewCalEvent('${selWkDay}')">+ Add event</button></div>
-      ${te.length===0&&ce.length===0?'<div style="color:#a0aec0;font-size:13px">No events on this day.</div>':''}
-      ${te.map(t=>`
-        <div class="ev-row">
-          <div class="ev-dot" style="background:${t.priority==='Hi'?'#9b2c2c':t.priority==='Med'?'#d69e2e':'#1a3a5c'}"></div>
-          <div class="ev-title">${esc(t.title)}</div>
-          ${priBadge(t.priority||'Med')}
-          ${t.synced?`<span class="badge b-gcal" style="cursor:pointer" onclick="${t.calUrl?`window.open('${t.calUrl}','_blank')`:'void(0)'}">🗓 Synced</span>`:''}
-          <button class="btn sm" onclick="manualSyncTask(${t.id})" title="Sync to Google Calendar">↑ Sync</button>
-        </div>`).join('')}
-      ${ce.map(c=>`
-        <div class="ev-row">
-          <div class="ev-dot" style="background:${c.color||'#38a169'}"></div>
-          <div class="ev-title">${esc(c.title)}</div>
-          ${c.time?`<span class="ev-time">${c.time}${c.endTime?' – '+c.endTime:''}</span>`:''}
-          ${c.source==='gcal'?'<span class="badge b-gcal">🗓 From GCal</span>':''}
-          <button class="btn sm" onclick="openEvDetail('${c.id}','cal')">Edit</button>
-          <button class="btn sm danger" onclick="deleteCalEv('${c.id}')">Del</button>
-        </div>`).join('')}
+      <div class="ddp-title">
+        <span>${lbl}</span>
+        <button class="btn sm primary" onclick="openNewCalEvent('${selWkDay}')">+ Add event</button>
+      </div>
+      ${te.length===0 && ce.length===0
+        ? '<div style="color:#a0aec0;font-size:13px;padding:8px 0;">No events on this day.</div>'
+        : ''}
+      ${te.length ? `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#a0aec0;margin-bottom:6px;">Tasks</div>${taskRows}` : ''}
+      ${ce.length ? `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#a0aec0;margin:${te.length?'10px':0} 0 6px;">Calendar events</div>${calRows}` : ''}
     </div>`;
 }
 
@@ -4745,6 +4785,7 @@ function refreshActive(){
   else if(txt==='Planner') renderPlanner();
   else if(txt.includes('AI')) updateAIContext();
   else if(txt.includes('Archive')) renderArchive();
+  else if(txt.includes('Kanban')) renderKanban();
 }
 
 /* ════════════════════════════════════════════
@@ -5223,7 +5264,8 @@ function openTaskDetail(id){
   document.getElementById('tdActions').innerHTML = `
     <button class="btn primary" onclick="closeTD();openEditTask(${t.id})">Edit task</button>
     <button class="btn ${t.done?'':'success'}" onclick="toggleDone(${t.id});closeTD()">${t.done?'Reopen':'✓ Mark done'}</button>
-    <button class="btn" onclick="closeTD();openEditTask(${t.id})">↑ Sync to calendar</button>
+    <button class="btn" onclick="duplicateTask(${t.id});closeTD()">⧉ Duplicate</button>
+    <button class="btn" onclick="closeTD();manualSyncTask(${t.id})">↑ Sync to calendar</button>
     <button class="btn danger" style="margin-left:auto" onclick="if(confirm('Delete this task?')){deleteTask(${t.id});closeTD();}">Delete</button>
   `;
 
@@ -5322,6 +5364,186 @@ function deleteSubtaskFromModal(){
 /* ════════════════════════════════════════════
    TOAST
 ════════════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   DUPLICATE TASK
+════════════════════════════════════════════ */
+function duplicateTask(id){
+  const t = tasks.find(t=>t.id===id||t.id==id);
+  if(!t) return;
+  const copy = JSON.parse(JSON.stringify(t));
+  copy.id        = Date.now() + Math.floor(Math.random()*1000);
+  copy.title     = 'Copy of ' + t.title;
+  copy.done      = false;
+  copy.status    = 'Open';
+  copy.synced    = false;
+  copy.gcalId    = null;
+  copy.calUrl    = null;
+  copy.createdAt = new Date().toISOString();
+  // Reset subtask done states
+  (copy.subtasks||[]).forEach(s=>{ s.id='st_'+Date.now()+Math.random(); s.done=false; s.status='Open'; });
+  tasks.unshift(copy);
+  save();
+  refreshActive();
+  toast('⧉ Task duplicated — "' + copy.title.substring(0,40) + '"', 'ok');
+}
+
+/* ════════════════════════════════════════════
+   KANBAN BOARD
+════════════════════════════════════════════ */
+const KANBAN_COLS = [
+  { id:'open',     label:'Open',             color:'#64748b', bg:'#f1f5f9' },
+  { id:'progress', label:'In Progress',      color:'#1d4ed8', bg:'#eff6ff' },
+  { id:'pending',  label:'Pending External', color:'#92400e', bg:'#fffbeb' },
+  { id:'review',   label:'Under Review',     color:'#075985', bg:'#e0f2fe' },
+  { id:'closed',   label:'Closed',           color:'#166534', bg:'#f0fdf4' },
+];
+
+function kanbanStatusToCol(t){
+  if(t.done || t.status==='Closed') return 'closed';
+  if(t.status==='In Progress')      return 'progress';
+  if(t.status==='Pending External') return 'pending';
+  if(t.status==='Under Review')     return 'review';
+  return 'open';
+}
+
+function kanbanDueChip(dateStr, done){
+  if(!dateStr) return '<span class="kanban-due nodate">No due date</span>';
+  const today = todayStr();
+  const d = new Date(dateStr+'T00:00:00');
+  const label = d.toLocaleDateString('en-SG',{day:'numeric',month:'short'});
+  if(done) return `<span class="kanban-due upcoming">📅 ${label}</span>`;
+  if(dateStr < today)  return `<span class="kanban-due overdue">⚠ ${label}</span>`;
+  if(dateStr === today) return `<span class="kanban-due today">🔔 Today</span>`;
+  return `<span class="kanban-due upcoming">📅 ${label}</span>`;
+}
+
+function kanbanSubStatusToCol(s){
+  if(s.done || s.status==='Closed') return 'closed';
+  if(s.status==='In Progress')      return 'progress';
+  if(s.status==='Pending External') return 'pending';
+  if(s.status==='Under Review')     return 'review';
+  return 'open';
+}
+
+function renderKanban(){
+  const wrap = document.getElementById('kanbanWrap');
+  if(!wrap) return;
+
+  // Populate category filter
+  const kbFilter = document.getElementById('kbFilter');
+  if(kbFilter){
+    const cur = kbFilter.value;
+    const cats = [...new Set(tasks.flatMap(t=>t.tags||[]))].sort();
+    kbFilter.innerHTML = '<option value="all">All categories</option>' +
+      cats.map(c=>`<option value="${c}" ${cur===c?'selected':''}>${c}</option>`).join('');
+  }
+
+  const filterCat  = (document.getElementById('kbFilter')||{}).value || 'all';
+  const filterPri  = (document.getElementById('kbPri')||{}).value    || 'all';
+  const showClosed = document.getElementById('kbShowDone')?.checked  || false;
+
+  // Build flat list of ALL items to show on the board:
+  // Each parent task + each of its subtasks as individual cards
+  const allCards = []; // {type:'task'|'sub', task, sub?, colId}
+
+  tasks.forEach(t => {
+    // Apply filters to parent task
+    if(filterCat !== 'all' && !(t.tags||[]).includes(filterCat)) return;
+    if(filterPri !== 'all' && t.priority !== filterPri) return;
+
+    // Parent task card (only if it has NO subtasks, or show as a summary)
+    const subs = t.subtasks || [];
+    const parentColId = kanbanStatusToCol(t);
+    if(showClosed || parentColId !== 'closed'){
+      allCards.push({ type:'task', task:t, colId: parentColId });
+    }
+
+    // Each subtask as its own card
+    subs.forEach(s => {
+      const subColId = kanbanSubStatusToCol(s);
+      if(!showClosed && subColId === 'closed') return;
+      allCards.push({ type:'sub', task:t, sub:s, colId: subColId });
+    });
+  });
+
+  wrap.innerHTML = KANBAN_COLS.map(col => {
+    if(!showClosed && col.id === 'closed') return '';
+
+    const colItems = allCards.filter(c => c.colId === col.id);
+    const totalCount = colItems.length;
+
+    const cards = colItems.map(item => {
+      if(item.type === 'task'){
+        const t = item.task;
+        const subs = t.subtasks || [];
+        const sDone = subs.filter(s=>s.done).length;
+        const pctW  = subs.length ? Math.round((sDone/subs.length)*100) : 0;
+        const priColor = t.priority==='Hi'?'#e53e3e':t.priority==='Med'?'#d97706':'#16a34a';
+        const priLabel = t.priority==='Hi'?'High':t.priority==='Med'?'Medium':'Low';
+
+        // Subtask progress bar if has subtasks
+        const progBar = subs.length ? `
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+            <div style="flex:1;height:3px;background:#e2e8f0;border-radius:2px;overflow:hidden;">
+              <div style="height:100%;width:${pctW}%;background:#1a3a5c;border-radius:2px;"></div>
+            </div>
+            <span style="font-size:10px;color:#718096;flex-shrink:0;">${sDone}/${subs.length} subtasks</span>
+          </div>` : '';
+
+        return `<div class="kanban-card" onclick="openTaskDetail(${t.id})">
+          <div class="kanban-card-title">${esc(t.title)}</div>
+          <div class="kanban-card-meta">
+            ${kanbanDueChip(t.dueDate, t.done)}
+            <span style="font-size:11px;font-weight:600;color:${priColor};">${priLabel}</span>
+            ${(t.tags||[]).map(g=>`<span style="font-size:10px;background:#edf2f7;color:#4a5568;border-radius:4px;padding:1px 6px;">${g}</span>`).join('')}
+          </div>
+          ${t.owner?`<div style="font-size:11px;color:#a0aec0;margin-bottom:6px;">👤 ${esc(t.owner)}</div>`:''}
+          ${progBar}
+          <div style="display:flex;gap:5px;margin-top:6px;" onclick="event.stopPropagation()">
+            <button class="btn sm" style="font-size:10.5px;padding:3px 8px;" onclick="openEditTask(${t.id})">Edit</button>
+            <button class="btn sm" style="font-size:10.5px;padding:3px 8px;" onclick="duplicateTask(${t.id})">⧉</button>
+            <button class="btn sm ${t.done?'':'success'}" style="font-size:10.5px;padding:3px 8px;" onclick="toggleDone(${t.id})">${t.done?'Reopen':'✓ Done'}</button>
+          </div>
+        </div>`;
+
+      } else {
+        // Subtask card
+        const t = item.task;
+        const s = item.sub;
+        const subOverdue = s.dueDate && s.dueDate < todayStr() && !s.done;
+        const priColor = t.priority==='Hi'?'#e53e3e':t.priority==='Med'?'#d97706':'#16a34a';
+
+        return `<div class="kanban-card" style="border-left:3px solid ${priColor};opacity:${s.done?'.7':'1'};" onclick="openTaskDetail(${t.id})">
+          <!-- Parent task breadcrumb -->
+          <div style="font-size:10px;color:#a0aec0;margin-bottom:5px;display:flex;align-items:center;gap:4px;overflow:hidden;">
+            <span style="flex-shrink:0;">↳</span>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.title)}</span>
+          </div>
+          <div class="kanban-card-title" style="font-size:12.5px;${s.done?'text-decoration:line-through;color:#a0aec0;':''}">${esc(s.title)}</div>
+          <div class="kanban-card-meta">
+            ${kanbanDueChip(s.dueDate, s.done)}
+            ${(t.tags||[]).map(g=>`<span style="font-size:10px;background:#edf2f7;color:#4a5568;border-radius:4px;padding:1px 6px;">${g}</span>`).join('')}
+          </div>
+          ${s.owner?`<div style="font-size:11px;color:#a0aec0;margin-bottom:4px;">👤 ${esc(s.owner)}</div>`:''}
+          <div style="display:flex;gap:5px;margin-top:6px;" onclick="event.stopPropagation()">
+            <button class="btn sm" style="font-size:10.5px;padding:3px 8px;" onclick="openSubtaskDetail(${t.id},'${s.id}')">Edit</button>
+            <button class="btn sm ${s.done?'':'success'}" style="font-size:10.5px;padding:3px 8px;" onclick="toggleSubtaskDone(${t.id},'${s.id}');renderKanban();">${s.done?'Reopen':'✓ Done'}</button>
+          </div>
+        </div>`;
+      }
+    }).join('');
+
+    return `<div class="kanban-col">
+      <div class="kanban-col-hdr" style="background:${col.bg};color:${col.color};">
+        <span class="kanban-col-title" style="color:${col.color};">${col.label}</span>
+        <span class="kanban-col-count" style="background:${col.color}20;color:${col.color};">${totalCount}</span>
+      </div>
+      <div class="kanban-cards" id="kb_${col.id}">${cards||'<div style="text-align:center;padding:20px 10px;color:#a0aec0;font-size:12px;">No tasks</div>'}</div>
+      <button class="kanban-add-btn" onclick="openAddTask()">+ Add task</button>
+    </div>`;
+  }).join('');
+}
+
 function toast(msg,type){
   const el=document.getElementById('toast');
   el.textContent=msg;el.className='toast show'+(type?' '+type:'');
