@@ -4151,8 +4151,19 @@ function saveTask(){
     tasks.unshift(t);
     if(gcal&&(t.dueDate||t.startDate)){pushTask(t).then(()=>{save();refreshActive();});}
   }
-  save();refreshActive();closeTaskModal();
-  toast(editId?'Task updated':'Task added'+(gcal?' & synced':''),'ok');
+  save();refreshActive();
+  if(editId===null){
+    closeTaskModal();
+    toast('Task added'+(gcal?' & synced':''),'ok');
+  } else {
+    // Stay open — refresh subtask list so user sees saved state
+    toast('Task updated ✓','ok');
+    // Re-open the detail with updated data so subtask list reflects changes
+    window._editSubtasks = JSON.parse(JSON.stringify(
+      (tasks.find(t=>t.id===editId||t.id==editId)||{}).subtasks||[]
+    ));
+    renderSubtaskList();
+  }
   setTimeout(refreshNotifications,500);
   }catch(err){console.error('saveTask error:',err);toast('Error saving: '+err.message,'warn');}
 }
@@ -4179,14 +4190,22 @@ function renderSubtaskList(){
   if(txt) txt.textContent = done+' / '+total+' done';
 
   list.innerHTML = subs.map((s,i)=>`
-    <div class="st-card" id="stcard_${i}">
+    <div class="st-card" id="stcard_${i}"
+      draggable="true"
+      ondragstart="stDragStart(event,${i})"
+      ondragover="stDragOver(event,${i})"
+      ondrop="stDrop(event,${i})"
+      ondragleave="stDragLeave(event)"
+      ondragend="stDragEnd(event)">
       <div class="st-card-hdr" onclick="toggleStBody(${i})">
-        <span class="st-drag" onclick="event.stopPropagation()">⠿</span>
+        <span class="st-drag" onmousedown="event.stopPropagation()" title="Drag to reorder">⠿</span>
         <div class="st-chk ${s.done?'on':''}" onclick="event.stopPropagation();toggleStDone(${i})">${s.done?'✓':''}</div>
         <input class="st-title-inp ${s.done?'done-t':''}" value="${esc(s.title||'')}" placeholder="Subtask name…"
           onclick="event.stopPropagation()"
           oninput="window._editSubtasks[${i}].title=this.value;updateStProgress()"/>
         <span class="st-expand-icon ${s._open?'open':''}">▶</span>
+        <button class="st-del" onclick="event.stopPropagation();moveSubtask(${i},-1)" title="Move up" style="font-size:11px;color:#718096;">▲</button>
+        <button class="st-del" onclick="event.stopPropagation();moveSubtask(${i},1)" title="Move down" style="font-size:11px;color:#718096;">▼</button>
         <button class="st-del" onclick="event.stopPropagation();removeSubtask(${i})" title="Remove">×</button>
       </div>
       <div class="st-card-body" style="display:${s._open?'flex':'none'}">
@@ -4229,6 +4248,51 @@ function toggleStBody(i){
   renderSubtaskList();
 }
 
+/* ── SUBTASK DRAG-TO-REORDER ── */
+let _stDragIdx = null;
+
+function stDragStart(e, i){
+  _stDragIdx = i;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => {
+    const el = document.getElementById('stcard_'+i);
+    if(el) el.style.opacity = '0.4';
+  }, 0);
+}
+
+function stDragOver(e, i){
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  // Highlight target
+  document.querySelectorAll('.st-card').forEach(c => c.style.borderColor = '');
+  const el = document.getElementById('stcard_'+i);
+  if(el && i !== _stDragIdx) el.style.borderColor = '#90cdf4';
+}
+
+function stDragLeave(e){
+  e.currentTarget.style.borderColor = '';
+}
+
+function stDrop(e, targetIdx){
+  e.preventDefault();
+  if(_stDragIdx === null || _stDragIdx === targetIdx) return;
+  // Reorder array
+  const subs = window._editSubtasks;
+  const [moved] = subs.splice(_stDragIdx, 1);
+  subs.splice(targetIdx, 0, moved);
+  _stDragIdx = null;
+  renderSubtaskList();
+}
+
+function stDragEnd(e){
+  // Clean up styles
+  document.querySelectorAll('.st-card').forEach(c => {
+    c.style.opacity = '';
+    c.style.borderColor = '';
+  });
+  _stDragIdx = null;
+}
+
 function toggleStDone(i){
   const s = window._editSubtasks[i];
   s.done = !s.done;
@@ -4248,6 +4312,15 @@ function addSubtask(){
 
 function removeSubtask(i){
   window._editSubtasks.splice(i,1);
+  renderSubtaskList();
+}
+
+function moveSubtask(i, dir){
+  const subs = window._editSubtasks;
+  const target = i + dir;
+  if(target < 0 || target >= subs.length) return;
+  const [moved] = subs.splice(i, 1);
+  subs.splice(target, 0, moved);
   renderSubtaskList();
 }
 
