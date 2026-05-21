@@ -1607,7 +1607,6 @@ let top3   = readLocal(TOP3_KEYS, '[{"text":"","done":false},{"text":"","done":f
 let gcal   = readLocal(GCAL_KEYS, 'null');
 
 let wkOff=0, moOff=0, selWkDay=null, selMoDay=null;
-let wkMobileOff=0;
 let wkMobileOff=0; // day offset for mobile 3-day view
 let editId=null;
 let pomMode='work', pomRun=false, pomRemain=1500, pomTotal=1500, pomTmr=null;
@@ -2113,16 +2112,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   const hdrDate=document.getElementById('hdrDate');
   if(hdrDate) hdrDate.textContent=new Date().toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
   try{ const a=localStorage.getItem('tf_archives'); if(a) _archives=JSON.parse(a); }catch(e){}
-  // On mobile, auto-scroll to today's 3-day block
-(function(){
-  if(window.innerWidth <= 768){
-    const dow = new Date().getDay(); // 0=Sun,1=Mon...
-    const idx = dow === 0 ? 6 : dow - 1; // Mon=0..Sun=6
-    wkMobileOff = Math.floor(idx / 3);
-    if(wkMobileOff > 1) wkMobileOff = 1;
-  }
-})();
-renderAll(); renderTop3(); updatePomUI();
+  renderAll(); renderTop3(); updatePomUI();
   const ppb=document.getElementById('pushPermBtn');
   if(ppb&&localStorage.getItem('tf_push')==='granted'&&Notification.permission==='granted'){
     ppb.textContent='✓ Push notifications on'; ppb.style.color='#16a34a';
@@ -2473,17 +2463,33 @@ function renderSchedule(){
 ════════════════════════════════════════════ */
 function wkNavPrev(){
   if(isMobile()){
-    if(wkMobileOff > 0){ wkMobileOff--; }
-    else { wkOff--; wkMobileOff = 1; } // prev week, show Thu-Sun block
-  } else { wkOff--; }
+    // On mobile: step back 3 days; if at start of week, go to prev week
+    if(wkMobileOff > 0){
+      wkMobileOff--;
+    } else {
+      wkOff--;
+      wkMobileOff = 2; // start at last 3-day block of prev week (days 6-8 → idx 4-6)
+    }
+  } else {
+    wkOff--;
+  }
   renderWeekly();
 }
 
 function wkNavNext(){
   if(isMobile()){
-    if(wkMobileOff < 1){ wkMobileOff++; }
-    else { wkOff++; wkMobileOff = 0; } // next week, start Mon-Wed
-  } else { wkOff++; }
+    // On mobile: step forward 3 days; if at end of week, go to next week
+    const allDays = getWeekDays(wkOff);
+    const anchor = Math.min(4, wkMobileOff * 3);
+    if(anchor + 3 < allDays.length){
+      wkMobileOff++;
+    } else {
+      wkOff++;
+      wkMobileOff = 0;
+    }
+  } else {
+    wkOff++;
+  }
   renderWeekly();
 }
 
@@ -2507,10 +2513,22 @@ function renderWeekly(){
     // Find index of today in the week, default to 0 (Mon)
     const ts0 = localStr(new Date());
     let anchor = allWeekDays.findIndex(d => localStr(d) === ts0);
-    const startIdx = Math.min(wkMobileOff * 3, 4);
+    if(anchor < 0) anchor = 0;
+    // Round anchor down to nearest multiple of 3
+    anchor = Math.floor(anchor / 3) * 3;
+    // Apply wkMobileOff (steps of 3)
+    let startIdx = anchor + wkMobileOff * 3;
+    // Clamp to 0–4 so we always show 3 days within the week
+    startIdx = Math.max(0, Math.min(4, startIdx));
     days = allWeekDays.slice(startIdx, startIdx + 3);
+    // Pad to 3 if slice is short
+    while(days.length < 3){
+      const last = days[days.length-1];
+      const next = new Date(last); next.setDate(last.getDate()+1);
+      days.push(next);
+    }
   } else {
-    wkMobileOff = 0;
+    wkMobileOff = 0; // reset mobile offset when on desktop
     days = getWeekDays(wkOff);
   }
 
@@ -2538,9 +2556,6 @@ function renderWeekly(){
   const taskColorMap = {};
   tasks.forEach((t,i) => { taskColorMap[t.id] = TASK_PALETTE[i % TASK_PALETTE.length]; });
 
-  // For bar collection, use full week range so multi-day events show correctly
-  const fullWsStr = localStr(allDays[0]);
-  const fullWeStr = localStr(allDays[allDays.length-1]);
   const allBars = [];
   tasks.forEach(t => {
     const sd = t.startDate || t.dueDate;
@@ -2555,7 +2570,7 @@ function renderWeekly(){
     allBars.push({id:e.id, type:'cal', label:e.title, sd, ed, color: e.color||'#276749'});
   });
 
-  // Assign track slots using the visible days array
+  // Assign track slots (so bars stack without overlap)
   const trackSlots = [];
   allBars.forEach(bar => {
     const clipSd = bar.sd < wsStr ? wsStr : bar.sd;
@@ -2563,7 +2578,7 @@ function renderWeekly(){
     const cs = days.findIndex(d => localStr(d) === clipSd);
     const ce = days.findIndex(d => localStr(d) === clipEd);
     bar.cs = cs < 0 ? 0 : cs;
-    bar.ce = ce < 0 ? days.length - 1 : ce;
+    bar.ce = ce < 0 ? 6 : ce;
     let slot = 0;
     while(trackSlots.some(s => s.slot===slot && !(s.ce < bar.cs || s.cs > bar.ce))) slot++;
     trackSlots.push({slot, cs:bar.cs, ce:bar.ce});
