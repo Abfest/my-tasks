@@ -735,12 +735,12 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
   .week-nav{margin-bottom:10px;}
   .week-title-txt{font-size:13px;}
   .week-grid{
-    grid-template-columns:repeat(7,minmax(0,1fr));
-    gap:2px;margin-bottom:10px;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:4px;margin-bottom:10px;
   }
-  .dcol{min-height:120px;padding:5px 3px 22px;border-radius:7px;}
-  .dow-lbl{font-size:8px;letter-spacing:0;}
-  .day-num{font-size:13px;margin-bottom:18px;}
+  .dcol{min-height:calc(100vh - 340px);padding:8px 5px 26px;border-radius:8px;}
+  .dow-lbl{font-size:10px;letter-spacing:.02em;margin-bottom:2px;}
+  .day-num{font-size:18px;margin-bottom:4px;}
   .dadd-btn{width:14px;height:14px;font-size:10px;bottom:3px;right:3px;}
 
   /* ── MONTHLY CALENDAR ── */
@@ -1041,12 +1041,12 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
 <!-- ══ WEEKLY ═════════════════════════════════ -->
 <div class="pane" id="pane-weekly" style="flex-direction:column;">
   <div class="week-nav">
-    <button class="nav-arrow" onclick="wkOff--;renderWeekly()">‹</button>
+    <button class="nav-arrow" onclick="wkNavPrev()">‹</button>
     <div class="week-title-txt" id="weekTitle"></div>
-    <button class="nav-arrow" onclick="wkOff++;renderWeekly()">›</button>
+    <button class="nav-arrow" onclick="wkNavNext()">›</button>
   </div>
   <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
-    <button class="btn sm" onclick="wkOff=0;renderWeekly()">Today</button>
+    <button class="btn sm" onclick="wkOff=0;wkMobileOff=0;renderWeekly()">Today</button>
     <button class="btn sm primary" onclick="openNewCalEvent(todayStr())">+ Add event</button>
     <span style="font-size:11.5px;color:#a0aec0;margin-left:auto" id="wkGcalStatus"></span>
   </div>
@@ -1607,6 +1607,7 @@ let top3   = readLocal(TOP3_KEYS, '[{"text":"","done":false},{"text":"","done":f
 let gcal   = readLocal(GCAL_KEYS, 'null');
 
 let wkOff=0, moOff=0, selWkDay=null, selMoDay=null;
+let wkMobileOff=0; // day offset for mobile 3-day view
 let editId=null;
 let pomMode='work', pomRun=false, pomRemain=1500, pomTotal=1500, pomTmr=null;
 let toastTmr, _fbUnsubTasks, _fbUnsubCal, _fbUnsubTop3;
@@ -2460,23 +2461,94 @@ function renderSchedule(){
 /* ════════════════════════════════════════════
    WEEKLY
 ════════════════════════════════════════════ */
+function wkNavPrev(){
+  if(isMobile()){
+    // On mobile: step back 3 days; if at start of week, go to prev week
+    if(wkMobileOff > 0){
+      wkMobileOff--;
+    } else {
+      wkOff--;
+      wkMobileOff = 2; // start at last 3-day block of prev week (days 6-8 → idx 4-6)
+    }
+  } else {
+    wkOff--;
+  }
+  renderWeekly();
+}
+
+function wkNavNext(){
+  if(isMobile()){
+    // On mobile: step forward 3 days; if at end of week, go to next week
+    const allDays = getWeekDays(wkOff);
+    const anchor = Math.min(4, wkMobileOff * 3);
+    if(anchor + 3 < allDays.length){
+      wkMobileOff++;
+    } else {
+      wkOff++;
+      wkMobileOff = 0;
+    }
+  } else {
+    wkOff++;
+  }
+  renderWeekly();
+}
+
 function getWeekDays(off){
   const now=new Date();
   const mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7)+off*7);
   return Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
 }
+function isMobile(){ return window.innerWidth <= 768; }
+
 function renderWeekly(){
   if(!document.getElementById('weekTitle')) return;
-  const days = getWeekDays(wkOff);
+
+  const mobile = isMobile();
+  let days;
+
+  if(mobile){
+    // 3-day view: anchor on Monday of current week + wkOff weeks,
+    // then shift by wkMobileOff days (steps of 3)
+    const allWeekDays = getWeekDays(wkOff);
+    // Find index of today in the week, default to 0 (Mon)
+    const ts0 = localStr(new Date());
+    let anchor = allWeekDays.findIndex(d => localStr(d) === ts0);
+    if(anchor < 0) anchor = 0;
+    // Round anchor down to nearest multiple of 3
+    anchor = Math.floor(anchor / 3) * 3;
+    // Apply wkMobileOff (steps of 3)
+    let startIdx = anchor + wkMobileOff * 3;
+    // Clamp to 0–4 so we always show 3 days within the week
+    startIdx = Math.max(0, Math.min(4, startIdx));
+    days = allWeekDays.slice(startIdx, startIdx + 3);
+    // Pad to 3 if slice is short
+    while(days.length < 3){
+      const last = days[days.length-1];
+      const next = new Date(last); next.setDate(last.getDate()+1);
+      days.push(next);
+    }
+  } else {
+    wkMobileOff = 0; // reset mobile offset when on desktop
+    days = getWeekDays(wkOff);
+  }
+
   const ts   = localStr(new Date());
   const DOW  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const wsStr = localStr(days[0]);
-  const weStr = localStr(days[6]);
+  const weStr = localStr(days[days.length-1]);
 
   const weekTitleEl = document.getElementById('weekTitle');
-  if(weekTitleEl) weekTitleEl.textContent =
-    days[0].toLocaleDateString('en-SG',{day:'numeric',month:'short'}) + ' – ' +
-    days[6].toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
+  if(weekTitleEl){
+    if(mobile){
+      weekTitleEl.textContent =
+        days[0].toLocaleDateString('en-SG',{day:'numeric',month:'short'}) + ' – ' +
+        days[days.length-1].toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
+    } else {
+      weekTitleEl.textContent =
+        days[0].toLocaleDateString('en-SG',{day:'numeric',month:'short'}) + ' – ' +
+        days[6].toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
+    }
+  }
   const wkGcalEl = document.getElementById('wkGcalStatus');
   if(wkGcalEl) wkGcalEl.textContent = gcal ? '🟢 Calendar connected' : '';
 
@@ -2513,7 +2585,7 @@ function renderWeekly(){
     bar.slot = slot;
   });
 
-  const MAX_WK_BARS = 4; // bars shown per cell before "+N more"
+  const MAX_WK_BARS = isMobile() ? 3 : 4; // bars shown per cell
 
   // Build per-column bar lists
   const colBars  = Array.from({length:7}, () => []);
