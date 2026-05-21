@@ -84,6 +84,7 @@ tbody tr:hover td{background:#f7fafc;}
 .badge .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 /* Status badge colours — QA traffic-light logic */
 .b-open{background:#f1f5f9;color:#475569;}.b-open .dot{background:#94a3b8;}
+.b-tostart{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;}.b-tostart .dot{background:#16a34a;}
 .b-progress{background:#eff6ff;color:#1d4ed8;}.b-progress .dot{background:#3b82f6;}
 .b-pending{background:#fffbeb;color:#92400e;}.b-pending .dot{background:#f59e0b;}
 .b-review{background:#e0f2fe;color:#075985;}.b-review .dot{background:#0ea5e9;}
@@ -104,16 +105,16 @@ tbody tr:hover td{background:#f7fafc;}
 .nav-arrow{width:30px;height:30px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#718096;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
 .nav-arrow:hover{background:#f7fafc;border-color:#cbd5e0;color:#2d3748;}
 .week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:16px;position:relative;flex:1;}
-.dcol{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 8px 10px 8px;min-height:calc(100vh - 280px);cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
+.dcol{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 6px 28px 6px;min-height:calc(100vh - 280px);cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
 .dcol:hover{border-color:#90cdf4;box-shadow:0 1px 4px rgba(0,0,0,.06);}
 .dcol.today{border-color:#1a3a5c;border-width:2px;}
 .dcol.sel{border-color:#2b6cb0;background:#ebf8ff;}
 .dow-lbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#a0aec0;margin-bottom:3px;}
-.day-num{font-size:17px;font-weight:700;color:#2d3748;margin-bottom:4px;}
+.day-num{font-size:16px;font-weight:700;color:#2d3748;margin-bottom:2px;}
 .dcol.today .day-num{color:#1a3a5c;}
 .dmore{font-size:9px;color:#a0aec0;padding:1px 5px;}
 .dadd-btn{position:absolute;bottom:5px;right:5px;width:18px;height:18px;border-radius:4px;background:#1a3a5c;border:none;color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;}
-.wk-bars-wrap{display:flex;flex-direction:column;gap:0;margin-top:2px;}
+.wk-bars-wrap{display:flex;flex-direction:column;gap:2px;margin-top:4px;}
 .dcol:hover .dadd-btn{opacity:1;}
 .day-detail-panel{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;}
 .ddp-title{font-size:14px;font-weight:700;color:#1a202c;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
@@ -122,10 +123,19 @@ tbody tr:hover td{background:#f7fafc;}
 .ev-row-cal{border-left:3px solid transparent;}
 .ev-title{font-size:12.5px;font-weight:500;flex:1;color:#2d3748;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .ev-actions{display:flex;gap:5px;align-items:center;flex-shrink:0;}
-/* In-cell week bar chips */
-.wk-bar{display:block;margin:2px 0;padding:2px 5px;border-radius:3px;font-size:10px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.4;}
-.wk-bar:hover{opacity:.85;}
-.wk-more-lbl{font-size:10px;color:#718096;font-weight:600;padding:2px 4px;cursor:pointer;display:block;}
+/* In-cell week bar chips — matches monthly calendar style */
+.wk-bar{
+  display:block;margin:2px 0;padding:3px 6px;
+  border-radius:4px;font-size:11px;font-weight:600;color:#fff;
+  white-space:normal;word-break:break-word;line-height:1.35;
+  cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.12);
+  transition:opacity .15s, filter .15s;
+}
+.wk-bar:hover{opacity:.88;filter:brightness(1.05);}
+.wk-bar.continues-left{border-radius:0 4px 4px 0;margin-left:-2px;}
+.wk-bar.continues-right{border-radius:4px 0 0 4px;margin-right:-2px;}
+.wk-bar.continues-both{border-radius:0;margin-left:-2px;margin-right:-2px;}
+.wk-more-lbl{font-size:10.5px;color:#718096;font-weight:600;padding:3px 4px;cursor:pointer;display:block;margin-top:1px;}
 .wk-more-lbl:hover{color:#2b6cb0;}
 .ev-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 /* ev-title now in ev-row block */
@@ -728,7 +738,7 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
     grid-template-columns:repeat(7,minmax(0,1fr));
     gap:2px;margin-bottom:10px;
   }
-  .dcol{min-height:70px;padding:5px 3px;border-radius:7px;}
+  .dcol{min-height:120px;padding:5px 3px 22px;border-radius:7px;}
   .dow-lbl{font-size:8px;letter-spacing:0;}
   .day-num{font-size:13px;margin-bottom:18px;}
   .dadd-btn{width:14px;height:14px;font-size:10px;bottom:3px;right:3px;}
@@ -974,6 +984,7 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
     <select id="fStatus" onchange="renderTasksTab()" style="font-size:12px;padding:6px 8px;border-radius:7px;border:1px solid #e2e8f0;background:#fff;color:#2d3748;font-family:'Inter',sans-serif;outline:none;">
       <option value="all">All status</option>
       <option value="Open">Open</option>
+      <option value="To Start">To Start</option>
       <option value="In Progress">In Progress</option>
       <option value="Pending External">Pending External</option>
       <option value="Under Review">Under Review</option>
@@ -1327,6 +1338,7 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
       <div class="ff"><label class="flbl">Overall status</label>
         <select id="fStatusM">
           <option value="Open" selected>Open</option>
+          <option value="To Start">To Start</option>
           <option value="In Progress">In Progress</option>
           <option value="Pending External">Pending External</option>
           <option value="Under Review">Under Review / Verification</option>
@@ -1434,6 +1446,7 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
           <div class="st-modal-lbl">Status</div>
           <select class="st-modal-val st-modal-select" id="stEditStatus">
             <option value="Open">Open</option>
+            <option value="To Start">To Start</option>
             <option value="In Progress">In Progress</option>
             <option value="Pending External">Pending External</option>
             <option value="Under Review">Under Review</option>
@@ -1794,7 +1807,8 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function statusBadge(t){
   const s = t.done ? 'Closed' : (t.status || 'Open');
   const map = {
-    'Open':              ['b-open',     '#94a3b8'],  /* Grey   — new, not started   */
+    'Open':              ['b-open',     '#94a3b8'],  /* Grey   — not started yet    */
+    'To Start':          ['b-tostart',  '#16a34a'],  /* Green  — about to begin      */
     'In Progress':       ['b-progress', '#3b82f6'],  /* Blue   — active work         */
     'Pending External':  ['b-pending',  '#f59e0b'],  /* Amber  — blocked/waiting     */
     'Under Review':      ['b-review',   '#0ea5e9'],  /* Sky    — verification        */
@@ -2499,7 +2513,7 @@ function renderWeekly(){
     bar.slot = slot;
   });
 
-  const MAX_WK_BARS = 3; // bars shown per cell before "+N more"
+  const MAX_WK_BARS = 4; // bars shown per cell before "+N more"
 
   // Build per-column bar lists
   const colBars  = Array.from({length:7}, () => []);
@@ -2517,16 +2531,24 @@ function renderWeekly(){
 
   gridEl.innerHTML = days.map((d,i) => {
     const ds = localStr(d);
-    // Sort bars for this col by slot
     const bars = colBars[i].slice().sort((a,b) => a.slot - b.slot);
     const extra = colExtra[i];
-    const isFirst = c => c.cs === i;  // starts in this column
 
     const barHtml = bars.map(bar => {
-      const label = bar.cs === 0 && bar.sd < wsStr ? '↩ ' + bar.label : bar.label;
-      return `<span class="wk-bar" style="background:${bar.color};"
+      // Determine if bar continues left/right of this column
+      const fromLeft  = bar.cs < i;           // started before this col
+      const toRight   = bar.ce > i;           // continues past this col
+      const contClass = fromLeft && toRight ? 'continues-both'
+                      : fromLeft            ? 'continues-left'
+                      : toRight             ? 'continues-right'
+                      : '';
+      // Prefix label if wrapping from previous week
+      const prefix = fromLeft ? '↩ ' : '';
+      // Truncate label so bars stay tidy — show up to 35 chars
+      const labelText = prefix + bar.label;
+      return `<span class="wk-bar ${contClass}" style="background:${bar.color};"
         onclick="event.stopPropagation();openEvDetail('${bar.id}','${bar.type}')"
-        title="${bar.label.replace(/'/g,'&#39;')}">${label}</span>`;
+        title="${bar.label.replace(/'/g,'&#39;')}">${esc(labelText)}</span>`;
     }).join('');
 
     const moreHtml = extra > 0
@@ -2822,6 +2844,7 @@ function renderQuality(){
   const total=tasks.length,done=tasks.filter(t=>t.done).length;
   const ov=tasks.filter(t=>isOverdue(t)).length;
   const onT=tasks.filter(t=>!t.done&&(t.status||'Open')==='Open').length;
+  const toSt=tasks.filter(t=>!t.done&&t.status==='To Start').length;
   const inP=tasks.filter(t=>!t.done&&t.status==='In Progress').length;
   const pend=tasks.filter(t=>!t.done&&t.status==='Pending External').length;
   const rev=tasks.filter(t=>!t.done&&t.status==='Under Review').length;
@@ -2831,6 +2854,7 @@ function renderQuality(){
   document.getElementById('qualMetrics').innerHTML=`
     <div class="met-row"><span class="met-lbl">Completion rate</span><span class="met-val" style="color:#16a34a">${pct}%</span></div>
     <div class="met-row"><span class="met-lbl" style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#a0aec0;flex-shrink:0"></span>Open</span><span class="met-val" style="color:#2d3748">${onT}</span></div>
+    <div class="met-row"><span class="met-lbl" style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#16a34a;flex-shrink:0"></span>To Start</span><span class="met-val" style="color:#16a34a">${toSt}</span></div>
     <div class="met-row"><span class="met-lbl" style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#2b6cb0;flex-shrink:0"></span>In Progress</span><span class="met-val" style="color:#3b82f6">${inP}</span></div>
     <div class="met-row"><span class="met-lbl" style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#d97706;flex-shrink:0"></span>Pending External</span><span class="met-val" style="color:#f59e0b">${pend}</span></div>
     <div class="met-row"><span class="met-lbl" style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;flex-shrink:0"></span>Under Review</span><span class="met-val" style="color:#0ea5e9">${rev}</span></div>
@@ -4218,7 +4242,7 @@ function renderSubtaskList(){
           <div>
             <div class="st-body-lbl">Status</div>
             <select class="st-body-select" onchange="window._editSubtasks[${i}].status=this.value">
-              ${['Open','In Progress','Pending External','Under Review','Closed'].map(opt=>
+              ${['Open','To Start','In Progress','Pending External','Under Review','Closed'].map(opt=>
                 `<option value="${opt}" ${(s.status||'Open')===opt?'selected':''}>${opt}</option>`
               ).join('')}
             </select>
@@ -5465,6 +5489,7 @@ function duplicateTask(id){
 ════════════════════════════════════════════ */
 const KANBAN_COLS = [
   { id:'open',     label:'Open',             color:'#64748b', bg:'#f1f5f9' },
+  { id:'tostart',  label:'To Start',         color:'#166534', bg:'#f0fdf4' },
   { id:'progress', label:'In Progress',      color:'#1d4ed8', bg:'#eff6ff' },
   { id:'pending',  label:'Pending External', color:'#92400e', bg:'#fffbeb' },
   { id:'review',   label:'Under Review',     color:'#075985', bg:'#e0f2fe' },
@@ -5473,6 +5498,7 @@ const KANBAN_COLS = [
 
 function kanbanStatusToCol(t){
   if(t.done || t.status==='Closed') return 'closed';
+  if(t.status==='To Start')         return 'tostart';
   if(t.status==='In Progress')      return 'progress';
   if(t.status==='Pending External') return 'pending';
   if(t.status==='Under Review')     return 'review';
@@ -5492,6 +5518,7 @@ function kanbanDueChip(dateStr, done){
 
 function kanbanSubStatusToCol(s){
   if(s.done || s.status==='Closed') return 'closed';
+  if(s.status==='To Start')         return 'tostart';
   if(s.status==='In Progress')      return 'progress';
   if(s.status==='Pending External') return 'pending';
   if(s.status==='Under Review')     return 'review';
