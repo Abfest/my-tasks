@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#1a3a5c"/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231a3a5c'/><text x='16' y='23' font-size='18' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'>T</text></svg>"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;}
@@ -868,6 +868,313 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
   .kanban-wrap{max-height:none;}
   .kanban-col{max-height:70vh;}
 }
+
+/* ══════════════════════════════════════════════
+   DARK THEME — SQS / TaskFlow v2
+   Matches: dark navy #0B1320 bg, #0F1C30 surface
+   Toggle class .dark-mode on <html>
+══════════════════════════════════════════════ */
+:root{
+  --bg:       #f0f2f5;
+  --surface:  #ffffff;
+  --surface2: #f7fafc;
+  --border:   #e2e8f0;
+  --border2:  #f0f4f8;
+  --text-1:   #1a202c;
+  --text-2:   #2d3748;
+  --text-3:   #718096;
+  --text-4:   #a0aec0;
+  --hdr-bg:   #1a3a5c;
+  --nav-bg:   #ffffff;
+  --accent:   #1a3a5c;
+  --accent2:  #2b6cb0;
+  --scrollbar:#cbd5e0;
+  --input-bg: #ffffff;
+  --modal-bg: #ffffff;
+  --card-shadow: 0 1px 3px rgba(0,0,0,.06);
+  --hover-bg: #f7fafc;
+}
+
+html.dark-mode{
+  --bg:       #0B1320;
+  --surface:  #0F1C30;
+  --surface2: #111e33;
+  --border:   #1e3050;
+  --border2:  #162540;
+  --text-1:   #e2e8f0;
+  --text-2:   #cbd5e0;
+  --text-3:   #7a94b8;
+  --text-4:   #4a6080;
+  --hdr-bg:   #080f1a;
+  --nav-bg:   #0a1628;
+  --accent:   #00B2FF;
+  --accent2:  #2684FF;
+  --scrollbar:#1e3050;
+  --input-bg: #0d1e35;
+  --modal-bg: #0F1C30;
+  --card-shadow: 0 2px 8px rgba(0,0,0,.4);
+  --hover-bg: #111e33;
+}
+
+/* ── Apply vars to all components ── */
+html.dark-mode body                { background:var(--bg); color:var(--text-1); }
+html.dark-mode .hdr                { background:var(--hdr-bg); border-bottom:1px solid var(--border); }
+html.dark-mode .nav                { background:var(--nav-bg); border-bottom-color:var(--border); }
+html.dark-mode .ntab               { color:var(--text-3); }
+html.dark-mode .ntab:hover         { color:var(--text-1); }
+html.dark-mode .ntab.on            { color:var(--accent); border-bottom-color:var(--accent); }
+html.dark-mode .pane               { background:var(--bg); }
+html.dark-mode .content            { background:var(--bg); }
+
+/* Cards & surfaces */
+html.dark-mode .scard,
+html.dark-mode .tbl-wrap,
+html.dark-mode .qpanel,
+html.dark-mode .tl-wrap,
+html.dark-mode .day-detail-panel,
+html.dark-mode .sdp,
+html.dark-mode .pomo-wrap,
+html.dark-mode .plan-card,
+html.dark-mode .dp-panel,
+html.dark-mode .dp-sidebar,
+html.dark-mode .wsum-card,
+html.dark-mode .ai-ctx-card,
+html.dark-mode .archive-month,
+html.dark-mode .rb-item,
+html.dark-mode .kanban-card,
+html.dark-mode .tb-modal,
+html.dark-mode .st-modal          { background:var(--surface); border-color:var(--border); }
+
+/* Table */
+html.dark-mode table               { background:var(--surface); }
+html.dark-mode thead th            { background:var(--surface2); color:var(--text-4); border-bottom-color:var(--border); }
+html.dark-mode tbody td            { border-bottom-color:var(--border2); color:var(--text-2); }
+html.dark-mode tbody tr:hover td   { background:var(--hover-bg); }
+html.dark-mode .empty-td           { color:var(--text-4); }
+
+/* Buttons */
+html.dark-mode .btn                { background:var(--surface); border-color:var(--border); color:var(--text-2); }
+html.dark-mode .btn:hover          { background:var(--hover-bg); border-color:var(--border); }
+html.dark-mode .btn.primary        { background:var(--accent); border-color:var(--accent); color:#fff; }
+html.dark-mode .btn.primary:hover  { filter:brightness(1.1); }
+html.dark-mode .btn.success        { background:#0d2e1a; color:#4ade80; border-color:#166534; }
+html.dark-mode .btn.danger         { background:#2d0a0a; color:#f87171; border-color:#7f1d1d; }
+html.dark-mode .btn.amber-o        { background:#2d1a00; color:#fbbf24; border-color:#78350f; }
+html.dark-mode .mbtn.cancel        { background:var(--surface); color:var(--text-3); border-color:var(--border); }
+html.dark-mode .mbtn.save          { background:var(--accent); border-color:var(--accent); }
+
+/* Inputs */
+html.dark-mode input,
+html.dark-mode select,
+html.dark-mode textarea,
+html.dark-mode .ff input,
+html.dark-mode .ff select,
+html.dark-mode .ff textarea        { background:var(--input-bg); border-color:var(--border); color:var(--text-1); color-scheme:dark; }
+html.dark-mode input::placeholder,
+html.dark-mode textarea::placeholder { color:var(--text-4); }
+html.dark-mode .ff input:focus,
+html.dark-mode .ff select:focus,
+html.dark-mode .ff textarea:focus  { border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,178,255,.15); }
+
+/* Modal */
+html.dark-mode .overlay            { background:rgba(0,0,0,.7); }
+html.dark-mode .modal              { background:var(--modal-bg); box-shadow:0 24px 60px rgba(0,0,0,.6); }
+html.dark-mode .modal-title        { color:var(--text-1); }
+html.dark-mode .flbl               { color:var(--text-2); }
+
+/* Nav tabs bar -- dark mode scrollbar */
+html.dark-mode .pane::-webkit-scrollbar-thumb { background:var(--scrollbar); }
+html.dark-mode .nav::-webkit-scrollbar-thumb  { background:var(--scrollbar); }
+
+/* Badges — keep coloured but adjust bg opacity */
+html.dark-mode .b-open             { background:#1e2d40; color:#94a3b8; }
+html.dark-mode .b-tostart          { background:#0d2e1a; color:#4ade80; border-color:#166534; }
+html.dark-mode .b-progress         { background:#0d1f3d; color:#60a5fa; }
+html.dark-mode .b-pending          { background:#2d1a00; color:#fbbf24; }
+html.dark-mode .b-review           { background:#0a2030; color:#38bdf8; }
+html.dark-mode .b-closed           { background:#0d2e1a; color:#4ade80; }
+html.dark-mode .b-risk             { background:#2d1a00; color:#fbbf24; }
+html.dark-mode .b-delay,
+html.dark-mode .b-hi               { background:#2d0a0a; color:#f87171; }
+html.dark-mode .b-med              { background:#2d1a00; color:#fbbf24; }
+html.dark-mode .b-lo               { background:#0d2e1a; color:#4ade80; }
+html.dark-mode .b-gcal             { background:#0a2030; color:#38bdf8; }
+html.dark-mode .tag-chip           { background:#1e2d40; color:#94a3b8; }
+html.dark-mode .cat-chip           { background:#1e2d40 !important; }
+html.dark-mode .badge              { }
+
+/* Weekly / Monthly calendar */
+html.dark-mode .dcol               { background:var(--surface); border-color:var(--border); }
+html.dark-mode .dcol:hover         { border-color:var(--accent2); }
+html.dark-mode .dcol.today         { border-color:var(--accent); }
+html.dark-mode .dcol.sel           { background:#0d1e35; border-color:var(--accent2); }
+html.dark-mode .dow-lbl            { color:var(--text-4); }
+html.dark-mode .day-num            { color:var(--text-1); }
+html.dark-mode .mcell              { background:var(--surface); border-color:var(--border); }
+html.dark-mode .mcell.today        { border-color:var(--accent); }
+html.dark-mode .mcell.sel          { background:#0d1e35; border-color:var(--accent2); }
+html.dark-mode .mcell.other        { opacity:.25; }
+html.dark-mode .dow-hdr            { color:var(--text-4); }
+html.dark-mode .wk-more-lbl        { color:var(--text-4); }
+html.dark-mode .nav-arrow          { background:var(--surface); border-color:var(--border); color:var(--text-3); }
+html.dark-mode .nav-arrow:hover    { background:var(--hover-bg); }
+html.dark-mode .week-title-txt,
+html.dark-mode .month-title-txt    { color:var(--text-1); }
+html.dark-mode .ev-row             { background:var(--surface2); border-color:var(--border); }
+html.dark-mode .ev-title           { color:var(--text-2); }
+html.dark-mode .ev-time            { color:var(--text-4); }
+
+/* Planner */
+html.dark-mode .dp-hdr             { background:#080f1a; }
+html.dark-mode .dp-grid-wrap       { border-right-color:var(--border); background:var(--bg); }
+html.dark-mode .dp-col-hdr         { background:var(--surface2); border-bottom-color:var(--border); }
+html.dark-mode .dp-col-lbl         { color:var(--text-4); }
+html.dark-mode .dp-time-lbl span   { color:var(--text-3); }
+html.dark-mode .dp-time-lbl.hour span { color:var(--text-2); }
+html.dark-mode .dp-task-col        { border-top-color:var(--border2); }
+html.dark-mode .dp-task-col.hour-border { border-top-color:var(--border); }
+html.dark-mode .dp-time-row:hover .dp-task-col { background:rgba(0,178,255,.04); }
+html.dark-mode .dp-unscheduled-item { background:var(--surface2); border-color:var(--border); }
+html.dark-mode .dp-unscheduled-item:hover { border-color:var(--accent); }
+html.dark-mode .dp-drag-handle     { color:var(--text-4); }
+html.dark-mode .dp-summary-row     { border-bottom-color:var(--border2); }
+html.dark-mode .dp-nav-btn         { border-color:rgba(255,255,255,.15); color:rgba(255,255,255,.65); }
+html.dark-mode .dp-nav-btn.active  { background:rgba(0,178,255,.15); border-color:var(--accent); color:var(--accent); }
+
+/* AI chat */
+html.dark-mode .ai-bubble          { background:var(--surface2); border-color:var(--border); color:var(--text-2); }
+html.dark-mode .ai-msg-user .ai-bubble { background:var(--accent); color:#fff; border-color:var(--accent); }
+html.dark-mode .ai-sugg            { background:var(--surface); border-color:var(--border); color:var(--text-3); }
+html.dark-mode .ai-sugg:hover      { background:#0d1e35; border-color:var(--accent); color:var(--accent); }
+html.dark-mode .ai-quick-btn       { background:var(--surface2); border-color:var(--border); color:var(--text-2); }
+html.dark-mode .ai-quick-btn:hover { background:#0d1e35; border-color:var(--accent); color:var(--accent); }
+html.dark-mode #aiInput            { background:var(--input-bg); border-color:var(--border); color:var(--text-1); }
+
+/* Kanban */
+html.dark-mode .kanban-col         { background:var(--surface2); }
+html.dark-mode .kanban-card        { background:var(--surface); border-color:var(--border); box-shadow:var(--card-shadow); }
+html.dark-mode .kanban-card:hover  { border-color:var(--accent); }
+html.dark-mode .kanban-add-btn     { border-color:var(--border); color:var(--text-4); }
+html.dark-mode .kanban-add-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(0,178,255,.05); }
+html.dark-mode .kanban-sub-row     { color:var(--text-3); }
+html.dark-mode .kanban-card-title  { color:var(--text-1); }
+
+/* Notifications */
+html.dark-mode .notif-dropdown     { background:var(--surface); border-color:var(--border); }
+html.dark-mode .notif-hdr          { background:var(--surface2); border-bottom-color:var(--border2); }
+html.dark-mode .notif-hdr-title    { color:var(--text-1); }
+html.dark-mode .notif-item         { border-bottom-color:var(--border2); }
+html.dark-mode .notif-item:hover   { background:var(--hover-bg); }
+html.dark-mode .notif-item.unread  { background:#0d1e35; }
+html.dark-mode .notif-footer       { background:var(--surface2); border-top-color:var(--border2); }
+html.dark-mode .notif-title        { color:var(--text-1); }
+html.dark-mode .notif-desc         { color:var(--text-3); }
+
+/* Archive & Recycle */
+html.dark-mode .archive-month-hdr:hover { background:var(--hover-bg); }
+html.dark-mode .archive-month-title { color:var(--accent); }
+html.dark-mode .archive-month-body  { background:var(--surface); }
+html.dark-mode .archive-task-title  { color:var(--text-2); }
+html.dark-mode .archive-restore-btn { background:var(--surface2); border-color:var(--border); color:var(--accent); }
+html.dark-mode .rb-item            { background:var(--surface); border-color:var(--border); }
+html.dark-mode .rb-item-title      { color:var(--text-1); }
+
+/* Subtasks */
+html.dark-mode .st-card            { background:var(--surface); border-color:var(--border); }
+html.dark-mode .st-card-hdr        { background:var(--surface); }
+html.dark-mode .st-card-hdr:hover  { background:var(--hover-bg); }
+html.dark-mode .st-card-body       { background:var(--surface2); border-top-color:var(--border); }
+html.dark-mode .st-title-inp       { color:var(--text-1); }
+html.dark-mode .st-chk             { background:var(--input-bg); border-color:var(--border); }
+html.dark-mode .st-chk.on          { background:var(--accent); border-color:var(--accent); }
+html.dark-mode .st-body-input,
+html.dark-mode .st-body-textarea,
+html.dark-mode .st-body-select     { background:var(--input-bg); border-color:var(--border); color:var(--text-1); }
+html.dark-mode .sub-item           { background:var(--surface2); border-color:var(--border2); }
+
+/* Task detail popup */
+html.dark-mode .td-modal           { background:var(--surface); }
+html.dark-mode .td-hdr             { background:#080f1a; }
+html.dark-mode .td-grid            { background:var(--surface2); border-color:var(--border); }
+html.dark-mode .td-field           { border-right-color:var(--border); border-bottom-color:var(--border); }
+html.dark-mode .td-field-lbl       { color:var(--text-4); }
+html.dark-mode .td-field-val       { color:var(--text-1); }
+html.dark-mode .td-notes           { background:var(--surface2); border-color:var(--border); color:var(--text-2); }
+html.dark-mode .td-st-item         { background:var(--surface2); border-color:var(--border2); }
+html.dark-mode .td-actions         { border-top-color:var(--border); }
+
+/* Overdue banner — keep red */
+html.dark-mode .overdue-banner     { }
+
+/* Week summary card — keep gradient */
+html.dark-mode .wsum-card          { background:linear-gradient(135deg,#080f1a 0%,#0d1e35 100%); border:1px solid var(--border); }
+
+/* Misc */
+html.dark-mode .sec-title          { color:var(--text-4); }
+html.dark-mode .prog-bar           { background:var(--border); }
+html.dark-mode .prog-fill          { background:linear-gradient(90deg,var(--accent),var(--accent2)); }
+html.dark-mode .tl-bar-bg          { background:var(--surface2); }
+html.dark-mode .tl-name            { color:var(--text-2); }
+html.dark-mode .tl-dates           { color:var(--text-4); }
+html.dark-mode .met-row            { border-bottom-color:var(--border2); }
+html.dark-mode .met-lbl            { color:var(--text-2); }
+html.dark-mode .pom-track          { stroke:var(--border); }
+html.dark-mode .pom-prog           { stroke:var(--accent); }
+html.dark-mode .pom-time           { color:var(--text-1); }
+html.dark-mode .pom-sub            { color:var(--text-4); }
+html.dark-mode .pom-mode           { background:var(--surface); border-color:var(--border); color:var(--text-3); }
+html.dark-mode .pom-mode.on        { border-color:var(--accent); color:var(--accent); background:rgba(0,178,255,.08); }
+html.dark-mode .t3-slot            { background:var(--surface); border-color:var(--border); }
+html.dark-mode .t3-in              { color:var(--text-1); }
+html.dark-mode .t3-chk             { background:var(--input-bg); border-color:var(--border); }
+html.dark-mode .t3-chk.done-c      { background:var(--accent); border-color:var(--accent); }
+html.dark-mode .add-st-btn         { color:var(--accent); }
+html.dark-mode .sdp-title,
+html.dark-mode .ddp-title          { color:var(--text-1); }
+html.dark-mode .cat-filter-bar     { background:var(--nav-bg); border-bottom-color:var(--border); }
+html.dark-mode .cat-filter-btn     { background:var(--surface2); border-color:var(--border); color:var(--text-3); }
+html.dark-mode .task-link          { color:var(--accent); }
+html.dark-mode .task-link:hover    { color:var(--accent2); }
+html.dark-mode .plan-card-title    { color:var(--text-4); }
+html.dark-mode .plan-card.today-card { border-color:var(--accent); }
+html.dark-mode .plan-card.today-card .plan-card-title { color:var(--accent); }
+html.dark-mode .pchk               { background:var(--input-bg); border-color:var(--border); }
+html.dark-mode .pchk.done-c        { background:var(--accent); border-color:var(--accent); }
+html.dark-mode .plan-item          { border-bottom-color:var(--border2); color:var(--text-2); }
+html.dark-mode .step               { background:var(--surface2); border-color:var(--border); }
+html.dark-mode .stt                { color:var(--text-1); }
+html.dark-mode .std                { color:var(--text-3); }
+html.dark-mode .stc                { background:var(--input-bg); border-color:var(--border); color:var(--accent); }
+html.dark-mode .cal-mgr-modal      { background:var(--modal-bg); }
+html.dark-mode .cal-mgr-row        { border-bottom-color:var(--border2); }
+html.dark-mode .cal-mgr-name       { color:var(--text-1); }
+html.dark-mode .cal-mgr-name:focus { background:var(--surface2); border-color:var(--border); }
+html.dark-mode .stc                { color:var(--accent); }
+html.dark-mode .notif-empty        { color:var(--text-4); }
+html.dark-mode .archive-empty      { color:var(--text-4); }
+html.dark-mode .rb-empty           { }
+html.dark-mode .rb-empty-title     { color:var(--text-1); }
+html.dark-mode .rb-empty-sub       { color:var(--text-4); }
+html.dark-mode .kanban-sub-title   { color:var(--text-2); }
+html.dark-mode .kanban-sub-due     { color:var(--text-4); }
+html.dark-mode .kanban-due.nodate  { background:#1e2d40; color:var(--text-4); }
+html.dark-mode .kanban-due.overdue { background:#2d0a0a; color:#f87171; }
+html.dark-mode .kanban-due.today   { background:#2d1a00; color:#fbbf24; }
+html.dark-mode .kanban-due.upcoming{ background:#0d2e1a; color:#4ade80; }
+html.dark-mode .push-toast         { background:#0d1e35; border:1px solid var(--border); }
+html.dark-mode .scard-lbl          { color:var(--text-4); }
+html.dark-mode .scard-val          { color:var(--text-1); }
+html.dark-mode .scard-val.blue     { color:#60a5fa; }
+html.dark-mode .scard-val.green    { color:#4ade80; }
+html.dark-mode .scard-val.red      { color:#f87171; }
+html.dark-mode .scard-val.amber    { color:#fbbf24; }
+html.dark-mode .scard-sub          { color:var(--text-4); }
+
+/* Scrollbars in dark */
+html.dark-mode *::-webkit-scrollbar-track  { background:var(--bg); }
+html.dark-mode *::-webkit-scrollbar-thumb  { background:var(--border); border-radius:4px; }
+html.dark-mode *::-webkit-scrollbar-thumb:hover { background:var(--text-4); }
+
 </style>
 </head>
 <body>
@@ -910,6 +1217,10 @@ tbody tr.tr-done td{background:#f8f9fa;opacity:.75;}
     <button onclick="forcePullFromCloud()" title="Force pull latest data from cloud" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:5px 10px;font-size:11.5px;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:'Inter',sans-serif;" id="forceSyncBtn">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
       ☁ Sync
+    </button>
+    <button id="darkToggleBtn" onclick="toggleDarkMode()" title="Toggle dark mode"
+      style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:5px 10px;font-size:15px;cursor:pointer;display:flex;align-items:center;font-family:'Inter',sans-serif;flex-shrink:0;">
+      🌙
     </button>
   </div>
 </div>
@@ -5718,6 +6029,34 @@ function renderKanban(){
     </div>`;
   }).join('');
 }
+
+/* ════════════════════════════════════════════
+   DARK MODE
+════════════════════════════════════════════ */
+function toggleDarkMode(){
+  const html = document.documentElement;
+  const isDark = html.classList.toggle('dark-mode');
+  localStorage.setItem('tf_dark', isDark ? '1' : '0');
+  const btn = document.getElementById('darkToggleBtn');
+  if(btn) btn.textContent = isDark ? '☀️' : '🌙';
+  // Update theme-color meta
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.content = isDark ? '#080f1a' : '#1a3a5c';
+}
+
+// Apply saved preference on load
+(function(){
+  if(localStorage.getItem('tf_dark') === '1'){
+    document.documentElement.classList.add('dark-mode');
+    // Update button after DOM loads
+    window.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('darkToggleBtn');
+      if(btn) btn.textContent = '☀️';
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if(meta) meta.content = '#080f1a';
+    });
+  }
+})();
 
 function toast(msg,type){
   const el=document.getElementById('toast');
