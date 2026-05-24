@@ -1175,6 +1175,175 @@ html.dark-mode *::-webkit-scrollbar-track  { background:var(--bg); }
 html.dark-mode *::-webkit-scrollbar-thumb  { background:var(--border); border-radius:4px; }
 html.dark-mode *::-webkit-scrollbar-thumb:hover { background:var(--text-4); }
 
+
+/* ══ DARK MODE POLISH — inline element overrides ══ */
+
+/* Tasks pane header bar + filter bar */
+html.dark-mode #pane-tasks > div:nth-child(1) { background:var(--surface) !important; border-bottom-color:var(--border) !important; }
+html.dark-mode #pane-tasks > div:nth-child(2) { background:var(--surface2) !important; border-bottom-color:var(--border) !important; }
+html.dark-mode #pane-tasks > div:nth-child(3) { background:var(--surface) !important; border-bottom-color:var(--border) !important; }
+html.dark-mode #pane-tasks > div:nth-child(4) { background:var(--bg) !important; }
+
+/* Category filter bar */
+html.dark-mode #catFilterBar { background:var(--surface) !important; border-bottom-color:var(--border) !important; }
+html.dark-mode .cat-filter-btn { background:var(--surface2) !important; border-color:var(--border) !important; color:var(--text-3) !important; }
+
+/* All inline select/input filters */
+html.dark-mode #fSearch,
+html.dark-mode #fStatus,
+html.dark-mode #fPri,
+html.dark-mode #fOwner,
+html.dark-mode #fMonth,
+html.dark-mode #kbFilter,
+html.dark-mode #kbPri { background:var(--input-bg) !important; border-color:var(--border) !important; color:var(--text-1) !important; color-scheme:dark; }
+
+/* Kanban filter bar */
+html.dark-mode #pane-kanban > div:first-child { background:var(--bg) !important; }
+html.dark-mode #pane-kanban label { color:var(--text-3) !important; }
+html.dark-mode #kbShowDone { accent-color:var(--accent); }
+
+/* Tasks pane inner padding div */
+html.dark-mode #pane-tasks > div:last-child { background:var(--bg) !important; }
+
+/* Sec-title in tasks pane header */
+html.dark-mode .sec-title { color:var(--text-4) !important; }
+
+/* Toggle done / hide completed button */
+html.dark-mode #toggleDoneBtn { background:var(--surface) !important; border-color:var(--border) !important; color:var(--text-2) !important; }
+
+/* Expand arrow buttons in table rows (inline style overrides) */
+html.dark-mode tbody td button[id^="exp_"] { background:var(--surface2) !important; border-color:var(--border) !important; color:var(--text-3) !important; }
+
+/* Done section header in tasks table */
+html.dark-mode tbody tr td[colspan="10"] { background:var(--surface2) !important; border-color:var(--border) !important; }
+html.dark-mode tbody tr td[colspan="10"] > div { color:var(--text-3) !important; }
+html.dark-mode tbody tr td[colspan="10"] span { background:var(--surface) !important; border-color:var(--border) !important; color:var(--text-4) !important; }
+
+/* Sub-indent rows */
+html.dark-mode .sub-indent { border-left-color:var(--border) !important; }
+
+/* Notes textarea in task modal */
+html.dark-mode #fNotes { background:var(--input-bg) !important; border-color:var(--border) !important; color:var(--text-1) !important; }
+html.dark-mode #fTitle,
+html.dark-mode #fOwnerInput { background:var(--input-bg) !important; color:var(--text-1) !important; border-color:var(--border) !important; }
+
+/* Form grid labels */
+html.dark-mode .flbl { color:var(--text-2) !important; }
+
+/* Overview task register table label area */
+html.dark-mode .sec-hdr { background:transparent !important; }
+
+/* Archive month body */
+html.dark-mode .archive-month-body { background:var(--surface) !important; border-top-color:var(--border) !important; }
+html.dark-mode .archive-stat-val { color:var(--text-1) !important; }
+html.dark-mode .archive-stat-lbl { color:var(--text-4) !important; }
+html.dark-mode .archive-stat-divider { background:var(--border) !important; }
+html.dark-mode .archive-month { border-color:var(--border) !important; }
+html.dark-mode .archive-task-row { border-bottom-color:var(--border2) !important; }
+
+/* Recycle bin */
+html.dark-mode .rb-banner { background:linear-gradient(135deg,#2d0a0a,#4a0e0e) !important; }
+html.dark-mode .rb-item-deleted { color:var(--text-4) !important; }
+
+/* Kanban col count badge */
+html.dark-mode .kanban-col-hdr { border-bottom:1px solid var(--border) !important; }
+html.dark-mode .kanban-col-count { opacity:.85; }
+
+/* Progress bars in task rows */
+html.dark-mode .prog-bar { background:var(--border) !important; }
+
+/* Task detail td-actions */
+html.dark-mode .td-actions { border-top-color:var(--border) !important; }
+
+/* Notification icons */
+html.dark-mode .ni-red    { background:#2d0a0a !important; }
+html.dark-mode .ni-amber  { background:#2d1a00 !important; }
+html.dark-mode .ni-blue   { background:#0d1f3d !important; }
+html.dark-mode .ni-green  { background:#0d2e1a !important; }
+html.dark-mode .ni-purple { background:#1a0d2e !important; }
+html.dark-mode .notif-unread-dot { background:var(--accent) !important; }
+
+/* Weekly detail panel */
+html.dark-mode .ddp-title { color:var(--text-1) !important; border-bottom-color:var(--border) !important; }
+
+/* Gcal btn */
+html.dark-mode .gcal-btn { background:rgba(255,255,255,.08) !important; border-color:rgba(255,255,255,.15) !important; }
+html.dark-mode .gcal-btn.conn { background:rgba(0,178,255,.15) !important; border-color:rgba(0,178,255,.3) !important; }
+
+/* Overdue banner text stays bright */
+html.dark-mode .overdue-banner-title,
+html.dark-mode .overdue-banner-tasks { color:#fff !important; }
+
+/* Week / month nav title */
+html.dark-mode .week-title-txt,
+html.dark-mode .month-title-txt { color:var(--text-1) !important; }
+
+/* Phase pill */
+html.dark-mode #phasePill { background:rgba(0,178,255,.15) !important; border-color:rgba(0,178,255,.25) !important; color:var(--accent) !important; }
+
+/* Hdr date */
+html.dark-mode #hdrDate { color:rgba(255,255,255,.7) !important; }
+
+/* tb modal (time block) */
+html.dark-mode .tb-modal { background:var(--modal-bg) !important; }
+html.dark-mode #tbTask,
+html.dark-mode #tbStart,
+html.dark-mode #tbEnd,
+html.dark-mode #tbNotes { background:var(--input-bg) !important; border-color:var(--border) !important; color:var(--text-1) !important; color-scheme:dark; }
+
+/* GCal modal */
+html.dark-mode #gcalModal,
+html.dark-mode #evModal { background:var(--modal-bg) !important; }
+html.dark-mode #evTitle,
+html.dark-mode #evDate,
+html.dark-mode #evEndDate,
+html.dark-mode #evTime,
+html.dark-mode #evEndTime,
+html.dark-mode #evRepeat,
+html.dark-mode #evNotif,
+html.dark-mode #evLocation,
+html.dark-mode #evDesc,
+html.dark-mode #cid,
+html.dark-mode #csec { background:var(--input-bg) !important; border-color:var(--border) !important; color:var(--text-1) !important; color-scheme:dark; }
+html.dark-mode .ev-cal-option { background:var(--surface2) !important; border-color:var(--border) !important; }
+html.dark-mode .ev-cal-option span { color:var(--text-2) !important; }
+
+/* Subtask detail modal */
+html.dark-mode #stDetailOv .modal { background:var(--modal-bg) !important; }
+html.dark-mode .st-modal-hdr { background:#080f1a !important; }
+html.dark-mode .st-modal-title { color:#fff !important; }
+html.dark-mode .st-modal-parent { color:rgba(255,255,255,.5) !important; }
+html.dark-mode .st-modal-lbl { color:var(--text-4) !important; }
+html.dark-mode .st-modal-val { background:var(--input-bg) !important; border-color:var(--border) !important; color:var(--text-1) !important; }
+html.dark-mode .st-modal-select { background:var(--input-bg) !important; color-scheme:dark; }
+
+/* Custom recurrence panel */
+html.dark-mode #customRecurrencePanel { background:var(--surface2) !important; border-color:var(--border) !important; }
+html.dark-mode #evRepeatEvery,
+html.dark-mode #evRepeatUnit,
+html.dark-mode #evRepeatEndDate,
+html.dark-mode #evRepeatCount { background:var(--input-bg) !important; border-color:var(--border) !important; color:var(--text-1) !important; color-scheme:dark; }
+html.dark-mode #customRecurrencePanel label,
+html.dark-mode #customRecurrencePanel span { color:var(--text-2) !important; }
+
+/* Calendar manager modal */
+html.dark-mode #calMgrOv .modal { background:var(--modal-bg) !important; }
+html.dark-mode #newCalName { background:var(--input-bg) !important; border-color:var(--border) !important; color:var(--text-1) !important; }
+
+/* Planner day/week header sub */
+html.dark-mode #dpDateSub { color:rgba(255,255,255,.5) !important; }
+html.dark-mode #dpDateTitle { color:#fff !important; }
+html.dark-mode .dp-add-btn { background:var(--accent) !important; color:#fff !important; }
+
+/* AI input focus */
+html.dark-mode #aiInput:focus { border-color:var(--accent) !important; box-shadow:0 0 0 3px rgba(0,178,255,.15) !important; }
+html.dark-mode #aiInput { color-scheme:dark; }
+
+/* Month detail panel */
+html.dark-mode .sdp { background:var(--surface) !important; border-color:var(--border) !important; }
+html.dark-mode .sdp-title { color:var(--text-1) !important; }
+html.dark-mode .sdp-hd { border-bottom-color:var(--border) !important; }
+
 </style>
 </head>
 <body>
