@@ -45,7 +45,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#f0f2f5;color:#1a202c;d
 
 /* ── STAT CARDS ── */
 .stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px;}
-.scard{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px;}
+.scard{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
 .scard-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#a0aec0;margin-bottom:8px;}
 .scard-val{font-size:28px;font-weight:700;line-height:1;color:#1a202c;margin-bottom:4px;}
 .scard-sub{font-size:11.5px;color:#a0aec0;}
@@ -329,7 +329,7 @@ tbody tr:hover td{background:#f7fafc;}
 
 
 /* ── WEEKLY SUMMARY ── */
-.wsum-card{background:linear-gradient(135deg,#1a3a5c 0%,#2b6cb0 100%);border-radius:12px;padding:16px 20px;color:#fff;margin-bottom:0;}
+.wsum-card{background:linear-gradient(135deg,#1a3a5c 0%,#2b6cb0 100%);border-radius:12px;padding:16px 20px;color:#fff;margin-bottom:0;box-shadow:0 4px 16px rgba(26,58,92,.25);}
 .wsum-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.6);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
 .wsum-title span{color:rgba(255,255,255,.45);font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;}
 .wsum-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
@@ -922,7 +922,7 @@ html.dark-mode .hdr                { background:var(--hdr-bg); border-bottom:1px
 html.dark-mode .nav                { background:var(--nav-bg); border-bottom-color:var(--border); }
 html.dark-mode .ntab               { color:var(--text-3); }
 html.dark-mode .ntab:hover         { color:var(--text-1); }
-html.dark-mode .ntab.on            { color:var(--accent); border-bottom-color:var(--accent); }
+html.dark-mode .ntab.on            { color:var(--accent); border-bottom-color:var(--accent); font-weight:700; }
 html.dark-mode .pane               { background:var(--bg); }
 html.dark-mode .content            { background:var(--bg); }
 
@@ -937,7 +937,6 @@ html.dark-mode .pomo-wrap,
 html.dark-mode .plan-card,
 html.dark-mode .dp-panel,
 html.dark-mode .dp-sidebar,
-html.dark-mode .wsum-card,
 html.dark-mode .ai-ctx-card,
 html.dark-mode .archive-month,
 html.dark-mode .rb-item,
@@ -1107,7 +1106,7 @@ html.dark-mode .td-actions         { border-top-color:var(--border); }
 html.dark-mode .overdue-banner     { }
 
 /* Week summary card — keep gradient */
-html.dark-mode .wsum-card          { background:linear-gradient(135deg,#080f1a 0%,#0d1e35 100%); border:1px solid var(--border); }
+html.dark-mode .wsum-card          { background:linear-gradient(135deg,#050d1a 0%,#0a1628 50%,#091422 100%); border:1px solid var(--border); }
 
 /* Misc */
 html.dark-mode .sec-title          { color:var(--text-4); }
@@ -1162,6 +1161,7 @@ html.dark-mode .kanban-due.overdue { background:#2d0a0a; color:#f87171; }
 html.dark-mode .kanban-due.today   { background:#2d1a00; color:#fbbf24; }
 html.dark-mode .kanban-due.upcoming{ background:#0d2e1a; color:#4ade80; }
 html.dark-mode .push-toast         { background:#0d1e35; border:1px solid var(--border); }
+html.dark-mode .scard              { background:#111e35 !important; border-color:var(--border); box-shadow:0 2px 8px rgba(0,0,0,.3); }
 html.dark-mode .scard-lbl          { color:var(--text-4); }
 html.dark-mode .scard-val          { color:var(--text-1); }
 html.dark-mode .scard-val.blue     { color:#60a5fa; }
