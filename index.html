@@ -1344,6 +1344,172 @@ html.dark-mode .sdp { background:var(--surface) !important; border-color:var(--b
 html.dark-mode .sdp-title { color:var(--text-1) !important; }
 html.dark-mode .sdp-hd { border-bottom-color:var(--border) !important; }
 
+
+/* ══════════════════════════════════════════════
+   GANTT CHART — full rebuild
+══════════════════════════════════════════════ */
+.gantt-outer{background:var(--surface, #fff);border:1px solid var(--border,#e2e8f0);border-radius:12px;overflow:hidden;margin-bottom:20px;}
+.gantt-toolbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border,#e2e8f0);background:var(--surface2,#f7fafc);flex-wrap:wrap;}
+.gantt-toolbar-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-4,#a0aec0);margin-right:4px;}
+.gantt-zoom-btn{padding:3px 10px;border-radius:6px;border:1px solid var(--border,#e2e8f0);background:var(--surface,#fff);color:var(--text-3,#718096);font-size:11.5px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+.gantt-zoom-btn:hover{border-color:var(--accent,#1a3a5c);color:var(--accent,#1a3a5c);}
+.gantt-zoom-btn.active{background:var(--accent,#1a3a5c);color:#fff;border-color:var(--accent,#1a3a5c);}
+.gantt-filter{padding:4px 8px;border-radius:6px;border:1px solid var(--border,#e2e8f0);background:var(--surface,#fff);color:var(--text-2,#2d3748);font-size:11.5px;font-family:'Inter',sans-serif;outline:none;}
+.gantt-legend{display:flex;gap:10px;align-items:center;margin-left:auto;flex-wrap:wrap;}
+.gantt-legend-item{display:flex;align-items:center;gap:4px;font-size:10.5px;color:var(--text-3,#718096);}
+.gantt-legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+/* Scroll container */
+.gantt-scroll{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 320px);min-height:240px;position:relative;}
+.gantt-scroll::-webkit-scrollbar{width:6px;height:6px;}
+.gantt-scroll::-webkit-scrollbar-thumb{background:var(--border,#cbd5e0);border-radius:3px;}
+/* Grid */
+.gantt-grid{display:flex;min-width:100%;}
+.gantt-labels{flex-shrink:0;width:200px;border-right:1px solid var(--border,#e2e8f0);background:var(--surface,#fff);position:sticky;left:0;z-index:10;}
+.gantt-label-hdr{height:52px;border-bottom:1px solid var(--border,#e2e8f0);padding:0 12px;display:flex;align-items:center;background:var(--surface2,#f7fafc);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-4,#a0aec0);position:sticky;top:0;z-index:11;}
+.gantt-label-row{display:flex;align-items:center;gap:6px;padding:0 10px;height:38px;border-bottom:1px solid var(--border2,#f0f4f8);cursor:pointer;transition:background .12s;}
+.gantt-label-row:hover{background:var(--hover-bg,#f7fafc);}
+.gantt-label-row:last-child{border-bottom:none;}
+.gantt-task-name{font-size:12px;font-weight:500;color:var(--text-2,#2d3748);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.gantt-task-status{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+/* Timeline area */
+.gantt-timeline{flex:1;position:relative;min-width:0;}
+.gantt-months-hdr{display:flex;height:28px;border-bottom:1px solid var(--border,#e2e8f0);background:var(--surface2,#f7fafc);position:sticky;top:0;z-index:8;}
+.gantt-weeks-hdr{display:flex;height:24px;border-bottom:1px solid var(--border,#e2e8f0);background:var(--surface2,#f7fafc);position:sticky;top:28px;z-index:8;}
+.gantt-month-cell{border-right:1px solid var(--border,#e2e8f0);padding:0 8px;display:flex;align-items:center;font-size:11px;font-weight:700;color:var(--text-2,#2d3748);white-space:nowrap;overflow:hidden;flex-shrink:0;}
+.gantt-week-cell{border-right:1px solid var(--border2,#f0f4f8);padding:0 3px;display:flex;align-items:center;font-size:9.5px;color:var(--text-4,#a0aec0);white-space:nowrap;flex-shrink:0;}
+.gantt-row{position:relative;height:38px;border-bottom:1px solid var(--border2,#f0f4f8);display:flex;align-items:center;}
+.gantt-row:last-child{border-bottom:none;}
+.gantt-row:hover{background:rgba(0,0,0,.02);}
+/* Columns bg stripes */
+.gantt-col-stripe{position:absolute;top:0;bottom:0;opacity:.04;}
+/* Today line */
+.gantt-today-line{position:absolute;top:0;bottom:0;width:2px;background:#ef4444;z-index:6;pointer-events:none;}
+.gantt-today-dot{position:absolute;top:-4px;left:-4px;width:9px;height:9px;border-radius:50%;background:#ef4444;}
+.gantt-today-lbl{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:700;color:#ef4444;white-space:nowrap;background:var(--surface,#fff);padding:1px 4px;border-radius:3px;}
+/* Task bar */
+.gantt-bar{position:absolute;height:22px;top:8px;border-radius:4px;cursor:pointer;display:flex;align-items:center;padding:0 7px;transition:filter .15s, box-shadow .15s;overflow:hidden;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.15);}
+.gantt-bar:hover{filter:brightness(1.1);box-shadow:0 2px 8px rgba(0,0,0,.25);}
+.gantt-bar-label{font-size:10px;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.gantt-bar-milestone{width:16px;height:16px;border-radius:0;transform:rotate(45deg);top:11px;}
+/* Progress fill */
+.gantt-bar-prog{position:absolute;top:0;left:0;bottom:0;background:rgba(255,255,255,.25);border-radius:4px 0 0 4px;}
+/* Weekend shading */
+.gantt-weekend{position:absolute;top:0;bottom:0;background:rgba(0,0,0,.025);pointer-events:none;}
+/* Tooltip */
+.gantt-tooltip{position:fixed;background:var(--surface,#fff);border:1px solid var(--border,#e2e8f0);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text-2,#2d3748);box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:9999;pointer-events:none;min-width:180px;max-width:280px;}
+.gantt-tooltip-title{font-weight:700;color:var(--text-1,#1a202c);margin-bottom:5px;font-size:13px;}
+.gantt-tooltip-row{display:flex;justify-content:space-between;gap:12px;margin-bottom:3px;}
+.gantt-tooltip-lbl{color:var(--text-4,#a0aec0);font-size:11px;}
+.gantt-tooltip-val{font-weight:600;font-size:11px;}
+/* Dark mode */
+html.dark-mode .gantt-outer{background:var(--surface);border-color:var(--border);}
+html.dark-mode .gantt-toolbar{background:var(--surface2);border-bottom-color:var(--border);}
+html.dark-mode .gantt-labels{background:var(--surface);border-right-color:var(--border);}
+html.dark-mode .gantt-label-hdr{background:var(--surface2);}
+html.dark-mode .gantt-label-row:hover{background:var(--hover-bg);}
+html.dark-mode .gantt-task-name{color:var(--text-2);}
+html.dark-mode .gantt-months-hdr,
+html.dark-mode .gantt-weeks-hdr{background:var(--surface2);}
+html.dark-mode .gantt-month-cell{color:var(--text-2);border-right-color:var(--border);}
+html.dark-mode .gantt-week-cell{color:var(--text-4);border-right-color:var(--border2);}
+html.dark-mode .gantt-row:hover{background:rgba(255,255,255,.02);}
+html.dark-mode .gantt-tooltip{background:var(--surface);border-color:var(--border);color:var(--text-2);}
+html.dark-mode .gantt-tooltip-title{color:var(--text-1);}
+html.dark-mode .gantt-weekend{background:rgba(255,255,255,.025);}
+html.dark-mode .gantt-zoom-btn{background:var(--surface);border-color:var(--border);color:var(--text-3);}
+html.dark-mode .gantt-zoom-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+html.dark-mode .gantt-filter{background:var(--input-bg);border-color:var(--border);color:var(--text-1);}
+@media(max-width:768px){
+  .gantt-labels{width:130px;}
+  .gantt-task-name{font-size:11px;}
+  .gantt-scroll{max-height:55vh;}
+}
+
+
+/* ══════════════════════════════════════════════
+   ANALYTICS TAB
+══════════════════════════════════════════════ */
+.an-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px;}
+.an-card{background:var(--surface,#fff);border:1px solid var(--border,#e2e8f0);border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.an-card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-4,#a0aec0);margin-bottom:8px;}
+.an-card-val{font-size:32px;font-weight:800;line-height:1;margin-bottom:4px;}
+.an-card-sub{font-size:11.5px;color:var(--text-4,#a0aec0);}
+.an-card-trend{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;margin-top:6px;}
+.an-trend-up{background:#f0fdf4;color:#16a34a;}
+.an-trend-down{background:#fff5f5;color:#dc2626;}
+.an-trend-flat{background:#f1f5f9;color:#64748b;}
+/* 2-col layout for charts */
+.an-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.an-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;}
+.an-chart-card{background:var(--surface,#fff);border:1px solid var(--border,#e2e8f0);border-radius:12px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.an-chart-title{font-size:13px;font-weight:700;color:var(--text-1,#1a202c);margin-bottom:4px;}
+.an-chart-sub{font-size:11.5px;color:var(--text-4,#a0aec0);margin-bottom:14px;}
+/* Bar chart */
+.an-bar-chart{display:flex;flex-direction:column;gap:8px;}
+.an-bar-row{display:flex;align-items:center;gap:10px;}
+.an-bar-lbl{font-size:11.5px;color:var(--text-2,#2d3748);min-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.an-bar-track{flex:1;height:16px;background:var(--surface2,#f7fafc);border-radius:4px;overflow:hidden;position:relative;}
+.an-bar-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+.an-bar-num{font-size:11px;font-weight:700;color:var(--text-3,#718096);min-width:28px;text-align:right;}
+/* Donut chart (CSS-only) */
+.an-donut-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.an-donut{position:relative;width:110px;height:110px;flex-shrink:0;}
+.an-donut svg{transform:rotate(-90deg);}
+.an-donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.an-donut-pct{font-size:22px;font-weight:800;color:var(--text-1,#1a202c);line-height:1;}
+.an-donut-lbl{font-size:10px;color:var(--text-4,#a0aec0);margin-top:2px;}
+.an-legend{display:flex;flex-direction:column;gap:6px;flex:1;}
+.an-legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-2,#2d3748);}
+.an-legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+.an-legend-val{margin-left:auto;font-weight:700;color:var(--text-1,#1a202c);}
+/* Insights */
+.an-insights{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+.an-insight{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:10px;border:1px solid var(--border,#e2e8f0);background:var(--surface,#fff);}
+.an-insight-icon{font-size:20px;flex-shrink:0;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.an-insight-body{flex:1;min-width:0;}
+.an-insight-title{font-size:13px;font-weight:700;color:var(--text-1,#1a202c);margin-bottom:3px;}
+.an-insight-desc{font-size:12px;color:var(--text-3,#718096);line-height:1.55;}
+.an-insight-action{margin-top:6px;}
+.an-insight-btn{font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:6px;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+.an-i-red{background:#fff5f5;}.an-i-amber{background:#fffbeb;}.an-i-green{background:#f0fdf4;}.an-i-blue{background:#eff6ff;}.an-i-purple{background:#faf5ff;}
+/* Heatmap */
+.an-heatmap{display:flex;flex-wrap:wrap;gap:3px;}
+.an-heat-cell{width:14px;height:14px;border-radius:2px;cursor:pointer;transition:opacity .15s;}
+.an-heat-cell:hover{opacity:.7;}
+/* Weekly trend sparkline */
+.an-spark{display:flex;align-items:flex-end;gap:3px;height:48px;}
+.an-spark-bar{flex:1;border-radius:2px 2px 0 0;min-width:8px;transition:height .4s;}
+.an-spark-lbl{font-size:9px;color:var(--text-4,#a0aec0);text-align:center;margin-top:3px;}
+/* Velocity section */
+.an-velocity{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.an-vel-item{flex:1;min-width:100px;text-align:center;padding:12px 8px;background:var(--surface2,#f7fafc);border-radius:8px;border:1px solid var(--border,#e2e8f0);}
+.an-vel-val{font-size:24px;font-weight:800;color:var(--text-1,#1a202c);line-height:1;}
+.an-vel-lbl{font-size:10px;color:var(--text-4,#a0aec0);margin-top:3px;}
+/* Dark mode */
+html.dark-mode .an-card,
+html.dark-mode .an-chart-card,
+html.dark-mode .an-insight{background:var(--surface);border-color:var(--border);}
+html.dark-mode .an-card-val,
+html.dark-mode .an-chart-title{color:var(--text-1);}
+html.dark-mode .an-bar-track{background:var(--surface2);}
+html.dark-mode .an-vel-item{background:var(--surface2);border-color:var(--border);}
+html.dark-mode .an-i-red{background:#2d0a0a;}
+html.dark-mode .an-i-amber{background:#2d1a00;}
+html.dark-mode .an-i-green{background:#0d2e1a;}
+html.dark-mode .an-i-blue{background:#0d1f3d;}
+html.dark-mode .an-i-purple{background:#1a0d2e;}
+html.dark-mode .an-trend-up{background:#0d2e1a;color:#4ade80;}
+html.dark-mode .an-trend-down{background:#2d0a0a;color:#f87171;}
+html.dark-mode .an-trend-flat{background:#1e2d40;color:#94a3b8;}
+html.dark-mode .an-donut-pct{color:var(--text-1);}
+html.dark-mode .an-legend-item{color:var(--text-2);}
+html.dark-mode .an-legend-val{color:var(--text-1);}
+@media(max-width:768px){
+  .an-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .an-row,.an-row-3{grid-template-columns:1fr;gap:12px;}
+  .an-card-val{font-size:26px;}
+}
+
 </style>
 </head>
 <body>
@@ -1404,6 +1570,7 @@ html.dark-mode .sdp-hd { border-bottom-color:var(--border) !important; }
   <div class="ntab" onclick="switchTab('quality',this)">Quality & Risk</div>
   <div class="ntab" onclick="switchTab('planner',this)">Planner</div>
   <div class="ntab" onclick="switchTab('ai',this)">✦ AI Assistant</div>
+  <div class="ntab" onclick="switchTab('analytics',this)">📊 Analytics</div>
   <div class="ntab" onclick="switchTab('kanban',this)">📋 Kanban</div>
   <div class="ntab" onclick="switchTab('archive',this)">🗂 Archive</div>
 </div>
@@ -1503,20 +1670,60 @@ html.dark-mode .sdp-hd { border-bottom-color:var(--border) !important; }
 </div>
 
 <!-- ══ SCHEDULE ═══════════════════════════════ -->
-<div class="pane" id="pane-schedule">
-  <div class="sec-hdr" style="margin-bottom:14px">
-    <span class="sec-title">Gantt Timeline</span>
-    <span style="font-size:12px;color:#a0aec0" id="schedRange"></span>
+<div class="pane" id="pane-schedule" style="padding:16px 20px 32px;">
+  <!-- Gantt toolbar -->
+  <div class="gantt-outer">
+    <div class="gantt-toolbar">
+      <span class="gantt-toolbar-title">Gantt</span>
+      <!-- Zoom -->
+      <button class="gantt-zoom-btn active" onclick="ganttSetZoom('week',this)">Week</button>
+      <button class="gantt-zoom-btn" onclick="ganttSetZoom('month',this)">Month</button>
+      <button class="gantt-zoom-btn" onclick="ganttSetZoom('quarter',this)">Quarter</button>
+      <!-- Filter -->
+      <select class="gantt-filter" id="ganttFilter" onchange="renderSchedule()">
+        <option value="all">All tasks</option>
+        <option value="active">Active only</option>
+        <option value="overdue">Overdue</option>
+        <option value="Hi">High priority</option>
+        <option value="Med">Medium priority</option>
+        <option value="Lo">Low priority</option>
+      </select>
+      <!-- Group by -->
+      <select class="gantt-filter" id="ganttGroup" onchange="renderSchedule()">
+        <option value="none">No grouping</option>
+        <option value="status">Group by status</option>
+        <option value="priority">Group by priority</option>
+        <option value="tags">Group by category</option>
+      </select>
+      <!-- Today button -->
+      <button class="gantt-zoom-btn" onclick="ganttScrollToToday()">📅 Today</button>
+      <!-- Legend -->
+      <div class="gantt-legend">
+        <div class="gantt-legend-item"><div class="gantt-legend-dot" style="background:#e53e3e"></div>High</div>
+        <div class="gantt-legend-item"><div class="gantt-legend-dot" style="background:#d97706"></div>Medium</div>
+        <div class="gantt-legend-item"><div class="gantt-legend-dot" style="background:#2b6cb0"></div>Low</div>
+        <div class="gantt-legend-item"><div class="gantt-legend-dot" style="background:#22c55e"></div>Done</div>
+      </div>
+    </div>
+    <div class="gantt-scroll" id="ganttScroll">
+      <div id="ganttInner"></div>
+    </div>
   </div>
-  <div class="tl-wrap" id="tlWrap"></div>
-  <div class="sec-hdr" style="margin-top:18px"><span class="sec-title">Overdue & Upcoming — 30 days</span></div>
+
+  <!-- Upcoming table -->
+  <div class="sec-hdr" style="margin-top:4px;margin-bottom:10px;">
+    <span class="sec-title">Overdue & Upcoming — 30 days</span>
+  </div>
   <div class="tbl-wrap">
     <table>
-      <thead><tr><th>Task</th><th>Due</th><th>Priority</th><th>Status</th><th>Calendar</th></tr></thead>
+      <thead><tr><th>Task</th><th>Due</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead>
       <tbody id="upcomingTbl"></tbody>
     </table>
   </div>
 </div>
+
+<!-- Gantt tooltip -->
+<div class="gantt-tooltip" id="ganttTooltip" style="display:none;"></div>
 
 <!-- ══ WEEKLY ═════════════════════════════════ -->
 <div class="pane" id="pane-weekly" style="flex-direction:column;">
@@ -1738,6 +1945,56 @@ html.dark-mode .sdp-hd { border-bottom-color:var(--border) !important; }
 
 
 <!-- ══ ARCHIVE ════════════════════════════════ -->
+<div class="pane" id="pane-analytics" style="padding:20px 24px 32px;">
+  <!-- KPI row -->
+  <div class="an-grid" id="anKpis"></div>
+  <!-- Row 1: Completion donut + Status breakdown -->
+  <div class="an-row">
+    <div class="an-chart-card">
+      <div class="an-chart-title">Overall completion</div>
+      <div class="an-chart-sub">Tasks done vs active vs overdue</div>
+      <div class="an-donut-wrap">
+        <div class="an-donut"><svg width="110" height="110" viewBox="0 0 110 110"><circle cx="55" cy="55" r="44" fill="none" stroke="var(--border,#e2e8f0)" stroke-width="12"/><circle id="anDonutDone" cx="55" cy="55" r="44" fill="none" stroke="#22c55e" stroke-width="12" stroke-dasharray="276.46" stroke-dashoffset="276.46" stroke-linecap="round"/><circle id="anDonutOver" cx="55" cy="55" r="44" fill="none" stroke="#ef4444" stroke-width="12" stroke-dasharray="276.46" stroke-dashoffset="276.46" stroke-linecap="round"/></svg><div class="an-donut-center"><div class="an-donut-pct" id="anDonutPct">0%</div><div class="an-donut-lbl">done</div></div></div>
+        <div class="an-legend" id="anDonutLegend"></div>
+      </div>
+    </div>
+    <div class="an-chart-card">
+      <div class="an-chart-title">Status breakdown</div>
+      <div class="an-chart-sub">Distribution across all statuses</div>
+      <div class="an-bar-chart" id="anStatusBars"></div>
+    </div>
+  </div>
+  <!-- Row 2: Priority + Category -->
+  <div class="an-row">
+    <div class="an-chart-card">
+      <div class="an-chart-title">Priority distribution</div>
+      <div class="an-chart-sub">Tasks by priority level</div>
+      <div class="an-bar-chart" id="anPriBars"></div>
+    </div>
+    <div class="an-chart-card">
+      <div class="an-chart-title">Top categories</div>
+      <div class="an-chart-sub">Most active work areas</div>
+      <div class="an-bar-chart" id="anCatBars"></div>
+    </div>
+  </div>
+  <!-- Row 3: Velocity + Owner workload -->
+  <div class="an-row">
+    <div class="an-chart-card">
+      <div class="an-chart-title">Task velocity</div>
+      <div class="an-chart-sub">Tasks completed per week (last 8 weeks)</div>
+      <div id="anVelocity"></div>
+    </div>
+    <div class="an-chart-card">
+      <div class="an-chart-title">Owner workload</div>
+      <div class="an-chart-sub">Active tasks per person</div>
+      <div class="an-bar-chart" id="anOwnerBars"></div>
+    </div>
+  </div>
+  <!-- Insights -->
+  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-4,#a0aec0);margin-bottom:12px;">💡 Insights & recommendations</div>
+  <div class="an-insights" id="anInsights"></div>
+</div>
+
 <div class="pane" id="pane-kanban" style="padding:20px 24px 32px;">
   <div class="kanban-filter-bar">
     <span class="sec-title" style="margin-right:4px;">Kanban Board</span>
@@ -2635,7 +2892,7 @@ function switchTab(id,el){
   if(pane) pane.classList.add('on');
   const fn={overview:renderOverview,tasks:renderTasksTab,schedule:renderSchedule,
     weekly:renderWeekly,monthly:renderMonthly,quality:renderQuality,planner:renderPlanner,
-    ai:updateAIContext,archive:renderArchive,kanban:renderKanban};
+    ai:updateAIContext,archive:renderArchive,kanban:renderKanban,analytics:renderAnalytics};
   if(fn[id]){
     try{ fn[id](); }
     catch(e){
@@ -2905,38 +3162,299 @@ function toggleDoneSection(){
 /* ════════════════════════════════════════════
    SCHEDULE
 ════════════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   GANTT CHART ENGINE
+════════════════════════════════════════════ */
+let _ganttZoom = 'week'; // 'week' | 'month' | 'quarter'
+
+function ganttSetZoom(z, btn){
+  _ganttZoom = z;
+  document.querySelectorAll('.gantt-zoom-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderSchedule();
+}
+
+function ganttScrollToToday(){
+  const inner = document.getElementById('ganttInner');
+  const scroll = document.getElementById('ganttScroll');
+  const line = inner ? inner.querySelector('.gantt-today-line') : null;
+  if(line && scroll){
+    const lineLeft = parseInt(line.style.left) || 0;
+    scroll.scrollLeft = lineLeft - scroll.clientWidth / 2 + 200;
+  }
+}
+
+function ganttBarColor(t){
+  if(t.done) return '#22c55e';
+  if(isOverdue(t)) return '#ef4444';
+  if(t.priority==='Hi') return '#e53e3e';
+  if(t.priority==='Med') return '#d97706';
+  return '#2b6cb0';
+}
+
+function ganttStatusColor(t){
+  if(t.done) return '#22c55e';
+  if(t.status==='In Progress') return '#3b82f6';
+  if(t.status==='To Start') return '#10b981';
+  if(t.status==='Pending External') return '#f59e0b';
+  if(t.status==='Under Review') return '#0ea5e9';
+  if(isOverdue(t)) return '#ef4444';
+  return '#94a3b8';
+}
+
 function renderSchedule(){
-  const wd=tasks.filter(t=>t.dueDate).sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
-  if(!wd.length){document.getElementById('tlWrap').innerHTML='<div style="text-align:center;padding:32px;color:#a0aec0;font-size:13px">No tasks with dates yet.</div>';return;}
-  const minD=new Date(wd[0].startDate||wd[0].dueDate+'T00:00:00');
-  const maxD=new Date(wd[wd.length-1].dueDate+'T00:00:00');
-  const total=Math.max(maxD-minD,1);
-  document.getElementById('schedRange').textContent=fmtD(localStr(minD))+' → '+fmtD(localStr(maxD));
-  document.getElementById('tlWrap').innerHTML=wd.slice(0,10).map(t=>{
-    const sd=new Date((t.startDate||t.dueDate)+'T00:00:00');
-    const ed=new Date(t.dueDate+'T00:00:00');
-    const left=Math.max(0,((sd-minD)/total)*100);
-    const width=Math.max(3,((ed-sd+86400000)/total)*100);
-    const col=t.priority==='Hi'?'#9b2c2c':t.priority==='Med'?'#744210':'#1a3a5c';
-    return`<div class="tl-row" onclick="openTaskDetail(${t.id})" style="cursor:pointer;" onmouseover="this.style.background='#f7fafc'" onmouseout="this.style.background=''">
-      <div class="tl-name" title="${esc(t.title)}">${esc(t.title).substring(0,24)}${t.title.length>24?'…':''}</div>
-      <div class="tl-bar-bg"><div class="tl-bar" style="left:${left.toFixed(1)}%;width:${width.toFixed(1)}%;background:${col}">${width>12?esc(t.title).substring(0,12):''}</div></div>
-      <div class="tl-dates">${fmtS(t.startDate||t.dueDate)} → ${fmtS(t.dueDate)}</div>
-    </div>`;
-  }).join('');
-  const now=new Date(),in30=new Date(now);in30.setDate(in30.getDate()+30);
-  const up=tasks.filter(t=>t.dueDate&&!t.done&&new Date(t.dueDate+'T00:00:00')<=in30).sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
+  const filterVal = (document.getElementById('ganttFilter')||{}).value || 'all';
+  const groupVal  = (document.getElementById('ganttGroup')||{}).value  || 'none';
+
+  // Filter tasks
+  let wd = tasks.filter(t => t.dueDate);
+  if(filterVal === 'active')  wd = wd.filter(t => !t.done);
+  else if(filterVal === 'overdue') wd = wd.filter(t => isOverdue(t));
+  else if(['Hi','Med','Lo'].includes(filterVal)) wd = wd.filter(t => t.priority === filterVal);
+
+  const inner = document.getElementById('ganttInner');
+  if(!inner) return;
+
+  if(!wd.length){
+    inner.innerHTML = '<div style="text-align:center;padding:40px;color:#a0aec0;font-size:13px;">No tasks with dates match this filter.</div>';
+    renderUpcoming();
+    return;
+  }
+
+  // Compute timeline range
+  const today = new Date(); today.setHours(0,0,0,0);
+  const allStarts = wd.map(t => new Date((t.startDate||t.dueDate)+'T00:00:00'));
+  const allEnds   = wd.map(t => new Date(t.dueDate+'T00:00:00'));
+  let rangeStart  = new Date(Math.min(...allStarts, today));
+  let rangeEnd    = new Date(Math.max(...allEnds, today));
+
+  // Pad range
+  if(_ganttZoom === 'week'){
+    rangeStart.setDate(rangeStart.getDate() - 7);
+    rangeEnd.setDate(rangeEnd.getDate() + 14);
+  } else if(_ganttZoom === 'month'){
+    rangeStart.setDate(1); rangeStart.setMonth(rangeStart.getMonth() - 1);
+    rangeEnd.setDate(1);   rangeEnd.setMonth(rangeEnd.getMonth() + 2);
+  } else {
+    rangeStart.setDate(1); rangeStart.setMonth(rangeStart.getMonth() - 1);
+    rangeEnd.setDate(1);   rangeEnd.setMonth(rangeEnd.getMonth() + 3);
+  }
+
+  // Day width based on zoom
+  const DAY_W = _ganttZoom === 'week' ? 28 : _ganttZoom === 'month' ? 14 : 8;
+  const totalDays = Math.ceil((rangeEnd - rangeStart) / 86400000);
+  const totalW = totalDays * DAY_W;
+  const LABEL_W = 200;
+
+  // Helper: date → px offset
+  const dateToX = d => Math.round((d - rangeStart) / 86400000) * DAY_W;
+
+  // Group tasks
+  let groups = [];
+  if(groupVal === 'none'){
+    groups = [{ label: null, tasks: wd.sort((a,b) => new Date(a.startDate||a.dueDate) - new Date(b.startDate||b.dueDate)) }];
+  } else if(groupVal === 'status'){
+    const order = ['Open','To Start','In Progress','Pending External','Under Review','Closed'];
+    const byStatus = {};
+    wd.forEach(t => {
+      const s = t.done ? 'Closed' : (t.status||'Open');
+      if(!byStatus[s]) byStatus[s] = [];
+      byStatus[s].push(t);
+    });
+    order.forEach(s => { if(byStatus[s]) groups.push({label:s, tasks:byStatus[s]}); });
+  } else if(groupVal === 'priority'){
+    ['Hi','Med','Lo'].forEach(p => {
+      const ts = wd.filter(t => t.priority===p);
+      if(ts.length) groups.push({label:{Hi:'High',Med:'Medium',Lo:'Low'}[p], tasks:ts});
+    });
+  } else if(groupVal === 'tags'){
+    const byTag = {};
+    wd.forEach(t => {
+      const tag = (t.tags||['Uncategorised'])[0];
+      if(!byTag[tag]) byTag[tag] = [];
+      byTag[tag].push(t);
+    });
+    Object.entries(byTag).sort().forEach(([tag,ts]) => groups.push({label:tag, tasks:ts}));
+  }
+
+  // Build month header
+  const months = [];
+  let cur = new Date(rangeStart); cur.setDate(1);
+  while(cur <= rangeEnd){
+    const monthStart = new Date(Math.max(cur, rangeStart));
+    const monthEnd   = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
+    const clampEnd   = new Date(Math.min(monthEnd, rangeEnd));
+    const days = Math.ceil((clampEnd - monthStart)/86400000) + 1;
+    months.push({
+      label: cur.toLocaleDateString('en-SG',{month:'short',year:'numeric'}),
+      width: days * DAY_W,
+      x: dateToX(monthStart)
+    });
+    cur.setMonth(cur.getMonth()+1);
+  }
+
+  // Build week header (only for week/month zoom)
+  const weeks = [];
+  if(_ganttZoom !== 'quarter'){
+    let w = new Date(rangeStart);
+    const dow = w.getDay();
+    w.setDate(w.getDate() - (dow===0?6:dow-1));
+    while(w <= rangeEnd){
+      const wStart = new Date(Math.max(w, rangeStart));
+      weeks.push({ label: wStart.getDate()+'/'+(wStart.getMonth()+1), x: dateToX(wStart), width: 7*DAY_W });
+      w.setDate(w.getDate()+7);
+    }
+  }
+
+  // Today line
+  const todayX = dateToX(today);
+
+  // Weekend shading (only for week zoom)
+  let weekendHtml = '';
+  if(_ganttZoom === 'week'){
+    let d = new Date(rangeStart);
+    while(d <= rangeEnd){
+      const dow = d.getDay();
+      if(dow===0||dow===6){
+        const x = dateToX(d);
+        weekendHtml += `<div class="gantt-weekend" style="left:${x}px;width:${DAY_W}px;"></div>`;
+      }
+      d.setDate(d.getDate()+1);
+    }
+  }
+
+  // Build rows HTML
+  let labelsHtml = `<div class="gantt-label-hdr">TASKS (${wd.length})</div>`;
+  let rowsHtml   = '';
+
+  groups.forEach(group => {
+    if(group.label){
+      // Group header row
+      labelsHtml += `<div style="height:28px;display:flex;align-items:center;padding:0 10px;background:var(--surface2,#f7fafc);border-bottom:1px solid var(--border,#e2e8f0);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-4,#a0aec0);">${group.label}</div>`;
+      rowsHtml   += `<div style="height:28px;border-bottom:1px solid var(--border,#e2e8f0);background:var(--surface2,#f7fafc);"></div>`;
+    }
+
+    group.tasks.forEach(t => {
+      const sd = new Date((t.startDate||t.dueDate)+'T00:00:00');
+      const ed = new Date(t.dueDate+'T00:00:00');
+      const x  = Math.max(0, dateToX(sd));
+      const w  = Math.max(DAY_W, dateToX(ed) - dateToX(sd) + DAY_W);
+      const color = ganttBarColor(t);
+      const statusCol = ganttStatusColor(t);
+
+      // Progress %: based on subtasks if any
+      const subs = t.subtasks||[];
+      const progPct = subs.length ? Math.round(subs.filter(s=>s.done).length/subs.length*100) : (t.done?100:0);
+
+      const labelText = t.title.length > (w/7) ? t.title.substring(0,Math.max(4,Math.floor(w/7)))+'…' : t.title;
+
+      labelsHtml += `<div class="gantt-label-row" onclick="openTaskDetail(${t.id})">
+        <div class="gantt-task-status" style="background:${statusCol};"></div>
+        <div class="gantt-task-name" title="${esc(t.title)}">${esc(t.title)}</div>
+      </div>`;
+
+      rowsHtml += `<div class="gantt-row"
+        onmouseenter="showGanttTip(event,${t.id})"
+        onmouseleave="hideGanttTip()">
+        <div class="gantt-bar" style="left:${x}px;width:${w}px;background:${color};"
+          onclick="openTaskDetail(${t.id})">
+          <div class="gantt-bar-prog" style="width:${progPct}%;"></div>
+          <span class="gantt-bar-label">${w>40?esc(labelText):''}</span>
+        </div>
+      </div>`;
+    });
+  });
+
+  // Assemble
+  const monthsHdr = months.map(m => `<div class="gantt-month-cell" style="width:${m.width}px;">${m.label}</div>`).join('');
+  const weeksHdr  = weeks.map(w  => `<div class="gantt-week-cell"  style="width:${Math.min(w.width,(totalW-w.x))}px;">W${w.label}</div>`).join('');
+
+  inner.innerHTML = `
+  <div class="gantt-grid" style="min-width:${LABEL_W+totalW}px;">
+    <!-- Labels column -->
+    <div class="gantt-labels" style="width:${LABEL_W}px;">
+      ${labelsHtml}
+    </div>
+    <!-- Timeline -->
+    <div class="gantt-timeline" style="width:${totalW}px;position:relative;">
+      <!-- Month header -->
+      <div class="gantt-months-hdr" style="width:${totalW}px;">${monthsHdr}</div>
+      ${_ganttZoom!=='quarter'?`<div class="gantt-weeks-hdr" style="width:${totalW}px;">${weeksHdr}</div>`:''}
+      <!-- Weekend shading -->
+      <div style="position:absolute;top:${_ganttZoom!=='quarter'?52:28}px;left:0;right:0;bottom:0;pointer-events:none;">${weekendHtml}</div>
+      <!-- Today line -->
+      <div class="gantt-today-line" style="left:${todayX}px;top:0;">
+        <div class="gantt-today-dot"></div>
+        <div class="gantt-today-lbl">Today</div>
+      </div>
+      <!-- Task rows -->
+      ${rowsHtml}
+    </div>
+  </div>`;
+
+  // Auto-scroll to today on first render
+  const scroll = document.getElementById('ganttScroll');
+  if(scroll && scroll.dataset.scrolled !== '1'){
+    scroll.dataset.scrolled = '1';
+    setTimeout(() => {
+      scroll.scrollLeft = Math.max(0, todayX - scroll.clientWidth/2 + LABEL_W);
+    }, 50);
+  }
+
+  renderUpcoming();
+}
+
+function renderUpcoming(){
+  const now=new Date(), in30=new Date(now); in30.setDate(in30.getDate()+30);
+  const up=tasks.filter(t=>t.dueDate&&!t.done&&new Date(t.dueDate+'T00:00:00')<=in30)
+    .sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
   const tbody=document.getElementById('upcomingTbl');
-  if(!up.length){tbody.innerHTML=`<tr><td class="empty-td" colspan="5">No overdue or upcoming tasks in the next 30 days.</td></tr>`;return;}
+  if(!tbody) return;
+  if(!up.length){ tbody.innerHTML=`<tr><td class="empty-td" colspan="5">No overdue or upcoming tasks in 30 days.</td></tr>`; return; }
   tbody.innerHTML=up.map(t=>`
     <tr>
-      <td>${esc(t.title)}</td>
-      <td style="font-size:12.5px;color:${isOverdue(t)?'#9b2c2c':'#718096'}">${fmtS(t.dueDate)}${isOverdue(t)?' ⚠':''}</td>
+      <td><span class="task-link" onclick="openTaskDetail(${t.id})">${esc(t.title)}</span></td>
+      <td style="font-size:12.5px;color:${isOverdue(t)?'#e53e3e':'var(--text-3,#718096)'}">${fmtS(t.dueDate)}${isOverdue(t)?' ⚠':''}</td>
       <td>${priBadge(t.priority||'Med')}</td>
       <td>${statusBadge(t)}</td>
-      <td>${calBadge(t)}</td>
+      <td style="display:flex;gap:4px;">
+        <button class="btn sm" onclick="openEditTask(${t.id})">Edit</button>
+        <button class="btn sm danger" onclick="deleteTask(${t.id})">Del</button>
+      </td>
     </tr>`).join('');
 }
+
+/* Gantt tooltip */
+function showGanttTip(e, taskId){
+  const t = tasks.find(t=>t.id===taskId||t.id==taskId);
+  if(!t) return;
+  const subs = t.subtasks||[];
+  const progPct = subs.length ? Math.round(subs.filter(s=>s.done).length/subs.length*100) : (t.done?100:0);
+  const tip = document.getElementById('ganttTooltip');
+  if(!tip) return;
+  tip.innerHTML = `
+    <div class="gantt-tooltip-title">${esc(t.title)}</div>
+    <div class="gantt-tooltip-row"><span class="gantt-tooltip-lbl">Status</span><span class="gantt-tooltip-val">${t.done?'Closed':t.status||'Open'}</span></div>
+    <div class="gantt-tooltip-row"><span class="gantt-tooltip-lbl">Priority</span><span class="gantt-tooltip-val">${t.priority==='Hi'?'High':t.priority==='Med'?'Medium':'Low'}</span></div>
+    <div class="gantt-tooltip-row"><span class="gantt-tooltip-lbl">Start</span><span class="gantt-tooltip-val">${fmtS(t.startDate)||'—'}</span></div>
+    <div class="gantt-tooltip-row"><span class="gantt-tooltip-lbl">Due</span><span class="gantt-tooltip-val" style="color:${isOverdue(t)?'#ef4444':'inherit'}">${fmtS(t.dueDate)}${isOverdue(t)?' ⚠':''}</span></div>
+    ${subs.length?`<div class="gantt-tooltip-row"><span class="gantt-tooltip-lbl">Subtasks</span><span class="gantt-tooltip-val">${subs.filter(s=>s.done).length}/${subs.length} (${progPct}%)</span></div>`:''}
+    ${t.owner?`<div class="gantt-tooltip-row"><span class="gantt-tooltip-lbl">Owner</span><span class="gantt-tooltip-val">${esc(t.owner)}</span></div>`:''}
+    <div style="margin-top:6px;font-size:10px;color:var(--text-4,#a0aec0);">Click bar to view details</div>
+  `;
+  tip.style.display = 'block';
+  tip.style.left = (e.clientX + 12) + 'px';
+  tip.style.top  = (e.clientY - 10) + 'px';
+  // Prevent overflow right
+  const rect = tip.getBoundingClientRect();
+  if(rect.right > window.innerWidth - 10) tip.style.left = (e.clientX - rect.width - 12) + 'px';
+}
+
+function hideGanttTip(){
+  const tip = document.getElementById('ganttTooltip');
+  if(tip) tip.style.display = 'none';
+}
+
 
 /* ════════════════════════════════════════════
    WEEKLY
@@ -5435,6 +5953,7 @@ function refreshActive(){
   else if(txt.includes('AI')) updateAIContext();
   else if(txt.includes('Archive')) renderArchive();
   else if(txt.includes('Kanban')) renderKanban();
+  else if(txt.includes('Analytics')) renderAnalytics();
 }
 
 /* ════════════════════════════════════════════
@@ -6226,6 +6745,285 @@ function toggleDarkMode(){
     });
   }
 })();
+
+/* ════════════════════════════════════════════
+   ANALYTICS ENGINE
+════════════════════════════════════════════ */
+function renderAnalytics(){
+  const today = todayStr();
+  const now   = new Date(); now.setHours(0,0,0,0);
+  const active = tasks.filter(t=>!t.done);
+  const done   = tasks.filter(t=>t.done);
+  const overdue = tasks.filter(t=>isOverdue(t));
+  const total  = tasks.length;
+  const pct    = total ? Math.round((done.length/total)*100) : 0;
+  const hiPri  = active.filter(t=>t.priority==='Hi');
+  const noDue  = active.filter(t=>!t.dueDate);
+  const withSubs = tasks.filter(t=>(t.subtasks||[]).length>0);
+
+  // Avg days to due (active tasks with due dates)
+  const withDue = active.filter(t=>t.dueDate);
+  const avgDaysLeft = withDue.length
+    ? Math.round(withDue.reduce((s,t)=>s+Math.ceil((new Date(t.dueDate+'T00:00:00')-now)/86400000),0)/withDue.length)
+    : null;
+
+  // Subtask completion rate
+  let totalSubs=0, doneSubs=0;
+  tasks.forEach(t=>{ (t.subtasks||[]).forEach(s=>{ totalSubs++; if(s.done) doneSubs++; }); });
+  const subPct = totalSubs ? Math.round((doneSubs/totalSubs)*100) : null;
+
+  // ── KPI Cards ──
+  document.getElementById('anKpis').innerHTML = [
+    { lbl:'Total tasks',      val:total,          sub:active.length+' active · '+done.length+' closed',    color:'#2b6cb0', trend:null },
+    { lbl:'Completion rate',  val:pct+'%',         sub:'Tasks marked done',                                 color:pct>=70?'#16a34a':pct>=40?'#d97706':'#dc2626', trend:pct>=70?'up':pct>=40?'flat':'down' },
+    { lbl:'Overdue',          val:overdue.length,  sub:'Require immediate attention',                        color:overdue.length>0?'#dc2626':'#16a34a', trend:overdue.length>0?'down':'up' },
+    { lbl:'High priority open',val:hiPri.length,  sub:'Unresolved critical items',                           color:hiPri.length>5?'#dc2626':hiPri.length>2?'#d97706':'#16a34a', trend:null },
+  ].map(k=>`
+    <div class="an-card">
+      <div class="an-card-title">${k.lbl}</div>
+      <div class="an-card-val" style="color:${k.color};">${k.val}</div>
+      <div class="an-card-sub">${k.sub}</div>
+      ${k.trend?`<div class="an-card-trend an-trend-${k.trend}">${k.trend==='up'?'↑ Good':k.trend==='down'?'↓ Needs attention':'→ Moderate'}</div>`:''}
+    </div>`).join('');
+
+  // ── Donut chart ──
+  const CIRC = 276.46;
+  const doneOffset  = CIRC * (1 - done.length/Math.max(total,1));
+  const overdueArc  = CIRC * (overdue.length/Math.max(total,1));
+  const overdueOffset = CIRC * (1 - done.length/Math.max(total,1) - overdue.length/Math.max(total,1));
+  const dEl = document.getElementById('anDonutDone');
+  const oEl = document.getElementById('anDonutOver');
+  const pEl = document.getElementById('anDonutPct');
+  if(dEl) dEl.style.strokeDashoffset = doneOffset;
+  if(oEl){ oEl.style.strokeDashoffset = overdueOffset; oEl.style.strokeDasharray = `${overdueArc} ${CIRC-overdueArc}`; }
+  if(pEl) pEl.textContent = pct+'%';
+  const legendEl = document.getElementById('anDonutLegend');
+  if(legendEl) legendEl.innerHTML = [
+    { col:'#22c55e', lbl:'Done',    n:done.length },
+    { col:'#3b82f6', lbl:'Active',  n:active.length-overdue.length },
+    { col:'#ef4444', lbl:'Overdue', n:overdue.length },
+  ].map(i=>`<div class="an-legend-item"><div class="an-legend-dot" style="background:${i.col}"></div>${i.lbl}<span class="an-legend-val">${i.n}</span></div>`).join('');
+
+  // ── Helper: horizontal bar chart ──
+  function barChart(elId, rows, maxVal){
+    const el = document.getElementById(elId); if(!el) return;
+    const mx = maxVal || Math.max(...rows.map(r=>r.n), 1);
+    el.innerHTML = rows.map(r=>`
+      <div class="an-bar-row">
+        <div class="an-bar-lbl" title="${r.lbl}">${r.lbl}</div>
+        <div class="an-bar-track">
+          <div class="an-bar-fill" style="width:${Math.round((r.n/mx)*100)}%;background:${r.col};"></div>
+        </div>
+        <div class="an-bar-num">${r.n}</div>
+      </div>`).join('');
+  }
+
+  // ── Status bars ──
+  const statuses = [
+    { lbl:'Open',             col:'#94a3b8', n:active.filter(t=>!t.status||t.status==='Open').length },
+    { lbl:'To Start',         col:'#10b981', n:active.filter(t=>t.status==='To Start').length },
+    { lbl:'In Progress',      col:'#3b82f6', n:active.filter(t=>t.status==='In Progress').length },
+    { lbl:'Pending External', col:'#f59e0b', n:active.filter(t=>t.status==='Pending External').length },
+    { lbl:'Under Review',     col:'#0ea5e9', n:active.filter(t=>t.status==='Under Review').length },
+    { lbl:'Overdue',          col:'#ef4444', n:overdue.length },
+    { lbl:'Closed',           col:'#22c55e', n:done.length },
+  ].filter(s=>s.n>0);
+  barChart('anStatusBars', statuses);
+
+  // ── Priority bars ──
+  const priorities = [
+    { lbl:'High',   col:'#e53e3e', n:tasks.filter(t=>t.priority==='Hi').length },
+    { lbl:'Medium', col:'#d97706', n:tasks.filter(t=>(t.priority||'Med')==='Med').length },
+    { lbl:'Low',    col:'#2b6cb0', n:tasks.filter(t=>t.priority==='Lo').length },
+  ];
+  barChart('anPriBars', priorities);
+
+  // ── Category bars ──
+  const catCount = {};
+  tasks.forEach(t=>(t.tags||[]).forEach(g=>catCount[g]=(catCount[g]||0)+1));
+  const catColors = ['#0288D1','#FF8C42','#4CAF50','#9C27B0','#E91E63','#FF5722','#00BCD4'];
+  const catRows = Object.entries(catCount).sort((a,b)=>b[1]-a[1]).slice(0,7)
+    .map(([lbl,n],i)=>({lbl, n, col:catColors[i%catColors.length]}));
+  barChart('anCatBars', catRows);
+
+  // ── Owner workload ──
+  const ownerCount = {};
+  active.forEach(t=>{ const o=t.owner||'Unassigned'; ownerCount[o]=(ownerCount[o]||0)+1; });
+  const ownerRows = Object.entries(ownerCount).sort((a,b)=>b[1]-a[1]).slice(0,6)
+    .map(([lbl,n],i)=>({lbl, n, col:catColors[i%catColors.length]}));
+  barChart('anOwnerBars', ownerRows.length ? ownerRows : [{lbl:'No owners set',n:0,col:'#94a3b8'}]);
+
+  // ── Velocity sparkline (tasks completed per week, last 8 weeks) ──
+  const weeks = [];
+  for(let w=7;w>=0;w--){
+    const wEnd = new Date(now); wEnd.setDate(now.getDate() - w*7);
+    const wStart = new Date(wEnd); wStart.setDate(wEnd.getDate()-6);
+    const wsStr = localStr(wStart), weStr = localStr(wEnd);
+    const completed = done.filter(t=>t.dueDate && t.dueDate>=wsStr && t.dueDate<=weStr).length;
+    const created   = tasks.filter(t=>t.createdAt && t.createdAt.slice(0,10)>=wsStr && t.createdAt.slice(0,10)<=weStr).length;
+    weeks.push({ wsStr, weStr, completed, created, lbl: wEnd.toLocaleDateString('en-SG',{day:'numeric',month:'short'}) });
+  }
+  const maxV = Math.max(...weeks.map(w=>Math.max(w.completed,w.created)), 1);
+  const avgV = Math.round(weeks.reduce((s,w)=>s+w.completed,0)/weeks.length*10)/10;
+  const velEl = document.getElementById('anVelocity');
+  if(velEl) velEl.innerHTML = `
+    <div class="an-velocity" style="margin-bottom:10px;">
+      <div class="an-vel-item"><div class="an-vel-val" style="color:#22c55e">${avgV}</div><div class="an-vel-lbl">Avg completed/week</div></div>
+      <div class="an-vel-item"><div class="an-vel-val" style="color:#3b82f6">${weeks[weeks.length-1].completed}</div><div class="an-vel-lbl">Completed this week</div></div>
+      <div class="an-vel-item"><div class="an-vel-val" style="color:#d97706">${weeks[weeks.length-1].created}</div><div class="an-vel-lbl">Added this week</div></div>
+      <div class="an-vel-item"><div class="an-vel-val" style="color:${active.length>done.length?'#ef4444':'#22c55e'}">${active.length-done.length>0?'+':''}${active.length}</div><div class="an-vel-lbl">Net open tasks</div></div>
+    </div>
+    <div style="display:flex;gap:4px;align-items:flex-end;height:60px;">
+      ${weeks.map(w=>`
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+          <div style="flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;">
+            <div style="height:${Math.round((w.completed/maxV)*48)}px;background:#22c55e;border-radius:2px 2px 0 0;min-height:2px;width:100%;"></div>
+          </div>
+          <div style="font-size:8.5px;color:var(--text-4,#a0aec0);white-space:nowrap;">${w.lbl}</div>
+        </div>`).join('')}
+    </div>
+    <div style="display:flex;gap:12px;margin-top:6px;">
+      <div style="display:flex;align-items:center;gap:4px;font-size:10.5px;color:var(--text-4,#a0aec0);"><div style="width:10px;height:10px;background:#22c55e;border-radius:2px;"></div>Completed</div>
+    </div>`;
+
+  // ── Insights engine ──
+  const insights = [];
+
+  // 1. Overdue tasks
+  if(overdue.length > 0){
+    const worst = overdue.sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate))[0];
+    const daysOver = Math.ceil((now - new Date(worst.dueDate+'T00:00:00'))/86400000);
+    insights.push({
+      icon:'⚠️', cls:'an-i-red',
+      title:`${overdue.length} overdue task${overdue.length>1?'s':''} — oldest is ${daysOver} day${daysOver>1?'s':''} overdue`,
+      desc:`"${worst.title.substring(0,55)}" was due ${fmtS(worst.dueDate)}. Review and either reschedule or mark as closed if completed.`,
+      btn:'View overdue', action:`switchTab('tasks',document.querySelector('[onclick*=tasks]'));document.getElementById('fStatus').value='Overdue';renderTasksTab();`
+    });
+  }
+
+  // 2. Tasks with no due date
+  if(noDue.length > 3){
+    insights.push({
+      icon:'📅', cls:'an-i-amber',
+      title:`${noDue.length} active tasks have no due date`,
+      desc:`Tasks without deadlines tend to be deprioritised. Setting due dates helps you plan and ensures nothing slips through.`,
+      btn:'Filter tasks', action:`switchTab('tasks',document.querySelector('[onclick*=tasks]'));renderTasksTab();`
+    });
+  }
+
+  // 3. High priority backlog
+  if(hiPri.length > 5){
+    insights.push({
+      icon:'🎯', cls:'an-i-red',
+      title:`${hiPri.length} high priority tasks open — that's a lot`,
+      desc:`Having too many "high priority" tasks dilutes urgency. Consider downgrading some to Medium and focusing on the true critical items first.`,
+      btn:'Review high priority', action:`switchTab('tasks',document.querySelector('[onclick*=tasks]'));document.getElementById('fPri').value='Hi';renderTasksTab();`
+    });
+  }
+
+  // 4. Completion rate
+  if(pct < 30 && total > 5){
+    insights.push({
+      icon:'📈', cls:'an-i-amber',
+      title:`Completion rate is ${pct}% — room to improve`,
+      desc:`Try closing out small quick-win tasks first to build momentum. Archive old tasks you're no longer working on to keep the list clean.`,
+      btn:'View all tasks', action:`switchTab('tasks',document.querySelector('[onclick*=tasks]'));`
+    });
+  } else if(pct >= 80){
+    insights.push({
+      icon:'🏆', cls:'an-i-green',
+      title:`Excellent! ${pct}% completion rate`,
+      desc:`You're making great progress. Keep the momentum going and consider archiving completed tasks to keep your board clean.`,
+      btn:'Archive completed', action:`switchTab('archive',document.querySelector('[onclick*=archive]'));`
+    });
+  }
+
+  // 5. In Progress pile-up
+  const inProg = active.filter(t=>t.status==='In Progress');
+  if(inProg.length > 7){
+    insights.push({
+      icon:'🔄', cls:'an-i-blue',
+      title:`${inProg.length} tasks marked "In Progress" simultaneously`,
+      desc:`Multitasking too many items reduces focus. Aim for 3–5 active tasks at a time. Pause tasks you're not actively working on and set them to "To Start".`,
+      btn:null, action:null
+    });
+  }
+
+  // 6. Subtask health
+  if(totalSubs > 0 && subPct !== null && subPct < 30){
+    insights.push({
+      icon:'✅', cls:'an-i-purple',
+      title:`Subtask completion is low at ${subPct}%`,
+      desc:`${doneSubs} of ${totalSubs} subtasks are done. Focus on completing subtasks to unlock closing parent tasks and improving your overall completion rate.`,
+      btn:'View Kanban', action:`switchTab('kanban',document.querySelector('[onclick*=kanban]'));`
+    });
+  }
+
+  // 7. Velocity trend
+  const recentAvg = weeks.slice(-3).reduce((s,w)=>s+w.completed,0)/3;
+  const olderAvg  = weeks.slice(0,3).reduce((s,w)=>s+w.completed,0)/3;
+  if(olderAvg > 0 && recentAvg < olderAvg * 0.5){
+    insights.push({
+      icon:'📉', cls:'an-i-amber',
+      title:`Task completion is slowing down`,
+      desc:`You completed an average of ${olderAvg.toFixed(1)} tasks/week 6 weeks ago vs ${recentAvg.toFixed(1)} recently. Check if workload has grown or if priorities need rebalancing.`,
+      btn:'View schedule', action:`switchTab('schedule',document.querySelector('[onclick*=schedule]'));`
+    });
+  } else if(recentAvg > olderAvg * 1.5 && olderAvg > 0){
+    insights.push({
+      icon:'🚀', cls:'an-i-green',
+      title:`Great velocity! Completion rate is accelerating`,
+      desc:`You're completing ${recentAvg.toFixed(1)} tasks/week recently vs ${olderAvg.toFixed(1)} before. Keep up the momentum!`,
+      btn:null, action:null
+    });
+  }
+
+  // 8. No owner
+  const noOwner = active.filter(t=>!t.owner);
+  if(noOwner.length > 3){
+    insights.push({
+      icon:'👤', cls:'an-i-blue',
+      title:`${noOwner.length} tasks have no owner assigned`,
+      desc:`Unassigned tasks often fall through the cracks. Assign owners to ensure accountability, especially for high priority items.`,
+      btn:null, action:null
+    });
+  }
+
+  // 9. Category imbalance
+  if(catRows.length > 0){
+    const topCat = catRows[0];
+    const topPct = Math.round((topCat.n/total)*100);
+    if(topPct > 60){
+      insights.push({
+        icon:'⚖️', cls:'an-i-blue',
+        title:`${topPct}% of tasks are in "${topCat.lbl}" — heavy concentration`,
+        desc:`Consider if other areas (personal development, health, home) are being neglected. A balanced task mix leads to more sustainable productivity.`,
+        btn:null, action:null
+      });
+    }
+  }
+
+  // Default: all good
+  if(insights.length === 0){
+    insights.push({
+      icon:'✨', cls:'an-i-green',
+      title:'All looks great!',
+      desc:`No significant issues detected. Completion rate is strong, no overdue tasks, and workload is well balanced. Keep it up!`,
+      btn:null, action:null
+    });
+  }
+
+  const insEl = document.getElementById('anInsights');
+  if(insEl) insEl.innerHTML = insights.map(i=>`
+    <div class="an-insight">
+      <div class="an-insight-icon ${i.cls}">${i.icon}</div>
+      <div class="an-insight-body">
+        <div class="an-insight-title">${i.title}</div>
+        <div class="an-insight-desc">${i.desc}</div>
+        ${i.btn?`<div class="an-insight-action"><button class="an-insight-btn btn sm primary" onclick="${i.action}">${i.btn} →</button></div>`:''}
+      </div>
+    </div>`).join('');
+}
 
 function toast(msg,type){
   const el=document.getElementById('toast');
