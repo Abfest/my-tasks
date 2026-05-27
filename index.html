@@ -1510,6 +1510,20 @@ html.dark-mode .an-legend-val{color:var(--text-1);}
   .an-card-val{font-size:26px;}
 }
 
+
+/* ── KEYWORD ANALYSIS ── */
+.an-keyword-cloud{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:4px;}
+.an-kw-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:all .15s;}
+.an-kw-chip:hover{filter:brightness(.92);transform:translateY(-1px);}
+.an-kw-count{font-size:10px;font-weight:700;opacity:.75;}
+.an-kw-table{width:100%;border-collapse:collapse;}
+.an-kw-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-4,#a0aec0);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border,#e2e8f0);}
+.an-kw-table td{padding:8px 10px;border-bottom:1px solid var(--border2,#f0f4f8);font-size:12.5px;color:var(--text-2,#2d3748);vertical-align:top;}
+.an-kw-table tr:last-child td{border-bottom:none;}
+.an-kw-table tr:hover td{background:var(--hover-bg,#f7fafc);}
+.an-kw-badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10.5px;font-weight:600;margin-right:3px;}
+.an-section-hdr{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-4,#a0aec0);margin:0 0 12px;}
+
 </style>
 </head>
 <body>
@@ -1990,6 +2004,25 @@ html.dark-mode .an-legend-val{color:var(--text-1);}
       <div class="an-bar-chart" id="anOwnerBars"></div>
     </div>
   </div>
+  <!-- Keyword Analysis -->
+  <div class="an-row" style="margin-bottom:20px;">
+    <div class="an-chart-card">
+      <div class="an-chart-title">🔑 Top keywords in tasks</div>
+      <div class="an-chart-sub">Most frequent words across titles & notes — click to filter tasks</div>
+      <div class="an-keyword-cloud" id="anKeywordCloud"></div>
+    </div>
+    <div class="an-chart-card">
+      <div class="an-chart-title">🏭 Suppliers & entities</div>
+      <div class="an-chart-sub">Named entities detected in your tasks</div>
+      <div id="anEntities"></div>
+    </div>
+  </div>
+  <div class="an-chart-card" style="margin-bottom:20px;">
+    <div class="an-chart-title">🔍 Keyword deep-dive</div>
+    <div class="an-chart-sub">Recurring themes with task breakdown — spot patterns and bottlenecks</div>
+    <div id="anKeywordTable"></div>
+  </div>
+
   <!-- Insights -->
   <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-4,#a0aec0);margin-bottom:12px;">💡 Insights & recommendations</div>
   <div class="an-insights" id="anInsights"></div>
@@ -7023,6 +7056,193 @@ function renderAnalytics(){
         ${i.btn?`<div class="an-insight-action"><button class="an-insight-btn btn sm primary" onclick="${i.action}">${i.btn} →</button></div>`:''}
       </div>
     </div>`).join('');
+
+  // ── Keyword Analysis ──
+  renderKeywordAnalysis();
+}
+
+/* ════════════════════════════════════════════
+   KEYWORD ANALYSIS ENGINE
+════════════════════════════════════════════ */
+function renderKeywordAnalysis(){
+  // Gather all text from tasks (title + notes + subtask titles)
+  const allText = tasks.map(t => [
+    t.title||'',
+    t.notes||'',
+    ...(t.subtasks||[]).map(s=>s.title+' '+(s.description||''))
+  ].join(' ')).join(' ');
+
+  // ── Stop words to exclude ──
+  const STOP = new Set([
+    'the','a','an','and','or','but','in','on','at','to','for','of','with',
+    'from','by','as','is','are','was','were','be','been','has','have','had',
+    'do','does','did','will','would','could','should','may','might','this',
+    'that','these','those','it','its','i','my','we','our','you','your',
+    'he','his','she','her','they','their','what','which','who','when','where',
+    'how','all','each','both','few','more','most','other','some','such','than',
+    'then','them','there','up','out','if','no','not','so','can','just','into',
+    'after','before','about','above','also','get','got','use','using','used',
+    'new','task','tasks','action','actions','please','need','needs','required',
+    'per','via','re','ref','based','due','date','asap','follow','followup','tbd'
+  ]);
+
+  // ── Extract NCR numbers ──
+  const ncrPattern = /NCR\/\d{6}\/\d{2}/gi;
+  const ncrMatches = allText.match(ncrPattern)||[];
+  const ncrCount = {};
+  ncrMatches.forEach(n=>{ const k=n.toUpperCase(); ncrCount[k]=(ncrCount[k]||0)+1; });
+
+  // ── Tokenise and count all words ──
+  const words = allText
+    .replace(/NCR\/\d{6}\/\d{2}/gi,'') // remove NCR refs before tokenising
+    .toLowerCase()
+    .replace(/[^a-z0-9\s\-]/g,' ')
+    .split(/\s+/)
+    .filter(w => w.length >= 3 && !STOP.has(w) && !/^\d+$/.test(w));
+
+  const wordCount = {};
+  words.forEach(w => wordCount[w]=(wordCount[w]||0)+1);
+
+  // ── Extract likely entity names (Capitalised words in titles) ──
+  const entityPattern = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g;
+  const entityCount = {};
+  tasks.forEach(t => {
+    const matches = (t.title+' '+(t.notes||'')).match(entityPattern)||[];
+    matches.forEach(m => {
+      if(m.length < 3) return;
+      const stopCapital = new Set(['The','And','For','With','From','This','That','When','Where','How','Due','Start','Open','In','To','On','At','Of','By','As','Is','Are','Has','Was','Per','Via','After','Before','Also']);
+      if(stopCapital.has(m)) return;
+      entityCount[m]=(entityCount[m]||0)+1;
+    });
+  });
+
+  // ── Top keywords (min 2 occurrences) ──
+  const topKeywords = Object.entries(wordCount)
+    .filter(([w,n]) => n >= 2)
+    .sort((a,b) => b[1]-a[1])
+    .slice(0,30);
+
+  // Colour palette for chips
+  const chipColors = [
+    {bg:'#eff6ff',fg:'#1d4ed8',border:'#bfdbfe'},
+    {bg:'#f0fdf4',fg:'#166534',border:'#bbf7d0'},
+    {bg:'#fff7ed',fg:'#9a3412',border:'#fed7aa'},
+    {bg:'#fdf4ff',fg:'#7e22ce',border:'#e9d5ff'},
+    {bg:'#fff1f2',fg:'#9f1239',border:'#fecdd3'},
+    {bg:'#f0f9ff',fg:'#0c4a6e',border:'#bae6fd'},
+    {bg:'#fefce8',fg:'#713f12',border:'#fde68a'},
+  ];
+
+  // ── Keyword cloud ──
+  const cloudEl = document.getElementById('anKeywordCloud');
+  if(cloudEl){
+    if(!topKeywords.length){
+      cloudEl.innerHTML='<div style="color:var(--text-4);font-size:12px;">Not enough text data yet.</div>';
+    } else {
+      const maxN = topKeywords[0][1];
+      cloudEl.innerHTML = topKeywords.slice(0,20).map(([w,n],i)=>{
+        const c = chipColors[i%chipColors.length];
+        const size = 11 + Math.round((n/maxN)*5); // 11-16px font
+        return `<span class="an-kw-chip" title="${n} occurrence${n>1?'s':''}"
+          style="background:${c.bg};color:${c.fg};border-color:${c.border};font-size:${size}px;"
+          onclick="anFilterByKeyword('${w}')">
+          ${w} <span class="an-kw-count">×${n}</span>
+        </span>`;
+      }).join('');
+    }
+  }
+
+  // ── Entities / suppliers ──
+  const entEl = document.getElementById('anEntities');
+  if(entEl){
+    const topEntities = Object.entries(entityCount)
+      .filter(([e,n]) => n >= 2)
+      .sort((a,b) => b[1]-a[1])
+      .slice(0,12);
+
+    if(!topEntities.length && !Object.keys(ncrCount).length){
+      entEl.innerHTML='<div style="color:var(--text-4);font-size:12px;">No recurring entities found yet.</div>';
+    } else {
+      // NCR refs
+      let html = '';
+      const topNcr = Object.entries(ncrCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+      if(topNcr.length){
+        html += `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-4);margin-bottom:6px;">NCR References</div>`;
+        html += topNcr.map(([n,c])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border2,#f0f4f8);font-size:12px;">
+          <span style="color:var(--text-2);font-weight:500;">${n}</span>
+          <span style="color:var(--text-4);font-size:11px;">${c} mention${c>1?'s':''}</span>
+        </div>`).join('');
+        html += '<div style="margin-bottom:10px;"></div>';
+      }
+      if(topEntities.length){
+        html += `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-4);margin-bottom:6px;">Named entities</div>`;
+        html += topEntities.map(([e,n])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border2,#f0f4f8);font-size:12px;">
+          <span style="color:var(--text-2);font-weight:500;">${esc(e)}</span>
+          <span style="background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:1px 7px;font-size:10.5px;font-weight:600;">${n}×</span>
+        </div>`).join('');
+      }
+      entEl.innerHTML = html || '<div style="color:var(--text-4);font-size:12px;">No patterns found yet.</div>';
+    }
+  }
+
+  // ── Keyword deep-dive table ──
+  const tableEl = document.getElementById('anKeywordTable');
+  if(tableEl){
+    const topForTable = topKeywords.slice(0,12);
+    if(!topForTable.length){
+      tableEl.innerHTML='<div style="color:var(--text-4);font-size:12px;padding:8px 0;">Add more tasks with descriptive titles to see keyword patterns.</div>';
+    } else {
+      // For each keyword, find matching tasks
+      const rows = topForTable.map(([w,n]) => {
+        const matching = tasks.filter(t =>
+          (t.title+' '+(t.notes||'')+' '+(t.subtasks||[]).map(s=>s.title).join(' '))
+          .toLowerCase().includes(w)
+        );
+        const openM  = matching.filter(t=>!t.done).length;
+        const doneM  = matching.filter(t=>t.done).length;
+        const overdueM = matching.filter(t=>isOverdue(t)).length;
+        const priH   = matching.filter(t=>t.priority==='Hi').length;
+        return { w, n, matching, openM, doneM, overdueM, priH };
+      });
+
+      tableEl.innerHTML = `<table class="an-kw-table">
+        <thead><tr>
+          <th>Keyword</th>
+          <th>Occurrences</th>
+          <th>Open</th>
+          <th>Done</th>
+          <th>Overdue</th>
+          <th>High pri</th>
+          <th>Sample tasks</th>
+        </tr></thead>
+        <tbody>${rows.map(r=>`<tr>
+          <td><strong style="color:var(--text-1)">${r.w}</strong></td>
+          <td><span style="background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700;">${r.n}</span></td>
+          <td style="color:${r.openM>0?'#3b82f6':'var(--text-4)'};">${r.openM}</td>
+          <td style="color:${r.doneM>0?'#16a34a':'var(--text-4)'};">${r.doneM}</td>
+          <td style="color:${r.overdueM>0?'#ef4444':'var(--text-4)'};">${r.overdueM>0?'⚠ '+r.overdueM:'—'}</td>
+          <td style="color:${r.priH>0?'#d97706':'var(--text-4)'};">${r.priH>0?r.priH:'—'}</td>
+          <td style="max-width:300px;">
+            ${r.matching.slice(0,2).map(t=>`<div style="font-size:11.5px;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;" onclick="openTaskDetail(${t.id})" title="${esc(t.title)}">
+              ${statusBadge(t)} ${esc(t.title.substring(0,45))}${t.title.length>45?'…':''}
+            </div>`).join('')}
+            ${r.matching.length>2?`<div style="font-size:10.5px;color:var(--text-4);margin-top:2px;">+${r.matching.length-2} more tasks</div>`:''}
+          </td>
+        </tr>`).join('')}
+        </tbody>
+      </table>`;
+    }
+  }
+}
+
+function anFilterByKeyword(word){
+  // Jump to Tasks tab and filter by keyword
+  const tab = document.querySelector('[onclick*="'tasks'"]');
+  if(tab) switchTab('tasks', tab);
+  setTimeout(()=>{
+    const search = document.getElementById('fSearch');
+    if(search){ search.value = word; renderTasksTab(); }
+  }, 100);
 }
 
 function toast(msg,type){
