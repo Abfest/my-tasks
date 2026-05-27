@@ -1558,11 +1558,6 @@ html.dark-mode .an-legend-val{color:var(--text-1);}
         </div>
       </div>
     </div>
-    <!-- Firebase status indicator -->
-    <div id="fbStatusDot" title="Firebase connection status"
-      style="width:8px;height:8px;border-radius:50%;background:#f59e0b;flex-shrink:0;transition:background .3s;"
-      onclick="forcePullFromCloud()"></div>
-
     <button class="gcal-btn" id="gcalBtn" onclick="openGCalModal()">
       <div class="gcal-dot" id="gcalDot"></div>
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="opacity:.8"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.6"/><path d="M8 2v4M16 2v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -2285,26 +2280,17 @@ html.dark-mode .an-legend-val{color:var(--text-1);}
 
       /* Signal to the main script that Firebase is ready */
     window._fbReady = true;
-    window._fbInitTime = Date.now();
-    // Dispatch event multiple ways
-    const dispatch = () => {
-      window.dispatchEvent(new Event('firebase-ready'));
-      // Also set a polling flag so the poller picks it up
-      window._fbReadyFlag = true;
-    };
+    // Try dispatching event multiple ways to ensure it's caught
+    const dispatch = () => window.dispatchEvent(new Event('firebase-ready'));
     if(document.readyState === 'loading'){
       document.addEventListener('DOMContentLoaded', dispatch);
     } else {
       dispatch();
+      setTimeout(dispatch, 100);
+      setTimeout(dispatch, 500);
     }
-    setTimeout(dispatch, 50);
-    setTimeout(dispatch, 200);
-    setTimeout(dispatch, 500);
-    setTimeout(dispatch, 1000);
-    setTimeout(dispatch, 2000);
   } catch(e) {
     console.warn('Firebase init failed:', e);
-    window._fbInitError = e.message;
   }
 </script>
 
@@ -2335,8 +2321,8 @@ function normaliseTask(t){
 /* ════════════════════════════════════════════
    LOCAL STORAGE FALLBACK (works offline too)
 ════════════════════════════════════════════ */
-const TASK_KEYS = ['tf6_tasks','sq_tasks3'];
-const CAL_KEYS  = ['tf6_cal','cal_evts3'];
+const TASK_KEYS = ['sq_tasks3','tf6_tasks'];
+const CAL_KEYS  = ['cal_evts3','tf6_cal'];
 const TASK_PALETTE = [
   '#0288D1','#FF8C42','#4CAF50','#9C27B0','#E91E63',
   '#FF5722','#00BCD4','#8BC34A','#FFC107','#3F51B5',
@@ -2346,17 +2332,28 @@ const TOP3_KEYS = ['tf6_top3'];
 const GCAL_KEYS = ['tf6_gcal'];
 
 function readLocal(keys, fallback){
+  // First pass: find the key with the MOST data
   let best = null, bestLen = -1;
   for(const k of keys){
     try{
       const raw = localStorage.getItem(k);
-      if(!raw) continue;
+      if(!raw || raw === 'null' || raw === '[]') continue;
       const parsed = JSON.parse(raw);
       const len = Array.isArray(parsed) ? parsed.length : (parsed ? 1 : 0);
       if(len > bestLen){ best = parsed; bestLen = len; }
     }catch(e){}
   }
-  return best !== null ? best : (typeof fallback === 'string' ? JSON.parse(fallback) : fallback);
+  if(best !== null && bestLen > 0) return best;
+  // Second pass: accept anything non-empty
+  for(const k of keys){
+    try{
+      const raw = localStorage.getItem(k);
+      if(!raw || raw === 'null') continue;
+      const parsed = JSON.parse(raw);
+      if(parsed !== null) return parsed;
+    }catch(e){}
+  }
+  return typeof fallback === 'string' ? JSON.parse(fallback) : fallback;
 }
 
 function writeLocal(keys, value){
@@ -2369,6 +2366,9 @@ function writeLocal(keys, value){
 ════════════════════════════════════════════ */
 let tasks  = readLocal(TASK_KEYS, '[]').map(normaliseTask);
 let calEvs = readLocal(CAL_KEYS,  '[]');
+// Mirror data to ALL keys immediately so nothing goes missing
+if(tasks.length > 0)  writeLocal(TASK_KEYS,  tasks);
+if(calEvs.length > 0) writeLocal(CAL_KEYS,   calEvs);
 // Migration: fix gcal events that were stored with hardcoded #276749
 (function migrateCalColors(){
   const CAL_COLOR_MAP = {
@@ -2536,18 +2536,6 @@ function startFirebaseSync(){
     }
     _fbStartupDone = true; // mark startup complete after first snapshot
     console.log('🔄 Firebase snapshot — tasks:', tasks.length, '| from device:', data.deviceId||'unknown');
-
-    // Green status dot
-    const fbDot = document.getElementById('fbStatusDot');
-    if(fbDot){ fbDot.style.background='#22c55e'; fbDot.title='Firebase connected ✓ — click to sync'; }
-
-    // Hide loading overlay
-    const ovl = document.getElementById('syncLoadingOverlay');
-    if(ovl && !ovl.classList.contains('hide')){
-      const sl = document.getElementById('syncLoadingSub');
-      if(sl) sl.textContent = tasks.length + ' tasks loaded ✓';
-      setTimeout(()=>{ ovl.classList.add('hide'); setTimeout(()=>{ ovl.style.display='none'; },400); }, 500);
-    }
   });
 }
 
@@ -2904,50 +2892,22 @@ function dropTop3(e, targetIdx){
    INIT
 ════════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded',()=>{
-  // Apply dark mode immediately to prevent flash
-  if(localStorage.getItem('tf_dark')==='1'){
-    document.documentElement.classList.add('dark-mode');
-    const btn=document.getElementById('darkToggleBtn'); if(btn) btn.textContent='☀️';
+  // Emergency re-read: if tasks is empty but localStorage has data, reload it now
+  if(tasks.length === 0){
+    try{
+      const recovered = readLocal(TASK_KEYS, '[]').map(normaliseTask);
+      if(recovered.length > 0){
+        tasks = recovered;
+        console.log('✓ Recovered', tasks.length, 'tasks from localStorage');
+        writeLocal(TASK_KEYS, tasks);
+      }
+    }catch(e){ console.warn('Recovery failed:', e); }
   }
-
   updateGCalUI();
   const hdrDate=document.getElementById('hdrDate');
   if(hdrDate) hdrDate.textContent=new Date().toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
   try{ const a=localStorage.getItem('tf_archives'); if(a) _archives=JSON.parse(a); }catch(e){}
-  try{ const r=localStorage.getItem('tf_recycle'); if(r) _recycleBin=JSON.parse(r); }catch(e){}
-
-  const overlay  = document.getElementById('syncLoadingOverlay');
-  const subLbl   = document.getElementById('syncLoadingSub');
-  const retryBtn = document.getElementById('syncRetryBtn');
-
-  function hideOverlay(){
-    if(!overlay || overlay.classList.contains('hide')) return;
-    overlay.classList.add('hide');
-    setTimeout(()=>{ overlay.style.display='none'; }, 400);
-  }
-
-  if(tasks.length > 0){
-    // Have cached data — render immediately, hide overlay fast
-    if(subLbl) subLbl.textContent = tasks.length+' tasks loaded from cache';
-    renderAll(); renderTop3(); updatePomUI();
-    setTimeout(hideOverlay, 600);
-  } else {
-    // No cache — wait for Firebase
-    if(subLbl) subLbl.textContent = 'Connecting to cloud…';
-    renderTop3(); updatePomUI();
-    // Progressive messages
-    setTimeout(()=>{ if(!tasks.length && subLbl) subLbl.textContent = 'Loading Firebase…'; }, 2000);
-    setTimeout(()=>{ if(!tasks.length && subLbl) subLbl.textContent = 'Waiting for data…'; }, 4000);
-    setTimeout(()=>{
-      if(!tasks.length){
-        if(subLbl) subLbl.textContent = 'Taking longer than expected…';
-        if(retryBtn) retryBtn.style.display = 'inline-block';
-      }
-    }, 8000);
-    // Force-hide after 30s
-    setTimeout(()=>{ hideOverlay(); if(!tasks.length) renderAll(); }, 30000);
-  }
-
+  renderAll(); renderTop3(); updatePomUI();
   const ppb=document.getElementById('pushPermBtn');
   if(ppb&&localStorage.getItem('tf_push')==='granted'&&Notification.permission==='granted'){
     ppb.textContent='✓ Push notifications on'; ppb.style.color='#16a34a';
@@ -2956,30 +2916,14 @@ window.addEventListener('DOMContentLoaded',()=>{
   setInterval(buildNotifications,5*60*1000);
   window.addEventListener('message',handleOAuthMsg);
 
-  /* ── Firebase: aggressive polling every 200ms, up to 30s ── */
-  let _fbPollCount = 0;
-  const _fbMaxPolls = 150;
+  /* ── Firebase: poll every 300ms until _fbListen is available ── */
   function connectFirebase(){
     if(_fbListening) return;
-    if(window._fbListen){
-      startFirebaseSync();
-      if(subLbl && !tasks.length) subLbl.textContent = 'Connected — loading your data…';
-      return;
-    }
-    _fbPollCount++;
-    if(_fbPollCount >= _fbMaxPolls){
-      if(subLbl) subLbl.textContent = 'Could not reach cloud. Check your connection.';
-      if(retryBtn) retryBtn.style.display = 'inline-block';
-      const spinner = overlay ? overlay.querySelector('.sync-spinner') : null;
-      if(spinner) spinner.style.display = 'none';
-      renderAll();
-      return;
-    }
-    setTimeout(connectFirebase, 200);
+    if(window._fbListen){ startFirebaseSync(); }
+    else { setTimeout(connectFirebase, 300); }
   }
   connectFirebase();
-  window.addEventListener('firebase-ready',()=>{ if(!_fbListening && window._fbListen) startFirebaseSync(); });
-  window.addEventListener('focus',()=>{ if(!_fbListening && window._fbListen) startFirebaseSync(); });
+  window.addEventListener('firebase-ready',()=>{ if(!_fbListening) startFirebaseSync(); });
 });
 
 function renderAll(){
