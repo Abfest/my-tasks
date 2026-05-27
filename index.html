@@ -7262,7 +7262,7 @@ function renderKeywordAnalysis(){
 
 function anFilterByKeyword(word){
   // Jump to Tasks tab and filter by keyword
-  const tab = document.querySelector('[onclick*="'tasks'"]');
+  const tab = document.querySelector("[onclick*=\"'tasks'\"]");
   if(tab) switchTab('tasks', tab);
   setTimeout(()=>{
     const search = document.getElementById('fSearch');
