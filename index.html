@@ -1524,33 +1524,9 @@ html.dark-mode .an-legend-val{color:var(--text-1);}
 .an-kw-badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10.5px;font-weight:600;margin-right:3px;}
 .an-section-hdr{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-4,#a0aec0);margin:0 0 12px;}
 
-
-/* ── LOADING STATE ── */
-.sync-loading-overlay{position:fixed;inset:0;background:var(--bg,#f0f2f5);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s;}
-.sync-loading-overlay.hide{opacity:0;pointer-events:none;}
-.sync-spinner{width:44px;height:44px;border:4px solid var(--border,#e2e8f0);border-top-color:#1a3a5c;border-radius:50%;animation:spin .8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.sync-loading-title{font-size:15px;font-weight:700;color:var(--text-1,#1a202c);}
-.sync-loading-sub{font-size:12px;color:var(--text-4,#a0aec0);}
-.sync-retry-btn{margin-top:8px;padding:8px 20px;border-radius:8px;background:#1a3a5c;color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;display:none;}
-.sync-retry-btn:hover{background:#14304d;}
-/* Empty state for overview */
-.empty-overview{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;}
-.empty-overview-icon{font-size:48px;margin-bottom:16px;}
-.empty-overview-title{font-size:18px;font-weight:700;color:var(--text-1,#1a202c);margin-bottom:8px;}
-.empty-overview-sub{font-size:13px;color:var(--text-4,#a0aec0);max-width:360px;line-height:1.65;margin-bottom:20px;}
-
 </style>
 </head>
 <body>
-
-<!-- LOADING OVERLAY -->
-<div class="sync-loading-overlay" id="syncLoadingOverlay">
-  <div class="sync-spinner"></div>
-  <div class="sync-loading-title">Loading TaskFlow…</div>
-  <div class="sync-loading-sub" id="syncLoadingSub">Connecting to cloud…</div>
-  <button class="sync-retry-btn" id="syncRetryBtn" onclick="forcePullFromCloud()">↻ Retry sync</button>
-</div>
 
 <!-- HEADER -->
 <div class="hdr">
@@ -1582,6 +1558,11 @@ html.dark-mode .an-legend-val{color:var(--text-1);}
         </div>
       </div>
     </div>
+    <!-- Firebase status indicator -->
+    <div id="fbStatusDot" title="Firebase connection status"
+      style="width:8px;height:8px;border-radius:50%;background:#f59e0b;flex-shrink:0;transition:background .3s;"
+      onclick="forcePullFromCloud()"></div>
+
     <button class="gcal-btn" id="gcalBtn" onclick="openGCalModal()">
       <div class="gcal-dot" id="gcalDot"></div>
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="opacity:.8"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.6"/><path d="M8 2v4M16 2v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -2304,17 +2285,26 @@ html.dark-mode .an-legend-val{color:var(--text-1);}
 
       /* Signal to the main script that Firebase is ready */
     window._fbReady = true;
-    // Try dispatching event multiple ways to ensure it's caught
-    const dispatch = () => window.dispatchEvent(new Event('firebase-ready'));
+    window._fbInitTime = Date.now();
+    // Dispatch event multiple ways
+    const dispatch = () => {
+      window.dispatchEvent(new Event('firebase-ready'));
+      // Also set a polling flag so the poller picks it up
+      window._fbReadyFlag = true;
+    };
     if(document.readyState === 'loading'){
       document.addEventListener('DOMContentLoaded', dispatch);
     } else {
       dispatch();
-      setTimeout(dispatch, 100);
-      setTimeout(dispatch, 500);
     }
+    setTimeout(dispatch, 50);
+    setTimeout(dispatch, 200);
+    setTimeout(dispatch, 500);
+    setTimeout(dispatch, 1000);
+    setTimeout(dispatch, 2000);
   } catch(e) {
     console.warn('Firebase init failed:', e);
+    window._fbInitError = e.message;
   }
 </script>
 
@@ -2431,27 +2421,24 @@ const _deviceId = localStorage.getItem('tf_deviceId') || (()=>{
 
 async function forcePullFromCloud(){
   const btn = document.getElementById('forceSyncBtn');
-  const retryBtn = document.getElementById('syncRetryBtn');
   if(btn){ btn.textContent = '⏳ Syncing…'; btn.disabled = true; }
-  if(retryBtn){ retryBtn.textContent = '⏳ Syncing…'; retryBtn.disabled = true; }
   try{
-    if(!window._fbListen){
-      toast('Firebase not connected — check your internet connection','warn');
-      return;
-    }
+    if(!window._fbListen){ toast('Firebase not connected','warn'); return; }
+    // Get a fresh snapshot directly from Firestore
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    // Use the existing db reference via a one-shot read
     _lastFbSaveTime = null;
-    _fbStartupDone = false;
+    _fbStartupDone = false; // force accept next snapshot regardless of deviceId
+    // Unsubscribe and re-subscribe to force a fresh snapshot
     if(window._fbUnsub) window._fbUnsub();
     _fbListening = false;
     startFirebaseSync();
-    toast('☁ Syncing from cloud…','ok');
+    toast('☁ Pulled latest data from cloud','ok');
   } catch(e){
     toast('Sync error: '+e.message,'warn');
     console.error(e);
   } finally {
     if(btn){ btn.disabled = false; btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg> ☁ Sync'; }
-    if(retryBtn){ retryBtn.textContent = '↻ Retry sync'; retryBtn.disabled = false; }
   }
 }
 
@@ -2538,6 +2525,7 @@ function startFirebaseSync(){
     }catch(e){}
 
     // Always re-render after Firebase loads regardless of 'changed' flag
+    // This ensures first load always shows data
     renderAll();
     updatePhasePill();
     refreshActive();
@@ -2546,15 +2534,19 @@ function startFirebaseSync(){
       buildNotifications();
       showSyncIndicator();
     }
-    _fbStartupDone = true;
+    _fbStartupDone = true; // mark startup complete after first snapshot
     console.log('🔄 Firebase snapshot — tasks:', tasks.length, '| from device:', data.deviceId||'unknown');
 
-    // Hide loading overlay once we have data
-    const overlay = document.getElementById('syncLoadingOverlay');
-    if(overlay && !overlay.classList.contains('hide')){
-      const subLbl = document.getElementById('syncLoadingSub');
-      if(subLbl) subLbl.textContent = tasks.length + ' tasks loaded ✓';
-      setTimeout(()=>{ overlay.classList.add('hide'); setTimeout(()=>overlay.style.display='none',400); }, 600);
+    // Green status dot
+    const fbDot = document.getElementById('fbStatusDot');
+    if(fbDot){ fbDot.style.background='#22c55e'; fbDot.title='Firebase connected ✓ — click to sync'; }
+
+    // Hide loading overlay
+    const ovl = document.getElementById('syncLoadingOverlay');
+    if(ovl && !ovl.classList.contains('hide')){
+      const sl = document.getElementById('syncLoadingSub');
+      if(sl) sl.textContent = tasks.length + ' tasks loaded ✓';
+      setTimeout(()=>{ ovl.classList.add('hide'); setTimeout(()=>{ ovl.style.display='none'; },400); }, 500);
     }
   });
 }
@@ -2912,7 +2904,7 @@ function dropTop3(e, targetIdx){
    INIT
 ════════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded',()=>{
-  // Apply dark mode early to avoid flash
+  // Apply dark mode immediately to prevent flash
   if(localStorage.getItem('tf_dark')==='1'){
     document.documentElement.classList.add('dark-mode');
     const btn=document.getElementById('darkToggleBtn'); if(btn) btn.textContent='☀️';
@@ -2922,34 +2914,38 @@ window.addEventListener('DOMContentLoaded',()=>{
   const hdrDate=document.getElementById('hdrDate');
   if(hdrDate) hdrDate.textContent=new Date().toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
   try{ const a=localStorage.getItem('tf_archives'); if(a) _archives=JSON.parse(a); }catch(e){}
+  try{ const r=localStorage.getItem('tf_recycle'); if(r) _recycleBin=JSON.parse(r); }catch(e){}
 
-  // Show loading overlay
-  const overlay = document.getElementById('syncLoadingOverlay');
-  const subLbl  = document.getElementById('syncLoadingSub');
-  const retryBtn= document.getElementById('syncRetryBtn');
+  const overlay  = document.getElementById('syncLoadingOverlay');
+  const subLbl   = document.getElementById('syncLoadingSub');
+  const retryBtn = document.getElementById('syncRetryBtn');
 
-  // If we have local data, render immediately and hide overlay quickly
+  function hideOverlay(){
+    if(!overlay || overlay.classList.contains('hide')) return;
+    overlay.classList.add('hide');
+    setTimeout(()=>{ overlay.style.display='none'; }, 400);
+  }
+
   if(tasks.length > 0){
-    if(subLbl) subLbl.textContent = tasks.length + ' tasks loaded from cache…';
+    // Have cached data — render immediately, hide overlay fast
+    if(subLbl) subLbl.textContent = tasks.length+' tasks loaded from cache';
     renderAll(); renderTop3(); updatePomUI();
-    // Hide overlay after short delay
-    setTimeout(()=>{ if(overlay){ overlay.classList.add('hide'); setTimeout(()=>overlay.style.display='none',400); } }, 800);
+    setTimeout(hideOverlay, 600);
   } else {
-    // No local data — show loading state, wait for Firebase
-    if(subLbl) subLbl.textContent = 'Waiting for cloud data…';
+    // No cache — wait for Firebase
+    if(subLbl) subLbl.textContent = 'Connecting to cloud…';
     renderTop3(); updatePomUI();
-    // Show retry button after 8 seconds if still no data
+    // Progressive messages
+    setTimeout(()=>{ if(!tasks.length && subLbl) subLbl.textContent = 'Loading Firebase…'; }, 2000);
+    setTimeout(()=>{ if(!tasks.length && subLbl) subLbl.textContent = 'Waiting for data…'; }, 4000);
     setTimeout(()=>{
-      if(tasks.length === 0){
+      if(!tasks.length){
         if(subLbl) subLbl.textContent = 'Taking longer than expected…';
         if(retryBtn) retryBtn.style.display = 'inline-block';
       }
     }, 8000);
-    // Force-hide overlay after 15s regardless
-    setTimeout(()=>{
-      if(overlay){ overlay.classList.add('hide'); setTimeout(()=>overlay.style.display='none',400); }
-      if(tasks.length === 0) renderAll(); // render empty state
-    }, 15000);
+    // Force-hide after 30s
+    setTimeout(()=>{ hideOverlay(); if(!tasks.length) renderAll(); }, 30000);
   }
 
   const ppb=document.getElementById('pushPermBtn');
@@ -2960,21 +2956,37 @@ window.addEventListener('DOMContentLoaded',()=>{
   setInterval(buildNotifications,5*60*1000);
   window.addEventListener('message',handleOAuthMsg);
 
-  /* ── Firebase: poll every 300ms until _fbListen is available ── */
+  /* ── Firebase: aggressive polling every 200ms, up to 30s ── */
+  let _fbPollCount = 0;
+  const _fbMaxPolls = 150;
   function connectFirebase(){
     if(_fbListening) return;
-    if(window._fbListen){ startFirebaseSync(); }
-    else { setTimeout(connectFirebase, 300); }
+    if(window._fbListen){
+      startFirebaseSync();
+      if(subLbl && !tasks.length) subLbl.textContent = 'Connected — loading your data…';
+      return;
+    }
+    _fbPollCount++;
+    if(_fbPollCount >= _fbMaxPolls){
+      if(subLbl) subLbl.textContent = 'Could not reach cloud. Check your connection.';
+      if(retryBtn) retryBtn.style.display = 'inline-block';
+      const spinner = overlay ? overlay.querySelector('.sync-spinner') : null;
+      if(spinner) spinner.style.display = 'none';
+      renderAll();
+      return;
+    }
+    setTimeout(connectFirebase, 200);
   }
   connectFirebase();
-  window.addEventListener('firebase-ready',()=>{ if(!_fbListening) startFirebaseSync(); });
+  window.addEventListener('firebase-ready',()=>{ if(!_fbListening && window._fbListen) startFirebaseSync(); });
+  window.addEventListener('focus',()=>{ if(!_fbListening && window._fbListen) startFirebaseSync(); });
 });
 
 function renderAll(){
-  try{ updatePhasePill(); }catch(e){ console.warn('updatePhasePill error:',e); }
-  try{ renderOverview(); }catch(e){ console.warn('renderOverview error:',e); }
-  try{ refreshActive(); }catch(e){ console.warn('refreshActive error:',e); }
-  try{ renderOverdueBanner(); }catch(e){ console.warn('renderOverdueBanner error:',e); }
+  updatePhasePill();
+  renderOverview();
+  refreshActive();
+  renderOverdueBanner();
 }
 
 function updatePhasePill(){
@@ -3109,21 +3121,7 @@ function renderOverview(){
   const syncBtn=document.getElementById('gcalSyncBtn');
   if(syncBtn) syncBtn.style.display=gcal?'inline-flex':'none';
   const tbody=document.getElementById('overviewTbl');
-  if(!tasks.length){
-    // Show helpful empty state instead of just an empty table row
-    tbody.innerHTML=`<tr><td colspan="7" style="padding:0;">
-      <div class="empty-overview">
-        <div class="empty-overview-icon">📋</div>
-        <div class="empty-overview-title">No tasks yet</div>
-        <div class="empty-overview-sub">Your task register is empty. Add your first task to get started, or click <strong>☁ Sync</strong> to pull data from the cloud.</div>
-        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-          <button class="btn primary" onclick="openAddTask()">+ Add first task</button>
-          <button class="btn" onclick="forcePullFromCloud()">☁ Sync from cloud</button>
-        </div>
-      </div>
-    </td></tr>`;
-    return;
-  }
+  if(!tasks.length){tbody.innerHTML=`<tr><td class="empty-td" colspan="7">No tasks yet. Click "+ Add task" to begin.</td></tr>`;return;}
   const activeTasks = tasks.filter(t=>!t.done);
   const doneTasks = tasks.filter(t=>t.done);
   const allSorted = [...activeTasks, ...doneTasks];
