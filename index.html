@@ -1524,6 +1524,35 @@ html.dark-mode .an-legend-val{color:var(--text-1);}
 .an-kw-badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10.5px;font-weight:600;margin-right:3px;}
 .an-section-hdr{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-4,#a0aec0);margin:0 0 12px;}
 
+
+/* ── PINNED TASKS ── */
+.pin-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:0 2px;line-height:1;opacity:.35;transition:opacity .15s, transform .15s;flex-shrink:0;}
+.pin-btn:hover{opacity:.8;transform:scale(1.15);}
+.pin-btn.pinned{opacity:1;}
+.pinned-section-hdr{display:flex;align-items:center;gap:8px;padding:6px 14px;background:linear-gradient(90deg,rgba(26,58,92,.06),transparent);border-bottom:1px solid #e2e8f0;border-top:1px solid #e2e8f0;}
+.pinned-section-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#1a3a5c;}
+html.dark-mode .pinned-section-hdr{background:linear-gradient(90deg,rgba(0,178,255,.08),transparent);border-color:var(--border);}
+html.dark-mode .pinned-section-lbl{color:var(--accent);}
+html.dark-mode .pin-btn.pinned{color:var(--accent);}
+tr.tr-pinned td{background:rgba(26,58,92,.025) !important;}
+html.dark-mode tr.tr-pinned td{background:rgba(0,178,255,.04) !important;}
+/* Rank badge */
+.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.rank-1{background:linear-gradient(135deg,#f59e0b,#d97706);}
+.rank-2{background:linear-gradient(135deg,#94a3b8,#64748b);}
+.rank-3{background:linear-gradient(135deg,#c2773a,#92400e);}
+.rank-n{background:linear-gradient(135deg,#1a3a5c,#2b6cb0);}
+html.dark-mode .rank-n{background:linear-gradient(135deg,var(--accent),#0ea5e9);}
+/* Rank move buttons */
+.rank-move{background:none;border:none;cursor:pointer;font-size:11px;color:#a0aec0;padding:0 1px;line-height:1;transition:color .15s;}
+.rank-move:hover{color:#1a3a5c;}
+html.dark-mode .rank-move:hover{color:var(--accent);}
+.rank-controls{display:flex;flex-direction:column;gap:0;align-items:center;flex-shrink:0;}
+/* Dragging */
+tr.rank-dragging{opacity:.4;}
+tr.rank-drag-over td{border-top:2px solid #1a3a5c !important;}
+html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !important;}
+
 </style>
 </head>
 <body>
@@ -2314,7 +2343,9 @@ function normaliseTask(t){
     gcalId:    t.gcalId    || null,
     calUrl:    t.calUrl    || null,
     createdAt: t.createdAt || new Date().toISOString(),
-    subtasks:  t.subtasks  || []
+    subtasks:  t.subtasks  || [],
+    pinned:    t.pinned    || false,
+    pinRank:   t.pinRank   || 0
   };
 }
 
@@ -3066,9 +3097,10 @@ function renderOverview(){
   if(syncBtn) syncBtn.style.display=gcal?'inline-flex':'none';
   const tbody=document.getElementById('overviewTbl');
   if(!tasks.length){tbody.innerHTML=`<tr><td class="empty-td" colspan="7">No tasks yet. Click "+ Add task" to begin.</td></tr>`;return;}
-  const activeTasks = tasks.filter(t=>!t.done);
+  const pinnedTasks = tasks.filter(t=>t.pinned&&!t.done).sort((a,b)=>a.pinRank-b.pinRank);
+  const activeTasks = tasks.filter(t=>!t.done&&!t.pinned);
   const doneTasks = tasks.filter(t=>t.done);
-  const allSorted = [...activeTasks, ...doneTasks];
+  const allSorted = [...pinnedTasks, ...activeTasks, ...doneTasks];
 
   tbody.innerHTML=allSorted.slice(0,15).map(t=>{
     const subs=t.subtasks||[];
@@ -3080,8 +3112,9 @@ function renderOverview(){
       <td>
         <div style="display:flex;align-items:flex-start;gap:6px">
           ${hasSubs?`<button onclick="toggleExpandRow('${rowId}')" style="width:16px;height:16px;border-radius:3px;border:0.5px solid #e2e8f0;background:#f7fafc;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;flex-shrink:0;margin-top:2px;color:#718096;" id="exp_${rowId}">▶</button>`:'<span style="width:16px;flex-shrink:0"></span>'}
-          <div style="min-width:0">
-            <span class="task-link" onclick="event.stopPropagation();openTaskDetail(${t.id})" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'inherit'}">${esc(t.title)}</span>
+          <div style="min-width:0;display:flex;align-items:center;gap:5px;">
+            ${t.pinned?`<span class="rank-badge ${t.pinRank===1?'rank-1':t.pinRank===2?'rank-2':t.pinRank===3?'rank-3':'rank-n'}" style="font-size:10px;width:18px;height:18px;" title="Priority #${t.pinRank}">${t.pinRank}</span>`:''}
+            <span class="task-link" onclick="event.stopPropagation();openTaskDetail(${t.id})" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'inherit'};font-weight:${t.pinned?'700':'400'};">${esc(t.title)}</span>
             ${hasSubs?`<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><div style="height:3px;width:60px;background:#e2e8f0;border-radius:2px;overflow:hidden"><div style="height:100%;width:${stPct}%;background:#1a3a5c;border-radius:2px"></div></div><span style="font-size:10.5px;color:#718096">${sDone}/${subs.length}</span></div>`:''}
           </div>
         </div>
@@ -3092,7 +3125,8 @@ function renderOverview(){
       <td style="font-size:12.5px;color:${isOverdue(t)?'#9b2c2c':'#718096'}">${fmtS(t.dueDate)}${isOverdue(t)?' ⚠':''}</td>
       <td>${statusBadge(t)}</td>
       <td>${calBadge(t)}</td>
-      <td style="display:flex;gap:5px;flex-wrap:nowrap">
+      <td style="display:flex;gap:5px;flex-wrap:nowrap;align-items:center;">
+        <button class="pin-btn ${t.pinned?'pinned':''}" onclick="togglePin(${t.id})" title="${t.pinned?'Unpin':'Pin to top'}">📌</button>
         <button class="btn sm ${t.done?'':'success'}" onclick="toggleDone(${t.id})">${t.done?'Reopen':'✓ Done'}</button>
         <button class="btn sm" onclick="openEditTask(${t.id})">Edit</button>
         <button class="btn sm" onclick="duplicateTask(${t.id})" title="Duplicate task">⧉</button>
@@ -3156,7 +3190,9 @@ function renderTasksTab(){
     return true;
   };
 
-  const active = tasks.filter(t=>!t.done&&matchesFilter(t));
+  const pinned = tasks.filter(t=>t.pinned&&!t.done&&matchesFilter(t))
+                       .sort((a,b)=>a.pinRank-b.pinRank);
+  const active = tasks.filter(t=>!t.done&&!t.pinned&&matchesFilter(t));
   const done   = tasks.filter(t=>t.done&&matchesFilter(t));
 
   const tbody=document.getElementById('tasksTbl');
@@ -3166,13 +3202,18 @@ function renderTasksTab(){
     const subs=t.subtasks||[];
     const sDone=subs.filter(s=>s.done).length;
     const hasSubs=subs.length>0;
-    return `<tr class="${t.done?'tr-done':''}">
+    return `<tr class="${t.done?'tr-done':''} ${t.pinned?'tr-pinned':''}">
       <td><div class="pchk ${t.done?'done-c':''}" onclick="toggleDone(${t.id})" title="${hasSubs&&!t.done?'Complete all subtasks first':'Mark done'}">${t.done?'✓':''}</div></td>
       <td style="max-width:200px">
         <div style="display:flex;align-items:flex-start;gap:6px">
           ${hasSubs?`<button onclick="toggleExpandRow('trow_${t.id}')" id="exp_trow_${t.id}" style="width:16px;height:16px;border-radius:3px;border:0.5px solid #e2e8f0;background:#f7fafc;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;flex-shrink:0;margin-top:2px;color:#718096;">▶</button>`:'<span style="width:16px;flex-shrink:0"></span>'}
           <div style="min-width:0;flex:1">
-            <span class="task-link" onclick="event.stopPropagation();openTaskDetail(${t.id})" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'inherit'}">${esc(t.title)}</span>${t.repeat?`<span style="font-size:9.5px;background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:1px 6px;margin-left:5px;font-weight:500;">↻ ${t.repeat}</span>`:''}
+            ${t.pinned?`<div class="rank-controls" style="margin-right:4px;">
+              <button class="rank-move" onclick="event.stopPropagation();movePinnedRank(${t.id},-1)" title="Move up">▲</button>
+              <span class="rank-badge ${t.pinRank===1?'rank-1':t.pinRank===2?'rank-2':t.pinRank===3?'rank-3':'rank-n'}" title="Priority #${t.pinRank}">${t.pinRank}</span>
+              <button class="rank-move" onclick="event.stopPropagation();movePinnedRank(${t.id},1)" title="Move down">▼</button>
+            </div>`:''}
+            <span class="task-link" onclick="event.stopPropagation();openTaskDetail(${t.id})" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'inherit'};font-weight:${t.pinned?'700':'400'};">${esc(t.title)}</span>${t.repeat?`<span style="font-size:9.5px;background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:1px 6px;margin-left:5px;font-weight:500;">↻ ${t.repeat}</span>`:''}
             ${t.notes?`<div style="font-size:11px;color:#a0aec0;margin-top:2px">${esc(t.notes).substring(0,55)}${t.notes.length>55?'…':''}</div>`:''}
             ${hasSubs?`<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><div style="height:3px;width:50px;background:#e2e8f0;border-radius:2px;overflow:hidden"><div style="height:100%;width:${Math.round((sDone/subs.length)*100)}%;background:#1a3a5c;border-radius:2px"></div></div><span style="font-size:10.5px;color:#718096">${sDone}/${subs.length} subtasks</span></div>`:''}
           </div>
@@ -3186,7 +3227,8 @@ function renderTasksTab(){
       <td style="font-size:12px;color:#718096">${esc(t.owner||'—')}</td>
       <td>${statusBadge(t)}</td>
       <td>${calBadge(t)}</td>
-      <td style="display:flex;gap:4px;flex-wrap:nowrap">
+      <td style="display:flex;gap:4px;flex-wrap:nowrap;align-items:center;">
+        <button class="pin-btn ${t.pinned?'pinned':''}" onclick="togglePin(${t.id})" title="${t.pinned?'Unpin task':'Pin to top'}">📌</button>
         <button class="btn sm ${t.done?'':'success'}" onclick="toggleDone(${t.id})">${t.done?'Reopen':'Done'}</button>
         <button class="btn sm" onclick="openEditTask(${t.id})">Edit</button>
         <button class="btn sm" onclick="duplicateTask(${t.id})" title="Duplicate task">⧉</button>
@@ -3207,7 +3249,20 @@ function renderTasksTab(){
     </tr>
     ${_showDone ? '' : done.map(taskRow).join('')}`;
 
-  tbody.innerHTML = active.map(taskRow).join('') + doneSection;
+  const pinnedSection = pinned.length === 0 ? '' : `
+    <tr>
+      <td colspan="10" style="padding:0;">
+        <div class="pinned-section-hdr">
+          <span>📌</span>
+          <span class="pinned-section-lbl">Priority Queue</span>
+          <span style="font-size:10px;color:#718096;font-weight:400;">${pinned.length} pinned · use ▲▼ to reorder</span>
+        </div>
+      </td>
+    </tr>
+    ${pinned.map(taskRow).join('')}
+    <tr><td colspan="10" style="height:6px;background:transparent;border:none;"></td></tr>`;
+
+  tbody.innerHTML = pinnedSection + active.map(taskRow).join('') + doneSection;
 }
 
 function toggleDoneSection(){
@@ -5230,6 +5285,42 @@ function updatePomUI(){
 /* ════════════════════════════════════════════
    TASK CRUD
 ════════════════════════════════════════════ */
+function togglePin(id){
+  const t = tasks.find(t=>t.id===id||t.id==id);
+  if(!t) return;
+  if(t.pinned){
+    // Unpin: remove rank, compact ranks of remaining
+    t.pinned = false;
+    const oldRank = t.pinRank;
+    t.pinRank = 0;
+    // Re-number remaining pinned tasks
+    tasks.filter(x=>x.pinned).sort((a,b)=>a.pinRank-b.pinRank)
+      .forEach((x,i)=>x.pinRank=i+1);
+    save(); refreshActive();
+    toast('Unpinned', '');
+  } else {
+    // Pin: assign next rank
+    const maxRank = Math.max(0, ...tasks.filter(x=>x.pinned).map(x=>x.pinRank));
+    t.pinned = true;
+    t.pinRank = maxRank + 1;
+    save(); refreshActive();
+    toast(`📌 Pinned as priority #${t.pinRank}`, 'ok');
+  }
+}
+
+function movePinnedRank(id, dir){
+  const pinned = tasks.filter(t=>t.pinned).sort((a,b)=>a.pinRank-b.pinRank);
+  const idx = pinned.findIndex(t=>t.id===id||t.id==id);
+  if(idx < 0) return;
+  const target = idx + dir;
+  if(target < 0 || target >= pinned.length) return;
+  // Swap ranks
+  const tmp = pinned[idx].pinRank;
+  pinned[idx].pinRank = pinned[target].pinRank;
+  pinned[target].pinRank = tmp;
+  save(); refreshActive();
+}
+
 function toggleDone(id){
   const t=tasks.find(t=>t.id===id||t.id==id);
   if(!t) return;
@@ -5241,7 +5332,7 @@ function toggleDone(id){
     }
   }
   t.done=!t.done;
-  if(t.done) t.status='Closed';
+  if(t.done){ t.status='Closed'; if(t.pinned){ t.pinned=false; t.pinRank=0; tasks.filter(x=>x.pinned).sort((a,b)=>a.pinRank-b.pinRank).forEach((x,i)=>x.pinRank=i+1); } } // auto-unpin + re-number when done
   save();refreshActive();
 }
 function deleteTask(id){
@@ -6493,6 +6584,7 @@ function openTaskDetail(id){
   document.getElementById('tdActions').innerHTML = `
     <button class="btn primary" onclick="closeTD();openEditTask(${t.id})">Edit task</button>
     <button class="btn ${t.done?'':'success'}" onclick="toggleDone(${t.id});closeTD()">${t.done?'Reopen':'✓ Mark done'}</button>
+    <button class="btn ${t.pinned?'':'amber-o'}" onclick="togglePin(${t.id});closeTD()">${t.pinned?`📌 Unpin (was #${t.pinRank})`:'📌 Pin to top'}</button>
     <button class="btn" onclick="duplicateTask(${t.id});closeTD()">⧉ Duplicate</button>
     <button class="btn" onclick="closeTD();manualSyncTask(${t.id})">↑ Sync to calendar</button>
     <button class="btn danger" style="margin-left:auto" onclick="if(confirm('Delete this task?')){deleteTask(${t.id});closeTD();}">Delete</button>
