@@ -468,6 +468,13 @@ tbody tr:hover td{background:#f7fafc;}
 .cat-filter-btn:hover{border-color:#cbd5e0;color:#2d3748;}
 .cat-filter-btn.active{color:var(--cat-fg);background:var(--cat-bg);border-color:var(--cat-dot);}
 
+/* ── Task type segment: All / Projects / Individual ── */
+.seg-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:1px solid #e2e8f0;font-size:12.5px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;background:#f7fafc;color:#718096;transition:all .15s;}
+.seg-btn:hover{border-color:#cbd5e0;color:#2d3748;}
+.seg-btn.active{background:#1a3a5c;color:#fff;border-color:#1a3a5c;}
+.seg-count{font-size:10.5px;opacity:.75;font-family:'IBM Plex Mono',monospace;}
+.proj-badge{font-size:9.5px;background:#fff7e6;color:#b7791f;border-radius:10px;padding:1px 7px;margin-left:5px;font-weight:600;white-space:nowrap;}
+
 /* ── TASK DETAIL POPUP ── */
 .td-overlay{position:fixed;inset:0;background:rgba(15,37,64,.55);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s;}
 .td-overlay.show{opacity:1;pointer-events:all;}
@@ -1132,6 +1139,9 @@ html.dark-mode .sdp-title,
 html.dark-mode .ddp-title          { color:var(--text-1); }
 html.dark-mode .cat-filter-bar     { background:var(--nav-bg); border-bottom-color:var(--border); }
 html.dark-mode .cat-filter-btn     { background:var(--surface2); border-color:var(--border); color:var(--text-3); }
+html.dark-mode .seg-btn            { background:var(--surface2); border-color:var(--border); color:var(--text-3); }
+html.dark-mode .seg-btn.active     { background:var(--accent); color:#04121F; border-color:var(--accent); }
+html.dark-mode .proj-badge         { background:rgba(255,176,32,.14); color:#FFB020; }
 html.dark-mode .task-link          { color:var(--accent); }
 html.dark-mode .task-link:hover    { color:var(--accent2); }
 html.dark-mode .plan-card-title    { color:var(--text-4); }
@@ -1180,9 +1190,10 @@ html.dark-mode *::-webkit-scrollbar-thumb:hover { background:var(--text-4); }
 
 /* Tasks pane header bar + filter bar */
 html.dark-mode #pane-tasks > div:nth-child(1) { background:var(--surface) !important; border-bottom-color:var(--border) !important; }
-html.dark-mode #pane-tasks > div:nth-child(2) { background:var(--surface2) !important; border-bottom-color:var(--border) !important; }
-html.dark-mode #pane-tasks > div:nth-child(3) { background:var(--surface) !important; border-bottom-color:var(--border) !important; }
-html.dark-mode #pane-tasks > div:nth-child(4) { background:var(--bg) !important; }
+html.dark-mode #pane-tasks > div:nth-child(2) { background:var(--surface) !important; } /* type segment row */
+html.dark-mode #pane-tasks > div:nth-child(3) { background:var(--surface2) !important; border-bottom-color:var(--border) !important; }
+html.dark-mode #pane-tasks > div:nth-child(4) { background:var(--surface) !important; border-bottom-color:var(--border) !important; }
+html.dark-mode #pane-tasks > div:nth-child(5) { background:var(--bg) !important; }
 
 /* Category filter bar */
 html.dark-mode #catFilterBar { background:var(--surface) !important; border-bottom-color:var(--border) !important; }
@@ -1665,6 +1676,12 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
       <button id="toggleDoneBtn" onclick="toggleShowDone()" class="btn sm" style="white-space:nowrap;">Hide completed</button>
       <button class="btn primary" onclick="openAddTask()">+ Add task</button>
     </div>
+  </div>
+  <!-- Type segment: All / Projects / Individual -->
+  <div style="padding:12px 20px 0;display:flex;gap:6px;background:#fff;">
+    <button id="segAll" class="seg-btn active" onclick="setTypeFilter('all')">All <span class="seg-count" id="segCountAll"></span></button>
+    <button id="segProjects" class="seg-btn" onclick="setTypeFilter('projects')">📁 Projects <span class="seg-count" id="segCountProjects"></span></button>
+    <button id="segIndividual" class="seg-btn" onclick="setTypeFilter('individual')">Individual tasks <span class="seg-count" id="segCountIndividual"></span></button>
   </div>
   <!-- Filter bar -->
   <div style="padding:10px 20px;background:#f7fafc;border-bottom:1px solid #e2e8f0;display:flex;gap:7px;flex-wrap:wrap;align-items:center;">
@@ -3187,8 +3204,24 @@ function renderTasksTab(){
       if(fs==='Overdue'){if(!isOverdue(t))return false;}
       else if(s!==fs)return false;
     }
+    if(_typeFilter==='projects'&&!((t.subtasks||[]).length>0))return false;
+    if(_typeFilter==='individual'&&(t.subtasks||[]).length>0)return false;
     return true;
   };
+
+  // Segment counts reflect every other active filter except the type segment itself
+  const countBase = tasks.filter(t=>{
+    const savedType=_typeFilter; _typeFilter='all';
+    const ok=matchesFilter(t);
+    _typeFilter=savedType;
+    return ok;
+  });
+  const segAllC=document.getElementById('segCountAll');
+  const segProjC=document.getElementById('segCountProjects');
+  const segIndC=document.getElementById('segCountIndividual');
+  if(segAllC) segAllC.textContent=countBase.length;
+  if(segProjC) segProjC.textContent=countBase.filter(t=>(t.subtasks||[]).length>0).length;
+  if(segIndC) segIndC.textContent=countBase.filter(t=>(t.subtasks||[]).length===0).length;
 
   const pinned = tasks.filter(t=>t.pinned&&!t.done&&matchesFilter(t))
                        .sort((a,b)=>a.pinRank-b.pinRank);
@@ -3213,7 +3246,7 @@ function renderTasksTab(){
               <span class="rank-badge ${t.pinRank===1?'rank-1':t.pinRank===2?'rank-2':t.pinRank===3?'rank-3':'rank-n'}" title="Priority #${t.pinRank}">${t.pinRank}</span>
               <button class="rank-move" onclick="event.stopPropagation();movePinnedRank(${t.id},1)" title="Move down">▼</button>
             </div>`:''}
-            <span class="task-link" onclick="event.stopPropagation();openTaskDetail(${t.id})" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'inherit'};font-weight:${t.pinned?'700':'400'};">${esc(t.title)}</span>${t.repeat?`<span style="font-size:9.5px;background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:1px 6px;margin-left:5px;font-weight:500;">↻ ${t.repeat}</span>`:''}
+            <span class="task-link" onclick="event.stopPropagation();openTaskDetail(${t.id})" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'inherit'};font-weight:${t.pinned?'700':'400'};">${esc(t.title)}</span>${hasSubs?`<span class="proj-badge">📁 PROJECT</span>`:''}${t.repeat?`<span style="font-size:9.5px;background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:1px 6px;margin-left:5px;font-weight:500;">↻ ${t.repeat}</span>`:''}
             ${t.notes?`<div style="font-size:11px;color:#a0aec0;margin-top:2px">${esc(t.notes).substring(0,55)}${t.notes.length>55?'…':''}</div>`:''}
             ${hasSubs?`<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><div style="height:3px;width:50px;background:#e2e8f0;border-radius:2px;overflow:hidden"><div style="height:100%;width:${Math.round((sDone/subs.length)*100)}%;background:#1a3a5c;border-radius:2px"></div></div><span style="font-size:10.5px;color:#718096">${sDone}/${subs.length} subtasks</span></div>`:''}
           </div>
@@ -4993,6 +5026,16 @@ function catChipHtml(name){
 }
 
 let _catFilter = ''; // active category filter
+let _typeFilter = 'all'; // 'all' | 'projects' | 'individual' — projects = tasks with subtasks
+
+function setTypeFilter(v){
+  _typeFilter = v;
+  ['segAll','segProjects','segIndividual'].forEach(id=>{
+    const btn = document.getElementById(id);
+    if(btn) btn.classList.toggle('active', id==='seg'+v.charAt(0).toUpperCase()+v.slice(1));
+  });
+  renderTasksTab();
+}
 
 function setCatFilter(cat){
   _catFilter = _catFilter===cat ? '' : cat;
