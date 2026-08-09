@@ -986,6 +986,9 @@ html.dark-mode .ff textarea:focus  { border-color:var(--accent); box-shadow:0 0 
 html.dark-mode .overlay            { background:rgba(0,0,0,.7); }
 html.dark-mode .modal              { background:var(--modal-bg); box-shadow:0 24px 60px rgba(0,0,0,.6); }
 html.dark-mode .modal-title        { color:var(--text-1); }
+html.dark-mode #catManager         { background:var(--surface2) !important; border-color:var(--border) !important; }
+html.dark-mode #catManager span    { color:var(--text-2); }
+html.dark-mode #catManager input[type="text"] { background:var(--surface); border-color:var(--border); color:var(--text-1); }
 html.dark-mode .flbl               { color:var(--text-2); }
 
 /* Nav tabs bar -- dark mode scrollbar */
@@ -2141,9 +2144,12 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
     <div class="modal-title" id="taskModalTitle">Add task</div>
     <div class="form-grid">
       <div class="ff full"><label class="flbl">Task name <span class="req">*</span></label><input id="fTitle" placeholder="e.g. Review NCR report"/></div>
-      <div class="ff full"><label class="flbl">Category</label>
+      <div class="ff full"><label class="flbl">Category
+          <button type="button" onclick="toggleCatManager()" style="border:none;background:none;color:#3b82f6;font-size:11px;font-weight:600;cursor:pointer;margin-left:8px;">⚙ Manage</button>
+        </label>
         <input type="hidden" id="fTag" value="Work"/>
         <div class="cat-picker" id="catPicker"></div>
+        <div id="catManager" style="display:none;margin-top:10px;padding:10px 12px;background:#f7fafc;border:1px solid #e2e8f0;border-radius:8px;"></div>
       </div>
       <div class="ff"><label class="flbl">Priority</label>
         <select id="fPriority"><option value="Hi">High</option><option value="Med" selected>Medium</option><option value="Lo">Low</option></select>
@@ -2378,6 +2384,8 @@ const TASK_PALETTE = [
 ];
 const TOP3_KEYS = ['tf6_top3'];
 const GCAL_KEYS = ['tf6_gcal'];
+const CUSTOMCATS_KEYS = ['tf6_customcats'];
+const DELETEDCATS_KEYS = ['tf6_deletedcats'];
 
 function readLocal(keys, fallback){
   // First pass: find the key with the MOST data
@@ -2414,6 +2422,8 @@ function writeLocal(keys, value){
 ════════════════════════════════════════════ */
 let tasks  = readLocal(TASK_KEYS, '[]').map(normaliseTask);
 let calEvs = readLocal(CAL_KEYS,  '[]');
+let customCats  = readLocal(CUSTOMCATS_KEYS, '{}');   // { name: {bg,fg,dot} } — user-added or user-recolored
+let deletedCats = readLocal(DELETEDCATS_KEYS, '[]');  // names hidden from the picker (built-in or custom)
 // Mirror data to ALL keys immediately so nothing goes missing
 if(tasks.length > 0)  writeLocal(TASK_KEYS,  tasks);
 if(calEvs.length > 0) writeLocal(CAL_KEYS,   calEvs);
@@ -2497,11 +2507,13 @@ function fbSave(){
     try{
       const now = new Date().toISOString();
       await window._fbSaveDoc({
-        tasks:     JSON.stringify(tasks),
-        calEvs:    JSON.stringify(calEvs),
-        top3:      JSON.stringify(top3),
-        gcal:      JSON.stringify(gcal),
-        archives:  JSON.stringify(_archives),
+        tasks:       JSON.stringify(tasks),
+        calEvs:      JSON.stringify(calEvs),
+        top3:        JSON.stringify(top3),
+        gcal:        JSON.stringify(gcal),
+        archives:    JSON.stringify(_archives),
+        customCats:  JSON.stringify(customCats),
+        deletedCats: JSON.stringify(deletedCats),
         updatedAt: now,
         deviceId:  _deviceId
       });
@@ -2569,6 +2581,24 @@ function startFirebaseSync(){
         gcal = remote;
         writeLocal(GCAL_KEYS, gcal);
         updateGCalUI();
+      }
+    }catch(e){}
+
+    try{
+      const remote = JSON.parse(data.customCats||'{}');
+      if(JSON.stringify(remote) !== JSON.stringify(customCats)){
+        customCats = remote;
+        writeLocal(CUSTOMCATS_KEYS, customCats);
+        changed = true;
+      }
+    }catch(e){}
+
+    try{
+      const remote = JSON.parse(data.deletedCats||'[]');
+      if(JSON.stringify(remote) !== JSON.stringify(deletedCats)){
+        deletedCats = remote;
+        writeLocal(DELETEDCATS_KEYS, deletedCats);
+        changed = true;
       }
     }catch(e){}
 
@@ -4759,6 +4789,8 @@ function saveArchives(){
           top3: JSON.stringify(top3),
           gcal: JSON.stringify(gcal),
           archives: JSON.stringify(_archives),
+          customCats: JSON.stringify(customCats),
+          deletedCats: JSON.stringify(deletedCats),
           updatedAt: new Date().toISOString()
         });
       }catch(e){ console.warn('Archive save error:', e); }
@@ -5000,7 +5032,7 @@ function deleteArchiveMonth(archIdx){
 /* ════════════════════════════════════════════
    CATEGORY SYSTEM
 ════════════════════════════════════════════ */
-const CATS = {
+const CATS_BASE = {
   'Work':        {bg:'#eff6ff', fg:'#1d4ed8', dot:'#3b82f6'},
   'Quality':     {bg:'#fff7ed', fg:'#9a3412', dot:'#f97316'},
   'Personal':    {bg:'#fdf4ff', fg:'#7e22ce', dot:'#a855f7'},
@@ -5013,8 +5045,96 @@ const CATS = {
 };
 const DEFAULT_CAT = {bg:'#edf2f7', fg:'#4a5568', dot:'#a0aec0'};
 
+// Build a text {bg,fg} pair from a single hex dot color so custom categories
+// created with one color picker still get readable chip backgrounds.
+function catFromDot(hex){
+  return { bg: hex+'22', fg: hex, dot: hex };
+}
+
+// Live category set = built-ins + custom (custom can override a built-in's color
+// by reusing its name) − anything the user deleted.
+function getActiveCats(){
+  const merged = {...CATS_BASE};
+  Object.keys(customCats).forEach(name=>{ merged[name] = customCats[name]; });
+  deletedCats.forEach(name=>{ delete merged[name]; });
+  return merged;
+}
+
+function saveCatState(){
+  writeLocal(CUSTOMCATS_KEYS, customCats);
+  writeLocal(DELETEDCATS_KEYS, deletedCats);
+  fbSave();
+}
+
+function addCustomCat(name, hex){
+  name = (name||'').trim();
+  if(!name) { toast('Enter a category name','warn'); return; }
+  if(getActiveCats()[name]) { toast('That category already exists','warn'); return; }
+  customCats[name] = catFromDot(hex || '#3b82f6');
+  // Un-delete if it was previously removed under this exact name
+  deletedCats = deletedCats.filter(n=>n!==name);
+  saveCatState();
+  renderCatManager();
+  renderCatPicker(document.getElementById('fTag')?.value);
+  renderCatFilterBar();
+  toast('Category added','ok');
+}
+
+function recolorCat(name, hex){
+  customCats[name] = catFromDot(hex);
+  saveCatState();
+  renderCatManager();
+  renderCatPicker(document.getElementById('fTag')?.value);
+  renderCatFilterBar();
+}
+
+function deleteCat(name){
+  if(!confirm(`Delete category "${name}"? Tasks already tagged with it keep the tag, but it won't show as a pickable option.`)) return;
+  if(!deletedCats.includes(name)) deletedCats.push(name);
+  delete customCats[name];
+  saveCatState();
+  renderCatManager();
+  const cur = document.getElementById('fTag')?.value;
+  renderCatPicker(cur===name ? Object.keys(getActiveCats())[0] : cur);
+  renderCatFilterBar();
+  toast('Category deleted','ok');
+}
+
+function toggleCatManager(){
+  const el = document.getElementById('catManager');
+  if(!el) return;
+  const show = el.style.display==='none'||!el.style.display;
+  el.style.display = show?'block':'none';
+  if(show) renderCatManager();
+}
+
+function renderCatManager(){
+  const el = document.getElementById('catManager');
+  if(!el) return;
+  const active = getActiveCats();
+  const rows = Object.keys(active).map(name=>{
+    const c = active[name];
+    return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;">
+      <input type="color" value="${c.dot}" onchange="recolorCat('${name.replace(/'/g,"\\'")}', this.value)"
+        style="width:24px;height:24px;border:none;border-radius:5px;padding:0;cursor:pointer;background:none;"/>
+      <span style="flex:1;font-size:12.5px;">${esc(name)}</span>
+      <button type="button" onclick="deleteCat('${name.replace(/'/g,"\\'")}')"
+        style="border:none;background:none;color:#e53e3e;font-size:11px;cursor:pointer;padding:3px 7px;">✕</button>
+    </div>`;
+  }).join('');
+  el.innerHTML = `
+    <div style="font-size:10.5px;letter-spacing:.5px;color:#a0aec0;text-transform:uppercase;margin-bottom:4px;">Manage categories</div>
+    ${rows}
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid #edf2f7;">
+      <input type="color" id="newCatColor" value="#3b82f6" style="width:24px;height:24px;border:none;border-radius:5px;padding:0;cursor:pointer;background:none;"/>
+      <input type="text" id="newCatName" placeholder="New category name" style="flex:1;font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid #e2e8f0;outline:none;"/>
+      <button type="button" onclick="addCustomCat(document.getElementById('newCatName').value, document.getElementById('newCatColor').value); document.getElementById('newCatName').value='';"
+        style="font-size:11.5px;background:#1a3a5c;color:#fff;border:none;border-radius:6px;padding:6px 10px;cursor:pointer;">+ Add</button>
+    </div>`;
+}
+
 function catStyle(name){
-  return CATS[name] || DEFAULT_CAT;
+  return getActiveCats()[name] || DEFAULT_CAT;
 }
 
 function catChipHtml(name){
@@ -5043,7 +5163,7 @@ function setCatFilter(cat){
   document.querySelectorAll('.cat-filter-btn').forEach(b=>{
     const bc = b.dataset.cat;
     b.classList.toggle('active', bc===_catFilter);
-    if(bc && CATS[bc]){
+    if(bc && getActiveCats()[bc]){
       const c = catStyle(bc);
       b.style.setProperty('--cat-bg', c.bg);
       b.style.setProperty('--cat-fg', c.fg);
@@ -5054,7 +5174,7 @@ function setCatFilter(cat){
 }
 
 function renderCatPicker(selected){
-  const allCats = Object.keys(CATS);
+  const allCats = Object.keys(getActiveCats());
   const picker = document.getElementById('catPicker');
   if(!picker) return;
   picker.innerHTML = allCats.map(c=>{
@@ -5067,7 +5187,7 @@ function renderCatPicker(selected){
       ${c}
     </button>`;
   }).join('');
-  document.getElementById('fTag').value = selected || 'Work';
+  document.getElementById('fTag').value = selected || allCats[0] || '';
 }
 
 function selectCat(name){
@@ -5086,7 +5206,7 @@ function clearAllFilters(){
 
 function renderCatFilterBar(){
   // Get categories actually in use
-  const used = [...new Set(tasks.flatMap(t=>t.tags||[]))].filter(c=>CATS[c]||true);
+  const used = [...new Set(tasks.flatMap(t=>t.tags||[]))];
   const wrap = document.getElementById('catFilterBar');
   if(!wrap) return;
   if(used.length === 0){ wrap.style.display='none'; return; }
