@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#1a3a5c"/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231a3a5c'/><text x='16' y='23' font-size='18' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'>T</text></svg>"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;}
@@ -16,7 +16,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#f0f2f5;color:#1a202c;d
 /* ── HEADER ── */
 .hdr{background:#1a3a5c;color:#fff;padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative;z-index:20;}
 .hdr-left{display:flex;align-items:center;gap:16px;}
-.hdr-title{font-size:16px;font-weight:700;letter-spacing:-.01em;}
+.hdr-title{font-size:16px;font-weight:700;letter-spacing:-.01em;font-family:'Space Grotesk',sans-serif;}
 .hdr-sub{font-size:12px;opacity:.65;margin-top:1px;}
 .hdr-right{display:flex;align-items:center;gap:12px;}
 .hdr-date{font-size:12.5px;opacity:.8;}
@@ -45,7 +45,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:#f0f2f5;color:#1a202c;d
 
 /* ── STAT CARDS ── */
 .stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px;}
-.scard{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.scard{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04);position:relative;overflow:hidden;}
+.scard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#cbd5e0;}
+.scard:has(.scard-val.blue)::before{background:#2b6cb0;}
+.scard:has(.scard-val.green)::before{background:#16a34a;}
+.scard:has(.scard-val.red)::before{background:#e53e3e;}
+.scard:has(.scard-val.amber)::before{background:#d97706;}
 .scard-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#a0aec0;margin-bottom:8px;}
 .scard-val{font-size:28px;font-weight:700;line-height:1;color:#1a202c;margin-bottom:4px;}
 .scard-sub{font-size:11.5px;color:#a0aec0;}
@@ -345,8 +350,10 @@ tbody tr:hover td{background:#f7fafc;}
 
 /* ── OVERDUE BANNER ── */
 .overdue-banner{
-  background:linear-gradient(135deg,#dc2626,#9b2c2c);
-  color:#fff;
+  background:linear-gradient(90deg, rgba(220,38,38,.14), rgba(220,38,38,.05));
+  border-bottom:1px solid rgba(220,38,38,.25);
+  border-left:3px solid #dc2626;
+  color:#7f1d1d;
   padding:0;
   overflow:hidden;
   max-height:0;
@@ -364,15 +371,15 @@ tbody tr:hover td{background:#f7fafc;}
   gap:12px;
   flex-wrap:wrap;
 }
-.overdue-banner-icon{font-size:18px;flex-shrink:0;}
+.overdue-banner-icon{font-size:16px;flex-shrink:0;}
 .overdue-banner-text{flex:1;min-width:0;}
-.overdue-banner-title{font-size:13px;font-weight:700;margin-bottom:2px;}
-.overdue-banner-tasks{font-size:11.5px;color:rgba(255,255,255,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.overdue-banner-title{font-size:12.5px;font-weight:700;margin-bottom:2px;color:#9b2c2c;}
+.overdue-banner-tasks{font-size:11.5px;color:#b45454;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .overdue-banner-actions{display:flex;gap:7px;align-items:center;flex-shrink:0;}
 .overdue-banner-btn{
-  background:rgba(255,255,255,.2);
-  border:1px solid rgba(255,255,255,.3);
-  color:#fff;
+  background:rgba(220,38,38,.1);
+  border:1px solid rgba(220,38,38,.3);
+  color:#9b2c2c;
   border-radius:6px;
   padding:5px 12px;
   font-size:11.5px;
@@ -381,18 +388,18 @@ tbody tr:hover td{background:#f7fafc;}
   transition:background .15s;
   white-space:nowrap;
 }
-.overdue-banner-btn:hover{background:rgba(255,255,255,.3);}
-.overdue-banner-btn.primary{background:rgba(255,255,255,.9);color:#9b2c2c;font-weight:600;}
-.overdue-banner-btn.primary:hover{background:#fff;}
+.overdue-banner-btn:hover{background:rgba(220,38,38,.18);}
+.overdue-banner-btn.primary{background:#dc2626;color:#fff;font-weight:600;border-color:#dc2626;}
+.overdue-banner-btn.primary:hover{background:#b91c1c;}
 .overdue-dismiss{
-  background:none;border:none;color:rgba(255,255,255,.6);
+  background:none;border:none;color:rgba(155,44,44,.5);
   cursor:pointer;font-size:18px;padding:0 4px;line-height:1;
   transition:color .15s;flex-shrink:0;
 }
-.overdue-dismiss:hover{color:#fff;}
+.overdue-dismiss:hover{color:#9b2c2c;}
 /* Pulse dot */
 .overdue-pulse{
-  width:8px;height:8px;border-radius:50%;background:#fff;
+  width:7px;height:7px;border-radius:50%;background:#dc2626;
   animation:overduePulse 1.5s infinite;flex-shrink:0;
 }
 @keyframes overduePulse{
@@ -547,7 +554,7 @@ tbody tr:hover td{background:#f7fafc;}
 /* Sidebar panels */
 .dp-panel{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:13px;}
 .dp-panel-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#a0aec0;margin-bottom:10px;}
-.dp-unscheduled-item{display:flex;align-items:flex-start;gap:7px;padding:8px 9px;background:#f7fafc;border:1px solid #e2e8f0;border-radius:7px;margin-bottom:5px;cursor:grab;transition:border-color .15s;}
+.dp-unscheduled-item{display:flex;align-items:flex-start;gap:7px;padding:8px 9px;background:#f7fafc;border:1px solid #e2e8f0;border-left:3px solid #a0aec0;border-radius:7px;margin-bottom:5px;cursor:grab;transition:border-color .15s;}
 .dp-unscheduled-item:hover{border-color:#90cdf4;}
 .dp-unscheduled-item:last-child{margin-bottom:0;}
 .dp-drag-handle{color:#cbd5e0;font-size:12px;flex-shrink:0;user-select:none;margin-top:1px;}
@@ -1284,9 +1291,18 @@ html.dark-mode .ddp-title { color:var(--text-1) !important; border-bottom-color:
 html.dark-mode .gcal-btn { background:rgba(255,255,255,.08) !important; border-color:rgba(255,255,255,.15) !important; }
 html.dark-mode .gcal-btn.conn { background:rgba(0,178,255,.15) !important; border-color:rgba(0,178,255,.3) !important; }
 
-/* Overdue banner text stays bright */
-html.dark-mode .overdue-banner-title,
-html.dark-mode .overdue-banner-tasks { color:#fff !important; }
+/* Overdue banner — soft tinted style in dark mode too */
+html.dark-mode .overdue-banner {
+  background:linear-gradient(90deg, rgba(240,85,78,.14), rgba(240,85,78,.03)) !important;
+  border-bottom-color:rgba(240,85,78,.3) !important;
+  border-left-color:#F0554E !important;
+}
+html.dark-mode .overdue-banner-title { color:#F0554E !important; }
+html.dark-mode .overdue-banner-tasks { color:var(--text-3) !important; }
+html.dark-mode .overdue-banner-btn { background:rgba(240,85,78,.12) !important; border-color:rgba(240,85,78,.3) !important; color:#F0554E !important; }
+html.dark-mode .overdue-banner-btn.primary { background:#F0554E !important; color:#04121F !important; border-color:#F0554E !important; }
+html.dark-mode .overdue-dismiss { color:rgba(240,85,78,.5) !important; }
+html.dark-mode .overdue-pulse { background:#F0554E !important; }
 
 /* Week / month nav title */
 html.dark-mode .week-title-txt,
@@ -1444,7 +1460,7 @@ html.dark-mode .gantt-filter{background:var(--input-bg);border-color:var(--borde
    ANALYTICS TAB
 ══════════════════════════════════════════════ */
 .an-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px;}
-.an-card{background:var(--surface,#fff);border:1px solid var(--border,#e2e8f0);border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.an-card{background:var(--surface,#fff);border:1px solid var(--border,#e2e8f0);border-left:3px solid var(--accent-stripe,#cbd5e0);border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
 .an-card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-4,#a0aec0);margin-bottom:8px;}
 .an-card-val{font-size:32px;font-weight:800;line-height:1;margin-bottom:4px;}
 .an-card-sub{font-size:11.5px;color:var(--text-4,#a0aec0);}
@@ -1503,6 +1519,7 @@ html.dark-mode .gantt-filter{background:var(--input-bg);border-color:var(--borde
 html.dark-mode .an-card,
 html.dark-mode .an-chart-card,
 html.dark-mode .an-insight{background:var(--surface);border-color:var(--border);}
+html.dark-mode .an-card{border-left-color:var(--accent-stripe,#4a6080) !important;}
 html.dark-mode .an-card-val,
 html.dark-mode .an-chart-title{color:var(--text-1);}
 html.dark-mode .an-bar-track{background:var(--surface2);}
@@ -1854,6 +1871,7 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
       <button class="dp-nav-btn" id="dpNextBtn" onclick="dpNavigate(1)">Next ›</button>
       <input type="date" id="dpDatePicker" onchange="dpJumpToDate(this.value)"
         style="padding:3px 7px;border-radius:6px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;font-size:11px;font-family:'Inter',sans-serif;cursor:pointer;outline:none;color-scheme:dark;">
+      <button class="dp-add-btn" id="autoPlanBtn" onclick="autoPlanMyDay()" style="background:linear-gradient(135deg,#00B2FF,#0d47a1);">✦ Auto-plan my day</button>
       <button class="dp-add-btn" onclick="openAddTimeBlock()">+ Add block</button>
     </div>
   </div>
@@ -2263,6 +2281,14 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
         <div class="st-modal-lbl">Description</div>
         <textarea class="st-modal-val st-modal-textarea" id="stEditDesc" placeholder="Actions, context, notes…"></textarea>
       </div>
+      <div class="st-modal-field">
+        <div class="st-modal-lbl" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>Checklist</span>
+          <span id="stChecklistProg" style="font-size:11px;color:#a0aec0;font-weight:400;"></span>
+        </div>
+        <div id="stChecklistList" style="display:flex;flex-direction:column;gap:5px;margin-bottom:6px;"></div>
+        <button type="button" onclick="addStChecklistItem()" style="border:none;background:none;color:#3b82f6;font-size:12px;font-weight:600;cursor:pointer;padding:2px 0;">+ Add checklist item</button>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div class="st-modal-field">
           <div class="st-modal-lbl">Status</div>
@@ -2514,6 +2540,7 @@ function fbSave(){
         archives:    JSON.stringify(_archives),
         customCats:  JSON.stringify(customCats),
         deletedCats: JSON.stringify(deletedCats),
+        timeBlocks:  JSON.stringify(_timeBlocks),
         updatedAt: now,
         deviceId:  _deviceId
       });
@@ -2602,6 +2629,15 @@ function startFirebaseSync(){
       }
     }catch(e){}
 
+    try{
+      const remote = JSON.parse(data.timeBlocks||'[]');
+      if(JSON.stringify(remote) !== JSON.stringify(_timeBlocks)){
+        _timeBlocks = remote;
+        localStorage.setItem('dp_blocks', JSON.stringify(_timeBlocks));
+        changed = true;
+      }
+    }catch(e){}
+
     // Always re-render after Firebase loads regardless of 'changed' flag
     // This ensures first load always shows data
     renderAll();
@@ -2647,6 +2683,20 @@ function todayStr(){return localStr(new Date());}
 function fmtD(s){if(!s)return'—';const d=new Date(s+'T00:00:00');return d.toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});}
 function fmtS(s){if(!s)return'—';const d=new Date(s+'T00:00:00');return d.toLocaleDateString('en-SG',{day:'numeric',month:'short'});}
 function isOverdue(t){if(!t.dueDate||t.done)return false;return new Date(t.dueDate+'T00:00:00')<new Date(new Date().toDateString());}
+
+// Days overdue, purely derived from the existing dueDate field — no schema change.
+function overdueDays(t){
+  if(!isOverdue(t)) return 0;
+  const due = new Date(t.dueDate+'T00:00:00');
+  const today = new Date(new Date().toDateString());
+  return Math.round((today - due) / 86400000);
+}
+
+// Recently added, purely derived from the existing createdAt field.
+function isNewTask(t){
+  if(!t.createdAt) return false;
+  return (Date.now() - new Date(t.createdAt).getTime()) < 48*3600*1000;
+}
 function eventsOn(ds){
   return{
     te:tasks.filter(t=>t.dueDate===ds||t.startDate===ds),
@@ -2663,6 +2713,14 @@ function toggleExpandRow(rowId){
 }
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Truncate long titles for dense table rows only — full title still available
+// via the title="" tooltip and unaffected everywhere else (modal, detail popup, Kanban).
+function truncTitle(str, max){
+  str = str || '';
+  if(str.length <= max) return esc(str);
+  return esc(str.slice(0, max).trimEnd()) + '…';
+}
 
 /* ════════════════════════════════════════════
    BADGES
@@ -2689,6 +2747,18 @@ function priBadge(p){
   if(p==='Hi') return'<span class="badge b-hi">High</span>';
   if(p==='Lo') return'<span class="badge b-lo">Low</span>';
   return'<span class="badge b-med">Medium</span>';
+}
+
+// Andon signal color for a task row — same red/amber/green/blue language used
+// across the app: red = overdue, amber = high priority still open, green = on
+// track / low priority, blue = pinned with no due date yet, slate = done.
+function andonColor(t){
+  if(t.done) return '#cbd5e0';
+  if(isOverdue(t)) return '#e53e3e';
+  if(t.priority==='Hi') return '#d97706';
+  if(t.pinned && !t.dueDate) return '#00B2FF';
+  if((t.priority||'Med')==='Lo') return '#16a34a';
+  return '#a0aec0';
 }
 function calBadge(t){
   if(t.synced) return`<span class="badge b-gcal" style="cursor:pointer" onclick="${t.calUrl?`window.open('${t.calUrl}','_blank')`:'void(0)'}" title="View in Google Calendar">🗓 Synced</span>`;
@@ -3155,13 +3225,13 @@ function renderOverview(){
     const hasSubs=subs.length>0;
     const stPct=hasSubs?Math.round((sDone/subs.length)*100):0;
     const rowId='ovrow_'+t.id;
-    return`<tr>
+    return`<tr style="border-left:3px solid ${andonColor(t)};">
       <td>
         <div style="display:flex;align-items:flex-start;gap:6px">
           ${hasSubs?`<button onclick="toggleExpandRow('${rowId}')" style="width:16px;height:16px;border-radius:3px;border:0.5px solid #e2e8f0;background:#f7fafc;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;flex-shrink:0;margin-top:2px;color:#718096;" id="exp_${rowId}">▶</button>`:'<span style="width:16px;flex-shrink:0"></span>'}
           <div style="min-width:0;display:flex;align-items:center;gap:5px;">
             ${t.pinned?`<span class="rank-badge ${t.pinRank===1?'rank-1':t.pinRank===2?'rank-2':t.pinRank===3?'rank-3':'rank-n'}" style="font-size:10px;width:18px;height:18px;" title="Priority #${t.pinRank}">${t.pinRank}</span>`:''}
-            <span class="task-link" onclick="event.stopPropagation();openTaskDetail(${t.id})" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'inherit'};font-weight:${t.pinned?'700':'400'};">${esc(t.title)}</span>
+            <span class="task-link" onclick="event.stopPropagation();openTaskDetail(${t.id})" title="${esc(t.title)}" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'inherit'};font-weight:${t.pinned?'700':'400'};">${truncTitle(t.title,55)}</span>
             ${hasSubs?`<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><div style="height:3px;width:60px;background:#e2e8f0;border-radius:2px;overflow:hidden"><div style="height:100%;width:${stPct}%;background:#1a3a5c;border-radius:2px"></div></div><span style="font-size:10.5px;color:#718096">${sDone}/${subs.length}</span></div>`:''}
           </div>
         </div>
@@ -3169,7 +3239,7 @@ function renderOverview(){
       </td>
       <td>${(t.tags||[]).map(g=>catChipHtml(g)).join('')}</td>
       <td>${priBadge(t.priority||'Med')}</td>
-      <td style="font-size:12.5px;color:${isOverdue(t)?'#9b2c2c':'#718096'}">${fmtS(t.dueDate)}${isOverdue(t)?' ⚠':''}</td>
+      <td style="font-size:12.5px;color:${isOverdue(t)?'#9b2c2c':'#718096'}">${fmtS(t.dueDate)}${isOverdue(t)?` ⚠ ${overdueDays(t)}d`:''}</td>
       <td>${statusBadge(t)}</td>
       <td>${calBadge(t)}</td>
       <td style="display:flex;gap:5px;flex-wrap:nowrap;align-items:center;">
@@ -3265,7 +3335,7 @@ function renderTasksTab(){
     const subs=t.subtasks||[];
     const sDone=subs.filter(s=>s.done).length;
     const hasSubs=subs.length>0;
-    return `<tr class="${t.done?'tr-done':''} ${t.pinned?'tr-pinned':''}">
+    return `<tr class="${t.done?'tr-done':''} ${t.pinned?'tr-pinned':''}" style="border-left:3px solid ${andonColor(t)};">
       <td><div class="pchk ${t.done?'done-c':''}" onclick="toggleDone(${t.id})" title="${hasSubs&&!t.done?'Complete all subtasks first':'Mark done'}">${t.done?'✓':''}</div></td>
       <td style="max-width:200px">
         <div style="display:flex;align-items:flex-start;gap:6px">
@@ -3276,7 +3346,7 @@ function renderTasksTab(){
               <span class="rank-badge ${t.pinRank===1?'rank-1':t.pinRank===2?'rank-2':t.pinRank===3?'rank-3':'rank-n'}" title="Priority #${t.pinRank}">${t.pinRank}</span>
               <button class="rank-move" onclick="event.stopPropagation();movePinnedRank(${t.id},1)" title="Move down">▼</button>
             </div>`:''}
-            <span class="task-link" onclick="event.stopPropagation();openTaskDetail(${t.id})" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'inherit'};font-weight:${t.pinned?'700':'400'};">${esc(t.title)}</span>${hasSubs?`<span class="proj-badge">📁 PROJECT</span>`:''}${t.repeat?`<span style="font-size:9.5px;background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:1px 6px;margin-left:5px;font-weight:500;">↻ ${t.repeat}</span>`:''}
+            <span class="task-link" onclick="event.stopPropagation();openTaskDetail(${t.id})" title="${esc(t.title)}" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'inherit'};font-weight:${t.pinned?'700':'400'};">${truncTitle(t.title,55)}</span>${hasSubs?`<span class="proj-badge">📁 PROJECT</span>`:''}${t.repeat?`<span style="font-size:9.5px;background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:1px 6px;margin-left:5px;font-weight:500;">↻ ${t.repeat}</span>`:''}${isNewTask(t)?`<span style="font-size:9.5px;background:#00B2FF22;color:#0284c7;border-radius:10px;padding:1px 6px;margin-left:5px;font-weight:600;">NEW</span>`:''}
             ${t.notes?`<div style="font-size:11px;color:#a0aec0;margin-top:2px">${esc(t.notes).substring(0,55)}${t.notes.length>55?'…':''}</div>`:''}
             ${hasSubs?`<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><div style="height:3px;width:50px;background:#e2e8f0;border-radius:2px;overflow:hidden"><div style="height:100%;width:${Math.round((sDone/subs.length)*100)}%;background:#1a3a5c;border-radius:2px"></div></div><span style="font-size:10.5px;color:#718096">${sDone}/${subs.length} subtasks</span></div>`:''}
           </div>
@@ -3286,7 +3356,7 @@ function renderTasksTab(){
       <td>${(t.tags||[]).map(g=>`<span class="tag-chip">${g}</span>`).join('')}</td>
       <td>${priBadge(t.priority||'Med')}</td>
       <td style="font-size:12px;color:#718096">${fmtS(t.startDate)}</td>
-      <td style="font-size:12px;color:${isOverdue(t)?'#9b2c2c':'#718096'}">${fmtS(t.dueDate)}${isOverdue(t)?' ⚠':''}</td>
+      <td style="font-size:12px;color:${isOverdue(t)?'#9b2c2c':'#718096'}">${fmtS(t.dueDate)}${isOverdue(t)?` ⚠ ${overdueDays(t)}d`:''}</td>
       <td style="font-size:12px;color:#718096">${esc(t.owner||'—')}</td>
       <td>${statusBadge(t)}</td>
       <td>${calBadge(t)}</td>
@@ -3588,9 +3658,9 @@ function renderUpcoming(){
   if(!tbody) return;
   if(!up.length){ tbody.innerHTML=`<tr><td class="empty-td" colspan="5">No overdue or upcoming tasks in 30 days.</td></tr>`; return; }
   tbody.innerHTML=up.map(t=>`
-    <tr>
+    <tr style="border-left:3px solid ${andonColor(t)};">
       <td><span class="task-link" onclick="openTaskDetail(${t.id})">${esc(t.title)}</span></td>
-      <td style="font-size:12.5px;color:${isOverdue(t)?'#e53e3e':'var(--text-3,#718096)'}">${fmtS(t.dueDate)}${isOverdue(t)?' ⚠':''}</td>
+      <td style="font-size:12.5px;color:${isOverdue(t)?'#e53e3e':'var(--text-3,#718096)'}">${fmtS(t.dueDate)}${isOverdue(t)?` ⚠ ${overdueDays(t)}d`:''}</td>
       <td>${priBadge(t.priority||'Med')}</td>
       <td>${statusBadge(t)}</td>
       <td style="display:flex;gap:4px;">
@@ -3822,7 +3892,7 @@ function renderWeekDetail(){
   const lbl = d.toLocaleDateString('en-SG',{weekday:'long',day:'numeric',month:'long'});
 
   const taskRows = te.map(t => {
-    const priColor = t.priority==='Hi'?'#e53e3e':t.priority==='Med'?'#d97706':'#2b6cb0';
+    const priColor = t.priority==='Hi'?'#e53e3e':t.priority==='Med'?'#d97706':'#16a34a';
     const priLabel = t.priority==='Hi'?'High':t.priority==='Med'?'Medium':'Low';
     return `<div class="ev-row" style="border-left:3px solid ${priColor};">
       <div class="ev-dot" style="background:${priColor};flex-shrink:0;"></div>
@@ -4123,8 +4193,8 @@ function renderQuality(){
   const tbody=document.getElementById('riskTbl');
   if(!risky.length){tbody.innerHTML=`<tr><td class="empty-td" colspan="6">No high-priority or at-risk items. Great work!</td></tr>`;return;}
   tbody.innerHTML=risky.map(t=>`
-    <tr>
-      <td>${esc(t.title)}</td>
+    <tr style="border-left:3px solid ${andonColor(t)};">
+      <td title="${esc(t.title)}">${truncTitle(t.title,50)}</td>
       <td>${priBadge(t.priority||'Med')}</td>
       <td style="font-size:12.5px;color:${isOverdue(t)?'#9b2c2c':'#718096'}">${fmtS(t.dueDate)}</td>
       <td>${statusBadge(t)}</td>
@@ -4288,7 +4358,7 @@ function renderPlannerWeek(){
     unschEl.innerHTML = unsch.length===0
       ? '<div style="font-size:12px;color:#a0aec0;text-align:center;padding:8px 0;">All tasks scheduled!</div>'
       : unsch.slice(0,8).map(t=>`
-        <div class="dp-unscheduled-item" draggable="true"
+        <div class="dp-unscheduled-item" style="border-left-color:${andonColor(t)};" draggable="true"
           ondragstart="event.dataTransfer.setData('taskId','${t.id}');event.dataTransfer.setData('type','unscheduled')">
           <span class="dp-drag-handle">⠿</span>
           <div style="flex:1;min-width:0;">
@@ -4460,7 +4530,7 @@ function renderPlanner(){
       unschEl.innerHTML = '<div style="font-size:12px;color:#a0aec0;text-align:center;padding:8px 0;">All tasks scheduled!</div>';
     } else {
       unschEl.innerHTML = unsch.slice(0,8).map(t => `
-        <div class="dp-unscheduled-item" draggable="true"
+        <div class="dp-unscheduled-item" style="border-left-color:${andonColor(t)};" draggable="true"
           ondragstart="event.dataTransfer.setData('taskId','${t.id}');event.dataTransfer.setData('type','unscheduled')">
           <span class="dp-drag-handle">⠿</span>
           <div style="flex:1;min-width:0;">
@@ -4791,6 +4861,7 @@ function saveArchives(){
           archives: JSON.stringify(_archives),
           customCats: JSON.stringify(customCats),
           deletedCats: JSON.stringify(deletedCats),
+          timeBlocks: JSON.stringify(_timeBlocks),
           updatedAt: new Date().toISOString()
         });
       }catch(e){ console.warn('Archive save error:', e); }
@@ -5350,6 +5421,112 @@ function startBlockResize(e, blockId){
   document.addEventListener('mouseup', onUp);
 }
 
+/* ════════════════════════════════════════════
+   AUTO-PLAN MY DAY — AI-generated time blocks
+   Additive: creates entries in the same _timeBlocks array
+   that manual "+ Add block" uses, so everything created here
+   is fully editable/draggable/deletable afterward like normal.
+════════════════════════════════════════════ */
+async function autoPlanMyDay(){
+  const btn = document.getElementById('autoPlanBtn');
+  const ds = dpDateStr();
+
+  // Candidate tasks: active, not done, not already scheduled today
+  const scheduledIds = new Set(_timeBlocks.filter(b=>b.date===ds).map(b=>String(b.taskId)));
+  const candidates = tasks.filter(t=>!t.done && !scheduledIds.has(String(t.id)));
+
+  if(!candidates.length){
+    toast('No unscheduled tasks to plan','warn');
+    return;
+  }
+
+  // Existing commitments for the day the plan must work around
+  const existingBlocks = _timeBlocks.filter(b=>b.date===ds).map(b=>`${b.start}-${b.end}`);
+  const dayEvents = calEvs.filter(e=>e.date===ds || (e.endDate && e.date<=ds && e.endDate>=ds))
+    .filter(e=>e.time).map(e=>`${e.time}-${e.endTime||e.time} "${e.title}"`);
+
+  const taskList = candidates.slice(0,25).map(t=>
+    `id:${t.id} | "${t.title}" | priority:${t.priority||'Med'}${t.dueDate?' | due:'+t.dueDate:''}${isOverdue(t)?' | OVERDUE':''}`
+  ).join('\n');
+
+  const prompt = `Plan my working day for ${ds}. Working hours: 09:00–18:00.
+Already committed (do not overlap these): ${[...existingBlocks,...dayEvents].join('; ') || 'nothing yet'}.
+
+Candidate tasks to schedule (pick a sensible subset, prioritise overdue and high priority, leave a short break between blocks, don't overschedule the whole day):
+${taskList}
+
+Respond with ONLY a raw JSON array, no markdown fences, no prose. Each item: {"taskId": <id from the list above, as given>, "start": "HH:MM", "end": "HH:MM"}. Times must be within 09:00-18:00 and must not overlap each other or the commitments above.`;
+
+  btn.disabled = true;
+  btn.textContent = '✦ Planning…';
+
+  try{
+    const response = await fetch('/api/chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        max_tokens: 1200,
+        system: 'You are a scheduling assistant. You respond with strict JSON only, matching exactly the format requested. No markdown code fences, no explanation text before or after.',
+        messages: [{role:'user', content: prompt}]
+      })
+    });
+
+    const data = await response.json();
+    if(!response.ok) throw new Error(data.error || 'Request failed');
+
+    let raw = (data.content?.[0]?.text || '').trim();
+    raw = raw.replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```\s*$/,'').trim();
+
+    let plan;
+    try{ plan = JSON.parse(raw); }
+    catch(e){ throw new Error('Could not read the AI\'s schedule — try again'); }
+    if(!Array.isArray(plan)) throw new Error('Unexpected response format');
+
+    // Validate + apply, skipping anything that doesn't check out
+    const candidateIds = new Set(candidates.map(t=>String(t.id)));
+    const usedRanges = [..._timeBlocks.filter(b=>b.date===ds)].map(b=>[b.start,b.end]);
+    let added = 0, skipped = 0;
+
+    plan.forEach(item=>{
+      const tId = String(item.taskId);
+      const start = item.start, end = item.end;
+      if(!candidateIds.has(tId) || !start || !end || start>=end){ skipped++; return; }
+      const overlaps = usedRanges.some(([s,e]) => start < e && end > s);
+      if(overlaps){ skipped++; return; }
+
+      const taskForColor = tasks.find(t=>String(t.id)===tId);
+      const idx = taskForColor ? tasks.indexOf(taskForColor) % TASK_PALETTE.length : 0;
+      _timeBlocks.push({
+        id:'tb_'+Date.now()+'_'+added,
+        date: ds,
+        taskId: tId,
+        start, end,
+        notes: '',
+        color: taskForColor ? TASK_PALETTE[idx] : '#1a3a5c',
+        label: ''
+      });
+      usedRanges.push([start,end]);
+      added++;
+    });
+
+    saveBlocks();
+    renderPlanner();
+
+    if(added){
+      toast(`✦ Planned ${added} block${added>1?'s':''}${skipped?` (${skipped} skipped — conflicts)`:''}`, 'ok');
+    } else {
+      toast('Nothing schedulable came back — try again or add tasks manually', 'warn');
+    }
+
+  }catch(err){
+    console.error('Auto-plan error:', err);
+    toast('Auto-plan failed: '+(err.message||'unknown error'), 'warn');
+  }finally{
+    btn.disabled = false;
+    btn.textContent = '✦ Auto-plan my day';
+  }
+}
+
 function saveTimeBlock(){
   const taskId = document.getElementById('tbTask').value;
   const start = document.getElementById('tbStart').value;
@@ -5776,6 +5953,7 @@ function renderSubtasksInRow(t){
               ${s.owner?`<span style="font-size:11px;color:#a0aec0">👤 ${esc(s.owner)}</span>`:''}
               ${s.startDate?`<span style="font-size:11px;color:#a0aec0">Start ${fmtS(s.startDate)}</span>`:''}
               ${s.dueDate?`<span style="font-size:11px;color:${isOverdue({dueDate:s.dueDate,done:s.done})?'#9b2c2c':'#a0aec0'}">Due ${fmtS(s.dueDate)}</span>`:''}
+              ${(s.checklist&&s.checklist.length)?`<span style="font-size:11px;color:#a0aec0">☑ ${s.checklist.filter(c=>c.done).length}/${s.checklist.length}</span>`:''}
               ${statusBadge({status:s.status||'Open',done:s.done})}
             </div>
           </div>
@@ -6628,11 +6806,10 @@ async function doAskAI(userMsg){
   try{
     const systemPrompt = buildTaskContext();
 
-    const response = await fetch('https://api.anthropic.com/v1/messages',{
+    const response = await fetch('/api/chat',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
         max_tokens: 1000,
         system: systemPrompt,
         messages: aiHistory
@@ -6640,6 +6817,7 @@ async function doAskAI(userMsg){
     });
 
     const data = await response.json();
+    if(!response.ok){ throw new Error(data.error || 'Request failed'); }
     const replyText = data.content?.[0]?.text || 'Sorry, I could not get a response. Please try again.';
 
     // Add assistant reply to history
@@ -6649,7 +6827,7 @@ async function doAskAI(userMsg){
     typingEl.querySelector('.ai-bubble').innerHTML = renderMarkdown(replyText);
 
   }catch(err){
-    typingEl.querySelector('.ai-bubble').innerHTML = '<span style="color:#9b2c2c">Sorry, something went wrong. Please try again.</span>';
+    typingEl.querySelector('.ai-bubble').innerHTML = `<span style="color:#9b2c2c">Sorry, something went wrong: ${esc(err.message||'unknown error')}</span>`;
     console.error('AI error:', err);
   }finally{
     sendBtn.disabled = false;
@@ -6800,6 +6978,9 @@ function openSubtaskDetail(taskId, stId){
   document.getElementById('stEditStart').value  = s.startDate   || '';
   document.getElementById('stEditDue').value    = s.dueDate     || '';
 
+  window._stEditChecklist = JSON.parse(JSON.stringify(s.checklist || []));
+  renderStChecklist();
+
   document.getElementById('stDetailOv').classList.add('show');
 }
 
@@ -6807,6 +6988,46 @@ function closeSubtaskDetail(){
   document.getElementById('stDetailOv').classList.remove('show');
   _stEditTaskId = null;
   _stEditSubId  = null;
+  window._stEditChecklist = null;
+}
+
+/* ── Lightweight checklist inside a subtask — one level, no dates/owner of its own ── */
+function renderStChecklist(){
+  const list = window._stEditChecklist || [];
+  const wrap = document.getElementById('stChecklistList');
+  if(!wrap) return;
+  wrap.innerHTML = list.map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div onclick="toggleStChecklistItem(${i})" class="st-chk ${c.done?'on':''}" style="width:16px;height:16px;flex-shrink:0;">${c.done?'✓':''}</div>
+      <input value="${esc(c.text||'')}" placeholder="Checklist item…" oninput="window._stEditChecklist[${i}].text=this.value"
+        class="st-modal-val" style="padding:5px 8px;font-size:12px;${c.done?'text-decoration:line-through;color:#a0aec0;':''}"/>
+      <button type="button" onclick="removeStChecklistItem(${i})" style="border:none;background:none;color:#cbd5e0;font-size:14px;cursor:pointer;padding:2px 5px;flex-shrink:0;">×</button>
+    </div>`).join('');
+  const done = list.filter(c=>c.done).length;
+  const prog = document.getElementById('stChecklistProg');
+  if(prog) prog.textContent = list.length ? `${done}/${list.length}` : '';
+}
+
+function addStChecklistItem(){
+  if(!window._stEditChecklist) window._stEditChecklist = [];
+  window._stEditChecklist.push({id:'chk_'+Date.now(), text:'', done:false});
+  renderStChecklist();
+  setTimeout(()=>{
+    const inputs = document.querySelectorAll('#stChecklistList input');
+    if(inputs.length) inputs[inputs.length-1].focus();
+  }, 30);
+}
+
+function toggleStChecklistItem(i){
+  if(!window._stEditChecklist || !window._stEditChecklist[i]) return;
+  window._stEditChecklist[i].done = !window._stEditChecklist[i].done;
+  renderStChecklist();
+}
+
+function removeStChecklistItem(i){
+  if(!window._stEditChecklist) return;
+  window._stEditChecklist.splice(i,1);
+  renderStChecklist();
 }
 
 function saveSubtaskDetail(){
@@ -6826,6 +7047,7 @@ function saveSubtaskDetail(){
   s.owner       = document.getElementById('stEditOwner').value.trim();
   s.startDate   = document.getElementById('stEditStart').value;
   s.dueDate     = document.getElementById('stEditDue').value;
+  s.checklist   = (window._stEditChecklist || []).filter(c=>c.text && c.text.trim());
 
   save();
   refreshActive();
@@ -6980,12 +7202,12 @@ function renderKanban(){
             <span style="font-size:10px;color:#718096;flex-shrink:0;">${sDone}/${subs.length} subtasks</span>
           </div>` : '';
 
-        return `<div class="kanban-card" onclick="openTaskDetail(${t.id})">
+        return `<div class="kanban-card" style="border-left:3px solid ${andonColor(t)};" onclick="openTaskDetail(${t.id})">
           <div class="kanban-card-title">${esc(t.title)}</div>
           <div class="kanban-card-meta">
             ${kanbanDueChip(t.dueDate, t.done)}
             <span style="font-size:11px;font-weight:600;color:${priColor};">${priLabel}</span>
-            ${(t.tags||[]).map(g=>`<span style="font-size:10px;background:#edf2f7;color:#4a5568;border-radius:4px;padding:1px 6px;">${g}</span>`).join('')}
+            ${(t.tags||[]).map(g=>{const cs=catStyle(g);return `<span style="font-size:10px;background:${cs.bg};color:${cs.fg};border-radius:4px;padding:1px 6px;">${g}</span>`;}).join('')}
           </div>
           ${t.owner?`<div style="font-size:11px;color:#a0aec0;margin-bottom:6px;">👤 ${esc(t.owner)}</div>`:''}
           ${progBar}
@@ -7001,7 +7223,7 @@ function renderKanban(){
         const t = item.task;
         const s = item.sub;
         const subOverdue = s.dueDate && s.dueDate < todayStr() && !s.done;
-        const priColor = t.priority==='Hi'?'#e53e3e':t.priority==='Med'?'#d97706':'#16a34a';
+        const priColor = s.done?'#cbd5e0':subOverdue?'#e53e3e':t.priority==='Hi'?'#d97706':t.priority==='Lo'?'#16a34a':'#a0aec0';
 
         return `<div class="kanban-card" style="border-left:3px solid ${priColor};opacity:${s.done?'.7':'1'};" onclick="openTaskDetail(${t.id})">
           <!-- Parent task breadcrumb -->
@@ -7012,7 +7234,7 @@ function renderKanban(){
           <div class="kanban-card-title" style="font-size:12.5px;${s.done?'text-decoration:line-through;color:#a0aec0;':''}">${esc(s.title)}</div>
           <div class="kanban-card-meta">
             ${kanbanDueChip(s.dueDate, s.done)}
-            ${(t.tags||[]).map(g=>`<span style="font-size:10px;background:#edf2f7;color:#4a5568;border-radius:4px;padding:1px 6px;">${g}</span>`).join('')}
+            ${(t.tags||[]).map(g=>{const cs=catStyle(g);return `<span style="font-size:10px;background:${cs.bg};color:${cs.fg};border-radius:4px;padding:1px 6px;">${g}</span>`;}).join('')}
           </div>
           ${s.owner?`<div style="font-size:11px;color:#a0aec0;margin-bottom:4px;">👤 ${esc(s.owner)}</div>`:''}
           <div style="display:flex;gap:5px;margin-top:6px;" onclick="event.stopPropagation()">
@@ -7028,7 +7250,7 @@ function renderKanban(){
         <span class="kanban-col-title" style="color:${col.color};">${col.label}</span>
         <span class="kanban-col-count" style="background:${col.color}20;color:${col.color};">${totalCount}</span>
       </div>
-      <div class="kanban-cards" id="kb_${col.id}">${cards||'<div style="text-align:center;padding:20px 10px;color:#a0aec0;font-size:12px;">No tasks</div>'}</div>
+      <div class="kanban-cards" id="kb_${col.id}">${cards||'<div style="text-align:center;padding:24px 10px;color:#cbd5e0;font-size:11.5px;border:1.5px dashed #e2e8f0;border-radius:8px;">Nothing here</div>'}</div>
       <button class="kanban-add-btn" onclick="openAddTask()">+ Add task</button>
     </div>`;
   }).join('');
@@ -7095,7 +7317,7 @@ function renderAnalytics(){
     { lbl:'Overdue',          val:overdue.length,  sub:'Require immediate attention',                        color:overdue.length>0?'#dc2626':'#16a34a', trend:overdue.length>0?'down':'up' },
     { lbl:'High priority open',val:hiPri.length,  sub:'Unresolved critical items',                           color:hiPri.length>5?'#dc2626':hiPri.length>2?'#d97706':'#16a34a', trend:null },
   ].map(k=>`
-    <div class="an-card">
+    <div class="an-card" style="--accent-stripe:${k.color};">
       <div class="an-card-title">${k.lbl}</div>
       <div class="an-card-val" style="color:${k.color};">${k.val}</div>
       <div class="an-card-sub">${k.sub}</div>
