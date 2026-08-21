@@ -6817,7 +6817,10 @@ async function doAskAI(userMsg){
     });
 
     const data = await response.json();
-    if(!response.ok){ throw new Error(data.error || 'Request failed'); }
+    if(!response.ok){
+      const debugInfo = data.debug_available_env_keys ? ` [env keys visible: ${data.debug_available_env_keys.join(', ') || 'none'}]` : '';
+      throw new Error((data.error || 'Request failed') + debugInfo);
+    }
     const replyText = data.content?.[0]?.text || 'Sorry, I could not get a response. Please try again.';
 
     // Add assistant reply to history
