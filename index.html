@@ -4368,9 +4368,12 @@ function renderPlannerWeek(){
       unschEl.innerHTML = '<div style="font-size:12px;color:#a0aec0;text-align:center;padding:8px 0;">All tasks scheduled!</div>';
     } else {
       if(!window._unschExpanded) window._unschExpanded = new Set();
+      const weekBlocksForSidebar = _timeBlocks.filter(b=>weekDays.some(wd=>wd.ds===b.date));
+      const blockBySubtaskRef = new Map(weekBlocksForSidebar.map(b=>[String(b.taskId), b]));
       unschEl.innerHTML = unsch.slice(0,8).map(t => {
-        const openSubs = (t.subtasks||[]).filter(s=>!s.done && !scheduled.has(`${t.id}:${s.id}`));
+        const openSubs = (t.subtasks||[]).filter(s=>!s.done);
         const isExpanded = window._unschExpanded.has(t.id);
+        const scheduledCount = openSubs.filter(s=>blockBySubtaskRef.has(`${t.id}:${s.id}`)).length;
 
         const headerRow = `
           <div class="dp-unscheduled-item" style="border-left-color:${andonColor(t)};" draggable="true"
@@ -4378,19 +4381,32 @@ function renderPlannerWeek(){
             ${openSubs.length?`<span onclick="event.stopPropagation();toggleUnschExpand(${t.id})" style="cursor:pointer;font-size:9px;color:#a0aec0;flex-shrink:0;transform:rotate(${isExpanded?90:0}deg);transition:transform .15s;">▶</span>`:`<span class="dp-drag-handle">⠿</span>`}
             <div style="flex:1;min-width:0;">
               <div style="font-size:12px;font-weight:500;color:#2d3748;line-height:1.3;">${esc(t.title.substring(0,38))}${t.title.length>38?'…':''}</div>
-              <div style="font-size:10px;color:#a0aec0;margin-top:2px;">${openSubs.length?`${openSubs.length} open subtask${openSubs.length>1?'s':''}`:(t.dueDate?'Due '+fmtS(t.dueDate):'No due date')}</div>
+              <div style="font-size:10px;color:#a0aec0;margin-top:2px;">${openSubs.length?`${openSubs.length} open subtask${openSubs.length>1?'s':''}${scheduledCount?` · ${scheduledCount} on calendar`:''}`:(t.dueDate?'Due '+fmtS(t.dueDate):'No due date')}</div>
             </div>
           </div>`;
 
-        const subRows = (openSubs.length && isExpanded) ? openSubs.map(s=>`
-          <div class="dp-unscheduled-item dp-unscheduled-subitem" style="border-left-color:#a0aec0;margin-left:16px;" draggable="true"
-            ondragstart="event.dataTransfer.setData('taskId','${t.id}:${s.id}');event.dataTransfer.setData('type','unscheduled')">
-            <span class="dp-drag-handle">⠿</span>
-            <div style="flex:1;min-width:0;">
-              <div style="font-size:11px;font-weight:500;color:#4a5568;line-height:1.3;">${esc((s.title||'(untitled subtask)').substring(0,36))}</div>
-              <div style="font-size:9.5px;color:#a0aec0;margin-top:1px;">${s.dueDate?'Due '+fmtS(s.dueDate):'No due date'}</div>
-            </div>
-          </div>`).join('') : '';
+        const subRows = (openSubs.length && isExpanded) ? openSubs.map(s=>{
+          const scheduledBlock = blockBySubtaskRef.get(`${t.id}:${s.id}`);
+          if(scheduledBlock){
+            return `
+              <div class="dp-unscheduled-item dp-unscheduled-subitem" style="border-left-color:#16a34a;margin-left:16px;opacity:.7;cursor:default;">
+                <span style="font-size:11px;color:#16a34a;flex-shrink:0;">✓</span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:11px;font-weight:500;color:#4a5568;line-height:1.3;text-decoration:line-through;">${esc((s.title||'(untitled subtask)').substring(0,36))}</div>
+                  <div style="font-size:9.5px;color:#16a34a;margin-top:1px;">On calendar · ${fmtS(scheduledBlock.date)} ${scheduledBlock.start}</div>
+                </div>
+              </div>`;
+          }
+          return `
+            <div class="dp-unscheduled-item dp-unscheduled-subitem" style="border-left-color:#a0aec0;margin-left:16px;" draggable="true"
+              ondragstart="event.dataTransfer.setData('taskId','${t.id}:${s.id}');event.dataTransfer.setData('type','unscheduled')">
+              <span class="dp-drag-handle">⠿</span>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:11px;font-weight:500;color:#4a5568;line-height:1.3;">${esc((s.title||'(untitled subtask)').substring(0,36))}</div>
+                <div style="font-size:9.5px;color:#a0aec0;margin-top:1px;">${s.dueDate?'Due '+fmtS(s.dueDate):'No due date'}</div>
+              </div>
+            </div>`;
+        }).join('') : '';
 
         return headerRow + subRows;
       }).join('');
@@ -4567,10 +4583,11 @@ function renderPlanner(){
       unschEl.innerHTML = '<div style="font-size:12px;color:#a0aec0;text-align:center;padding:8px 0;">All tasks scheduled!</div>';
     } else {
       if(!window._unschExpanded) window._unschExpanded = new Set();
-      const scheduledRefIds = new Set(dayBlocks.map(b=>String(b.taskId)));
+      const blockBySubtaskRef = new Map(dayBlocks.map(b=>[String(b.taskId), b]));
       unschEl.innerHTML = unsch.slice(0,8).map(t => {
-        const openSubs = (t.subtasks||[]).filter(s=>!s.done && !scheduledRefIds.has(`${t.id}:${s.id}`));
+        const openSubs = (t.subtasks||[]).filter(s=>!s.done);
         const isExpanded = window._unschExpanded.has(t.id);
+        const scheduledCount = openSubs.filter(s=>blockBySubtaskRef.has(`${t.id}:${s.id}`)).length;
 
         const headerRow = `
           <div class="dp-unscheduled-item" style="border-left-color:${andonColor(t)};" draggable="true"
@@ -4578,19 +4595,32 @@ function renderPlanner(){
             ${openSubs.length?`<span onclick="event.stopPropagation();toggleUnschExpand(${t.id})" style="cursor:pointer;font-size:9px;color:#a0aec0;flex-shrink:0;transform:rotate(${isExpanded?90:0}deg);transition:transform .15s;">▶</span>`:`<span class="dp-drag-handle">⠿</span>`}
             <div style="flex:1;min-width:0;">
               <div style="font-size:12px;font-weight:500;color:#2d3748;line-height:1.3;">${esc(t.title.substring(0,40))}${t.title.length>40?'…':''}</div>
-              <div style="font-size:10.5px;color:#a0aec0;margin-top:2px;">${openSubs.length?`${openSubs.length} open subtask${openSubs.length>1?'s':''}`:(t.dueDate?'Due '+fmtS(t.dueDate):'No due date')}</div>
+              <div style="font-size:10.5px;color:#a0aec0;margin-top:2px;">${openSubs.length?`${openSubs.length} open subtask${openSubs.length>1?'s':''}${scheduledCount?` · ${scheduledCount} on calendar`:''}`:(t.dueDate?'Due '+fmtS(t.dueDate):'No due date')}</div>
             </div>
           </div>`;
 
-        const subRows = (openSubs.length && isExpanded) ? openSubs.map(s=>`
-          <div class="dp-unscheduled-item dp-unscheduled-subitem" style="border-left-color:#a0aec0;margin-left:16px;" draggable="true"
-            ondragstart="event.dataTransfer.setData('taskId','${t.id}:${s.id}');event.dataTransfer.setData('type','unscheduled')">
-            <span class="dp-drag-handle">⠿</span>
-            <div style="flex:1;min-width:0;">
-              <div style="font-size:11.5px;font-weight:500;color:#4a5568;line-height:1.3;">${esc((s.title||'(untitled subtask)').substring(0,38))}</div>
-              <div style="font-size:10px;color:#a0aec0;margin-top:1px;">${s.dueDate?'Due '+fmtS(s.dueDate):'No due date'}</div>
-            </div>
-          </div>`).join('') : '';
+        const subRows = (openSubs.length && isExpanded) ? openSubs.map(s=>{
+          const scheduledBlock = blockBySubtaskRef.get(`${t.id}:${s.id}`);
+          if(scheduledBlock){
+            return `
+              <div class="dp-unscheduled-item dp-unscheduled-subitem" style="border-left-color:#16a34a;margin-left:16px;opacity:.7;cursor:default;">
+                <span style="font-size:11px;color:#16a34a;flex-shrink:0;">✓</span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:11.5px;font-weight:500;color:#4a5568;line-height:1.3;text-decoration:line-through;">${esc((s.title||'(untitled subtask)').substring(0,38))}</div>
+                  <div style="font-size:10px;color:#16a34a;margin-top:1px;">On calendar · ${scheduledBlock.start}</div>
+                </div>
+              </div>`;
+          }
+          return `
+            <div class="dp-unscheduled-item dp-unscheduled-subitem" style="border-left-color:#a0aec0;margin-left:16px;" draggable="true"
+              ondragstart="event.dataTransfer.setData('taskId','${t.id}:${s.id}');event.dataTransfer.setData('type','unscheduled')">
+              <span class="dp-drag-handle">⠿</span>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:11.5px;font-weight:500;color:#4a5568;line-height:1.3;">${esc((s.title||'(untitled subtask)').substring(0,38))}</div>
+                <div style="font-size:10px;color:#a0aec0;margin-top:1px;">${s.dueDate?'Due '+fmtS(s.dueDate):'No due date'}</div>
+              </div>
+            </div>`;
+        }).join('') : '';
 
         return headerRow + subRows;
       }).join('');
