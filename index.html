@@ -4515,7 +4515,7 @@ function renderPlanner(){
     <div class="dp-summary-row"><span style="color:#718096">Blocks scheduled</span><strong>${dayBlocks.length}</strong></div>
     <div class="dp-summary-row"><span style="color:#718096">Time blocked</span><strong style="color:#1d4ed8">${hm(totalMins)||'—'}</strong></div>
     ${isToday?`<div class="dp-summary-row"><span style="color:#718096">Completed</span><strong style="color:#166534">${hm(doneMins)||'—'}</strong></div>`:''}
-    <div class="dp-summary-row"><span style="color:#718096">Unscheduled tasks</span><strong style="color:#d97706">${tasks.filter(t=>!t.done&&!dayBlocks.find(b=>b.taskId===t.id)).length}</strong></div>`;
+    <div class="dp-summary-row"><span style="color:#718096">Unscheduled tasks</span><strong style="color:#d97706">${tasks.filter(t=>!t.done&&!dayBlocks.find(b=>String(b.taskId)===String(t.id))).length}</strong></div>`;
   const pct = totalMins > 0 ? Math.min(100, Math.round((doneMins/totalMins)*100)) : 0;
   const bar = document.getElementById('dpSummaryBar');
   const pctEl = document.getElementById('dpSummaryPct');
@@ -4525,7 +4525,7 @@ function renderPlanner(){
   // Unscheduled tasks sidebar
   const unschEl = document.getElementById('dpUnscheduled');
   if(unschEl){
-    const unsch = tasks.filter(t => !t.done && !dayBlocks.find(b => b.taskId === t.id));
+    const unsch = tasks.filter(t => !t.done && !dayBlocks.find(b => String(b.taskId) === String(t.id)));
     if(!unsch.length){
       unschEl.innerHTML = '<div style="font-size:12px;color:#a0aec0;text-align:center;padding:8px 0;">All tasks scheduled!</div>';
     } else {
@@ -5431,11 +5431,44 @@ async function autoPlanMyDay(){
   const btn = document.getElementById('autoPlanBtn');
   const ds = dpDateStr();
 
-  // Candidate tasks: active, not done, not already scheduled today
-  const scheduledIds = new Set(_timeBlocks.filter(b=>b.date===ds).map(b=>String(b.taskId)));
-  const candidates = tasks.filter(t=>!t.done && !scheduledIds.has(String(t.id)));
+  // Candidate list: standalone tasks schedule as themselves; tasks that are
+  // projects (have subtasks) schedule as their individual incomplete subtasks
+  // instead of one block for the whole project.
+  const candidates = [];
+  tasks.forEach(t=>{
+    if(t.done) return;
+    const subs = (t.subtasks||[]).filter(s=>!s.done);
+    if(subs.length){
+      subs.forEach(s=>{
+        candidates.push({
+          refId: `${t.id}:${s.id}`,
+          title: s.title || '(untitled subtask)',
+          priority: t.priority || 'Med',
+          dueDate: s.dueDate || t.dueDate || '',
+          overdue: !!(s.dueDate && s.dueDate < todayStr() && !s.done),
+          parentId: t.id,
+          parentTitle: t.title,
+          colorSourceIdx: tasks.indexOf(t)
+        });
+      });
+    } else {
+      candidates.push({
+        refId: String(t.id),
+        title: t.title,
+        priority: t.priority || 'Med',
+        dueDate: t.dueDate || '',
+        overdue: isOverdue(t),
+        parentId: null,
+        parentTitle: null,
+        colorSourceIdx: tasks.indexOf(t)
+      });
+    }
+  });
 
-  if(!candidates.length){
+  const scheduledRefIds = new Set(_timeBlocks.filter(b=>b.date===ds).map(b=>String(b.taskId)));
+  const openCandidates = candidates.filter(c=>!scheduledRefIds.has(c.refId));
+
+  if(!openCandidates.length){
     toast('No unscheduled tasks to plan','warn');
     return;
   }
@@ -5445,17 +5478,17 @@ async function autoPlanMyDay(){
   const dayEvents = calEvs.filter(e=>e.date===ds || (e.endDate && e.date<=ds && e.endDate>=ds))
     .filter(e=>e.time).map(e=>`${e.time}-${e.endTime||e.time} "${e.title}"`);
 
-  const taskList = candidates.slice(0,25).map(t=>
-    `id:${t.id} | "${t.title}" | priority:${t.priority||'Med'}${t.dueDate?' | due:'+t.dueDate:''}${isOverdue(t)?' | OVERDUE':''}`
+  const taskList = openCandidates.slice(0,30).map(c=>
+    `id:${c.refId} | "${c.title}"${c.parentTitle?` (subtask of "${c.parentTitle}")`:''} | priority:${c.priority}${c.dueDate?' | due:'+c.dueDate:''}${c.overdue?' | OVERDUE':''}`
   ).join('\n');
 
   const prompt = `Plan my working day for ${ds}. Working hours: 09:00–18:00.
 Already committed (do not overlap these): ${[...existingBlocks,...dayEvents].join('; ') || 'nothing yet'}.
 
-Candidate tasks to schedule (pick a sensible subset, prioritise overdue and high priority, leave a short break between blocks, don't overschedule the whole day):
+Candidate tasks to schedule (pick a sensible subset, prioritise overdue and high priority, leave a short break between blocks, don't overschedule the whole day). Some are individual subtasks of a larger project — schedule those as their own separate blocks, not as one block for the whole project:
 ${taskList}
 
-Respond with ONLY a raw JSON array, no markdown fences, no prose. Each item: {"taskId": <id from the list above, as given>, "start": "HH:MM", "end": "HH:MM"}. Times must be within 09:00-18:00 and must not overlap each other or the commitments above.`;
+Respond with ONLY a raw JSON array, no markdown fences, no prose. Each item: {"taskId": "<id exactly as given in the list above, including any colon>", "start": "HH:MM", "end": "HH:MM"}. Times must be within 09:00-18:00 and must not overlap each other or the commitments above.`;
 
   btn.disabled = true;
   btn.textContent = '✦ Planning…';
@@ -5483,27 +5516,27 @@ Respond with ONLY a raw JSON array, no markdown fences, no prose. Each item: {"t
     if(!Array.isArray(plan)) throw new Error('Unexpected response format');
 
     // Validate + apply, skipping anything that doesn't check out
-    const candidateIds = new Set(candidates.map(t=>String(t.id)));
+    const candidateByRefId = new Map(openCandidates.map(c=>[c.refId, c]));
     const usedRanges = [..._timeBlocks.filter(b=>b.date===ds)].map(b=>[b.start,b.end]);
     let added = 0, skipped = 0;
 
     plan.forEach(item=>{
-      const tId = String(item.taskId);
+      const refId = String(item.taskId);
       const start = item.start, end = item.end;
-      if(!candidateIds.has(tId) || !start || !end || start>=end){ skipped++; return; }
+      const cand = candidateByRefId.get(refId);
+      if(!cand || !start || !end || start>=end){ skipped++; return; }
       const overlaps = usedRanges.some(([s,e]) => start < e && end > s);
       if(overlaps){ skipped++; return; }
 
-      const taskForColor = tasks.find(t=>String(t.id)===tId);
-      const idx = taskForColor ? tasks.indexOf(taskForColor) % TASK_PALETTE.length : 0;
+      const idx = ((cand.colorSourceIdx % TASK_PALETTE.length) + TASK_PALETTE.length) % TASK_PALETTE.length;
       _timeBlocks.push({
         id:'tb_'+Date.now()+'_'+added,
         date: ds,
-        taskId: tId,
+        taskId: cand.refId,
         start, end,
-        notes: '',
-        color: taskForColor ? TASK_PALETTE[idx] : '#1a3a5c',
-        label: ''
+        notes: cand.parentTitle ? `Part of: ${cand.parentTitle}` : '',
+        color: TASK_PALETTE[idx],
+        label: cand.title
       });
       usedRanges.push([start,end]);
       added++;
