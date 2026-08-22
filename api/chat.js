@@ -14,13 +14,7 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    // TEMPORARY DIAGNOSTIC — shows what env var names ARE present (not values),
-    // so we can see if it's a naming/scope issue rather than guessing blindly.
-    const envKeys = Object.keys(process.env).filter(k => !k.startsWith('VERCEL') && !k.startsWith('NOW_'));
-    res.status(500).json({
-      error: 'ANTHROPIC_API_KEY is not configured on the server.',
-      debug_available_env_keys: envKeys
-    });
+    res.status(500).json({ error: 'ANTHROPIC_API_KEY is not configured on the server.' });
     return;
   }
 
