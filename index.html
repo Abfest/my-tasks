@@ -5483,8 +5483,8 @@ async function autoPlanMyDay(){
   const dayEvents = calEvs.filter(e=>e.date===ds || (e.endDate && e.date<=ds && e.endDate>=ds))
     .filter(e=>e.time).map(e=>`${e.time}-${e.endTime||e.time} "${e.title}"`);
 
-  const taskList = openCandidates.slice(0,30).map(c=>
-    `id:${c.refId} | "${c.title}"${c.parentTitle?` (subtask of "${c.parentTitle}")`:''} | priority:${c.priority}${c.dueDate?' | due:'+c.dueDate:''}${c.overdue?' | OVERDUE':''}`
+  const taskList = openCandidates.slice(0,30).map((c,i)=>
+    `id:${i} | "${c.title}"${c.parentTitle?` (subtask of "${c.parentTitle}")`:''} | priority:${c.priority}${c.dueDate?' | due:'+c.dueDate:''}${c.overdue?' | OVERDUE':''}`
   ).join('\n');
 
   const prompt = `Plan my working day for ${ds}. Working hours: 09:00–18:00.
@@ -5493,7 +5493,7 @@ Already committed (do not overlap these): ${[...existingBlocks,...dayEvents].joi
 Candidate tasks to schedule (pick a sensible subset, prioritise overdue and high priority, leave a short break between blocks, don't overschedule the whole day). Some are individual subtasks of a larger project — schedule those as their own separate blocks, not as one block for the whole project:
 ${taskList}
 
-Respond with ONLY a raw JSON array, no markdown fences, no prose. Each item: {"taskId": "<id exactly as given in the list above, including any colon>", "start": "HH:MM", "end": "HH:MM"}. Times must be within 09:00-18:00 and must not overlap each other or the commitments above.`;
+Respond with ONLY a raw JSON array, no markdown fences, no prose. Each item: {"taskId": <the plain number id from the list above, e.g. 0, 1, 2>, "start": "HH:MM", "end": "HH:MM"}. Use the number exactly as given, not the task title. Times must be within 09:00-18:00 and must not overlap each other or the commitments above.`;
 
   btn.disabled = true;
   btn.textContent = '✦ Planning…';
@@ -5520,15 +5520,17 @@ Respond with ONLY a raw JSON array, no markdown fences, no prose. Each item: {"t
     catch(e){ throw new Error('Could not read the AI\'s schedule — try again'); }
     if(!Array.isArray(plan)) throw new Error('Unexpected response format');
 
-    // Validate + apply, skipping anything that doesn't check out
-    const candidateByRefId = new Map(openCandidates.map(c=>[c.refId, c]));
+    // Validate + apply, skipping anything that doesn't check out.
+    // openCandidates is sliced to 30 above for the prompt, so index lookups
+    // must use that same sliced list, not the full unsliced candidate set.
+    const promptedCandidates = openCandidates.slice(0,30);
     const usedRanges = [..._timeBlocks.filter(b=>b.date===ds)].map(b=>[b.start,b.end]);
     let added = 0, skipped = 0;
 
     plan.forEach(item=>{
-      const refId = String(item.taskId);
+      const idxNum = Number(item.taskId);
       const start = item.start, end = item.end;
-      const cand = candidateByRefId.get(refId);
+      const cand = Number.isInteger(idxNum) ? promptedCandidates[idxNum] : undefined;
       if(!cand || !start || !end || start>=end){ skipped++; return; }
       const overlaps = usedRanges.some(([s,e]) => start < e && end > s);
       if(overlaps){ skipped++; return; }
@@ -5553,6 +5555,7 @@ Respond with ONLY a raw JSON array, no markdown fences, no prose. Each item: {"t
     if(added){
       toast(`✦ Planned ${added} block${added>1?'s':''}${skipped?` (${skipped} skipped — conflicts)`:''}`, 'ok');
     } else {
+      console.warn('Auto-plan: 0 blocks added. Raw plan from AI:', plan, 'Candidates offered:', promptedCandidates);
       toast('Nothing schedulable came back — try again or add tasks manually', 'warn');
     }
 
