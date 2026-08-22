@@ -1943,6 +1943,7 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
       <div class="ff full"><label class="flbl">Notes (optional)</label><input id="tbNotes" placeholder="Focus area for this block…"/></div>
     </div>
     <div class="mac">
+      <button class="mbtn cancel" id="tbDeleteBtn" onclick="confirmDeleteTBBlock()" style="display:none;background:#fff5f5;color:#c53030;border-color:#feb2b2;margin-right:auto;">Delete block</button>
       <button class="mbtn cancel" onclick="closeTBModal()">Cancel</button>
       <button class="mbtn save" onclick="saveTimeBlock()">Save block</button>
     </div>
@@ -4665,6 +4666,8 @@ function openAddTimeBlock(prefillTaskId='', prefillStart='09:00', prefillEnd='10
   if(endEl) endEl.value = prefillEnd;
   document.getElementById('tbNotes').value = '';
   document.getElementById('tbModalTitle').textContent = 'Add time block';
+  const delBtn = document.getElementById('tbDeleteBtn');
+  if(delBtn) delBtn.style.display = 'none';
   document.getElementById('tbOv').classList.add('show');
   window._editingBlockId = null;
   window._editingBlockDate = prefillDate || dpDateStr();
@@ -4683,6 +4686,8 @@ function openTBDetail(blockId){
   document.getElementById('tbEnd').value = b.end;
   document.getElementById('tbNotes').value = b.notes||'';
   document.getElementById('tbModalTitle').textContent = 'Edit time block';
+  const delBtn = document.getElementById('tbDeleteBtn');
+  if(delBtn) delBtn.style.display = '';
   document.getElementById('tbOv').classList.add('show');
   window._editingBlockId = blockId;
   window._editingBlockDate = b.date;
@@ -5599,6 +5604,13 @@ function deleteTBBlock(id){
   saveBlocks();
   renderPlanner();
   toast('Block removed','');
+}
+
+function confirmDeleteTBBlock(){
+  if(!window._editingBlockId) return;
+  if(!confirm('Delete this time block?')) return;
+  deleteTBBlock(window._editingBlockId);
+  closeTBModal();
 }
 
 function updatePomUI2(){
