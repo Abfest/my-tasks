@@ -5953,6 +5953,7 @@ function renderSubtaskList(){
         <input class="st-title-inp ${s.done?'done-t':''}" value="${esc(s.title||'')}" placeholder="Subtask name…"
           onclick="event.stopPropagation()"
           oninput="window._editSubtasks[${i}].title=this.value;updateStProgress()"/>
+        ${(s.done && s.closedAt)?`<span style="font-size:10px;color:#16a34a;flex-shrink:0;margin-right:4px;">Closed ${new Date(s.closedAt).toLocaleDateString('en-SG',{day:'numeric',month:'short'})}</span>`:''}
         <span class="st-expand-icon ${s._open?'open':''}">▶</span>
         <button class="st-del" onclick="event.stopPropagation();moveSubtask(${i},-1)" title="Move up" style="font-size:11px;color:#718096;">▲</button>
         <button class="st-del" onclick="event.stopPropagation();moveSubtask(${i},1)" title="Move down" style="font-size:11px;color:#718096;">▼</button>
@@ -5967,7 +5968,7 @@ function renderSubtaskList(){
         <div class="st-body-grid">
           <div>
             <div class="st-body-lbl">Status</div>
-            <select class="st-body-select" onchange="window._editSubtasks[${i}].status=this.value">
+            <select class="st-body-select" onchange="updateStStatus(${i},this.value)">
               ${['Open','To Start','In Progress','Pending External','Under Review','Closed'].map(opt=>
                 `<option value="${opt}" ${(s.status||'Open')===opt?'selected':''}>${opt}</option>`
               ).join('')}
@@ -5989,8 +5990,61 @@ function renderSubtaskList(){
               onchange="window._editSubtasks[${i}].dueDate=this.value"/>
           </div>
         </div>
+        <div>
+          <div class="st-body-lbl" style="display:flex;align-items:center;justify-content:space-between;">
+            <span>Checklist</span>
+            <span style="font-size:10.5px;color:#a0aec0;font-weight:400;">${(s.checklist&&s.checklist.length)?`${s.checklist.filter(c=>c.done).length}/${s.checklist.length}`:''}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:6px;">
+            ${(s.checklist||[]).map((c,ci)=>`
+              <div style="display:flex;align-items:center;gap:8px;" onclick="event.stopPropagation()">
+                <div onclick="toggleStChecklistItemInline(${i},${ci})" class="st-chk ${c.done?'on':''}" style="width:16px;height:16px;flex-shrink:0;">${c.done?'✓':''}</div>
+                <input value="${esc(c.text||'')}" placeholder="Checklist item…"
+                  oninput="window._editSubtasks[${i}].checklist[${ci}].text=this.value"
+                  class="st-body-input" style="padding:5px 8px;font-size:12px;${c.done?'text-decoration:line-through;color:#a0aec0;':''}"/>
+                <button type="button" onclick="removeStChecklistItemInline(${i},${ci})" style="border:none;background:none;color:#cbd5e0;font-size:14px;cursor:pointer;padding:2px 5px;flex-shrink:0;">×</button>
+              </div>`).join('')}
+          </div>
+          <button type="button" onclick="event.stopPropagation();addStChecklistItemInline(${i})" style="border:none;background:none;color:#3b82f6;font-size:11.5px;font-weight:600;cursor:pointer;padding:2px 0;">+ Add checklist item</button>
+        </div>
       </div>
     </div>`).join('');
+}
+
+function updateStStatus(i, value){
+  const s = window._editSubtasks[i];
+  const wasDone = s.done;
+  s.status = value;
+  s.done = value === 'Closed';
+  if(s.done && !wasDone) s.closedAt = new Date().toISOString();
+  else if(!s.done) s.closedAt = null;
+  renderSubtaskList();
+}
+
+function addStChecklistItemInline(i){
+  const s = window._editSubtasks[i];
+  if(!s.checklist) s.checklist = [];
+  s.checklist.push({id:'chk_'+Date.now(), text:'', done:false});
+  renderSubtaskList();
+  setTimeout(()=>{
+    const body = document.getElementById('stcard_'+i);
+    const inputs = body ? body.querySelectorAll('.st-body-input') : [];
+    if(inputs.length) inputs[inputs.length-1].focus();
+  }, 30);
+}
+
+function toggleStChecklistItemInline(i, ci){
+  const s = window._editSubtasks[i];
+  if(!s.checklist || !s.checklist[ci]) return;
+  s.checklist[ci].done = !s.checklist[ci].done;
+  renderSubtaskList();
+}
+
+function removeStChecklistItemInline(i, ci){
+  const s = window._editSubtasks[i];
+  if(!s.checklist) return;
+  s.checklist.splice(ci,1);
+  renderSubtaskList();
 }
 
 function toggleStBody(i){
@@ -6047,6 +6101,7 @@ function toggleStDone(i){
   const s = window._editSubtasks[i];
   s.done = !s.done;
   s.status = s.done ? 'Closed' : 'Open';
+  s.closedAt = s.done ? new Date().toISOString() : null;
   renderSubtaskList();
 }
 
@@ -6096,7 +6151,9 @@ function collectSubtasks(){
     owner:       s.owner||'',
     startDate:   s.startDate||'',
     dueDate:     s.dueDate||'',
-    done:        s.done||false
+    done:        s.done||false,
+    closedAt:    s.closedAt||null,
+    checklist:   (s.checklist||[]).filter(c=>c.text && c.text.trim())
   })).filter(s=>s.title.trim());
 }
 
@@ -6119,6 +6176,7 @@ function renderSubtasksInRow(t){
               ${s.dueDate?`<span style="font-size:11px;color:${isOverdue({dueDate:s.dueDate,done:s.done})?'#9b2c2c':'#a0aec0'}">Due ${fmtS(s.dueDate)}</span>`:''}
               ${(s.checklist&&s.checklist.length)?`<span style="font-size:11px;color:#a0aec0">☑ ${s.checklist.filter(c=>c.done).length}/${s.checklist.length}</span>`:''}
               ${statusBadge({status:s.status||'Open',done:s.done})}
+              ${(s.done && s.closedAt)?`<span style="font-size:10.5px;color:#16a34a;">Closed ${new Date(s.closedAt).toLocaleDateString('en-SG',{day:'numeric',month:'short'})}</span>`:''}
             </div>
           </div>
           <button class="btn sm" style="flex-shrink:0;align-self:center;" onclick="openSubtaskDetail(${t.id},'${s.id}')">Edit</button>
@@ -6130,7 +6188,11 @@ function toggleSubtaskDone(taskId, stId){
   const t = tasks.find(t=>t.id===taskId||t.id==taskId);
   if(!t||!t.subtasks) return;
   const s = t.subtasks.find(s=>s.id===stId);
-  if(s){ s.done=!s.done; s.status=s.done?'Closed':'Open'; }
+  if(s){
+    s.done=!s.done;
+    s.status=s.done?'Closed':'Open';
+    s.closedAt = s.done ? new Date().toISOString() : null;
+  }
   save(); refreshActive();
 }
 
@@ -7207,10 +7269,13 @@ function saveSubtaskDetail(){
   const newTitle = document.getElementById('stEditTitle').value.trim();
   if(!newTitle){ toast('Subtask title is required','warn'); return; }
 
+  const wasDone = s.done;
   s.title       = newTitle;
   s.description = document.getElementById('stEditDesc').value.trim();
   s.status      = document.getElementById('stEditStatus').value;
   s.done        = s.status === 'Closed';
+  if(s.done && !wasDone) s.closedAt = new Date().toISOString();
+  else if(!s.done) s.closedAt = null;
   s.owner       = document.getElementById('stEditOwner').value.trim();
   s.startDate   = document.getElementById('stEditStart').value;
   s.dueDate     = document.getElementById('stEditDue').value;
