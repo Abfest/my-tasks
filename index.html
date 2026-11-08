@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>TaskFlow Dashboard</title>
+<title>TaskFlow · Daily Workspace</title>
 <meta name="theme-color" content="#1a3a5c"/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231a3a5c'/><text x='16' y='23' font-size='18' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'>T</text></svg>"/>
@@ -1587,6 +1587,402 @@ tr.rank-dragging{opacity:.4;}
 tr.rank-drag-over td{border-top:2px solid #1a3a5c !important;}
 html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !important;}
 
+
+/* Sprint 1: readability and resilient navigation */
+.tf-backup-btn{border:1px solid rgba(255,255,255,.35);border-radius:9px;background:rgba(255,255,255,.13);color:#fff;padding:8px 11px;font:600 12px Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.tf-backup-btn:hover,.tf-backup-btn:focus-visible{background:rgba(255,255,255,.24);outline-offset:2px}
+.nav{gap:3px;scroll-padding-inline:18px}.ntab{padding:14px 15px}.ntab:focus-visible{outline:2px solid #2563eb;outline-offset:-3px}
+@media(max-width:760px){.hdr{padding:0 12px}.hdr-sub,.hdr-date,.phase-pill{display:none}.hdr-right{gap:7px}.tf-backup-btn{padding:7px 9px}.pane{padding:16px 12px 24px}}
+
+/* Sprint 1 visual refresh: mockup-aligned shell, preserving existing functionality */
+:root{--tf-navy:#10233e;--tf-blue:#1376ed}
+body{background:#f5f8fc}
+.hdr{margin-left:232px;background:#fff;color:#152743;border-bottom:1px solid #e7edf5;height:68px;padding:0 22px}
+.hdr-title{color:#10233e}.hdr-sub{color:#63748d}
+.hdr-date{color:#50647f}
+.hdr .gcal-btn,.hdr #forceSyncBtn,.hdr #darkToggleBtn{color:#173759!important;background:#f1f5fa!important;border-color:#dce5f1!important}
+.hdr .phase-pill{color:#1563b7;background:#eaf3ff;border-color:#d5e6fc}
+.tf-backup-btn{background:#eef6ff!important;color:#0869da!important;border:1px solid #cce1fc!important}
+.nav{position:fixed;top:0;bottom:0;left:0;width:232px;background:linear-gradient(180deg,#122641,#0c1e36);display:flex;flex-direction:column;overflow-y:auto;padding:74px 12px 20px;gap:5px;z-index:15;border:0;box-shadow:3px 0 18px rgba(20,39,68,.08)}
+.nav::before{content:"▦  TaskFlow";position:absolute;top:22px;left:22px;color:white;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:21px;letter-spacing:-.7px}
+.nav .ntab{border:0!important;border-radius:9px;padding:12px 14px;color:#c4d0df;font-size:12.5px;white-space:normal}
+.nav .ntab:hover{color:white;background:#203a59}
+.nav .ntab.on{color:#fff;background:#1477ee;box-shadow:0 5px 12px rgba(0,70,180,.23)}
+.nav .ntab:nth-child(1)::before{content:"⌂  "}
+.nav .ntab:nth-child(2)::before{content:"☑  "}
+.nav .ntab:nth-child(3)::before{content:"▤  "}
+.nav .ntab:nth-child(4)::before,.nav .ntab:nth-child(5)::before{content:"▦  "}
+.content{margin-left:232px;background:#f5f8fc}
+.pane{padding:20px 22px 35px}
+.scard,.tbl-wrap,.tf-card{border:1px solid #e8eef6;border-radius:14px;box-shadow:0 4px 20px rgba(27,54,93,.045);background:#fff}
+.scard{padding:18px}.scard::before{width:0}
+.scard-lbl{color:#6c7d93}.scard-val{font-size:30px}
+.tf-hero{min-height:154px;border-radius:16px;padding:28px 32px;background:linear-gradient(115deg,#e5f1ff,#f5f8ff 65%,#dceafd);display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:16px}
+.tf-hero h1{font-size:29px;letter-spacing:-1px;color:#122642;margin-bottom:8px}.tf-hero p{color:#49617d}.tf-hero .tf-clock{font-size:30px;font-weight:750;color:#142c4e;text-align:right;white-space:nowrap}
+.tf-hero small{display:block;font-size:12px;color:#5c708b;font-weight:500;margin-bottom:5px}
+.tf-dashboard{display:grid;grid-template-columns:1.05fr 1.05fr .8fr;gap:14px;margin:16px 0 22px}
+.tf-card{padding:18px;min-width:0}.tf-card h3{font-size:15px;color:#1a2c47;margin-bottom:15px}
+.tf-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tf-action{border:0;border-radius:8px;background:#eaf3ff;color:#1266ce;padding:8px 11px;font:600 11px Inter,sans-serif;cursor:pointer}
+.tf-action:hover{background:#dbeafe}
+.tf-row{display:flex;align-items:center;gap:10px;border-top:1px solid #edf1f7;padding:11px 0;font-size:12px;color:#30445f}
+.tf-row:first-of-type{border-top:0}.tf-row .tf-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tf-chip{font-size:10px;padding:4px 7px;border-radius:6px;background:#e8f3ff;color:#0964c9}
+.tf-chip.high{background:#fff0f0;color:#d72c36}.tf-chip.medium{background:#fff6df;color:#ae6c00}
+.tf-muted{font-size:11px;color:#8291a6}.tf-empty{padding:15px 0;color:#8090a3;font-size:12px}
+.tf-quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.tf-quick-grid button{border:0;border-radius:11px;padding:17px 8px;background:#edf5ff;color:#0969d5;font:600 12px Inter,sans-serif;cursor:pointer}
+.tf-quick-grid button:nth-child(2){background:#e9faef;color:#07803a}
+.tf-quick-grid button:nth-child(3){background:#f4ebff;color:#7737b8}
+.tf-quick-grid button:nth-child(4){background:#fff2e6;color:#b65b08}
+.tf-quick-grid button:hover{filter:brightness(.97)}
+.tf-overview-lower{display:grid;grid-template-columns:1fr;gap:16px}
+@media(max-width:1050px){.tf-dashboard{grid-template-columns:1fr 1fr}.tf-dashboard .tf-card:last-child{grid-column:1/-1}}
+@media(max-width:760px){.nav{position:relative;top:auto;bottom:auto;width:100%;height:auto;flex-direction:row;padding:8px;overflow-x:auto;border-radius:0}.nav::before{display:none}.nav .ntab{flex-shrink:0;white-space:nowrap}.hdr,.content{margin-left:0}.hdr{height:auto;min-height:65px;flex-wrap:wrap;padding:12px}.tf-dashboard{grid-template-columns:1fr}.tf-dashboard .tf-card:last-child{grid-column:auto}.tf-hero{padding:20px}.tf-hero h1{font-size:23px}.tf-hero .tf-clock{font-size:21px}}
+
+
+/* Sprint 1 v2: explicit light app canvas and consistent dark navy sidebar */
+html:not(.dark-mode) body{background:#f5f8fc;color:#172b49}
+html:not(.dark-mode) .hdr{background:#fff!important;color:#172b49!important;border-bottom:1px solid #e4ebf4}
+html:not(.dark-mode) .hdr-title{color:#172b49!important}
+html:not(.dark-mode) .hdr-sub{color:#72849d!important;opacity:1}
+html:not(.dark-mode) .hdr-date{color:#50647f!important}
+html:not(.dark-mode) .content,html:not(.dark-mode) .pane{background:#f5f8fc!important}
+.nav,html.dark-mode .nav{background:linear-gradient(180deg,#122641,#0c1e36)!important;border:0!important;position:fixed;top:0;left:0;bottom:0;width:232px;padding:74px 12px 20px;display:flex;flex-direction:column;gap:5px;overflow-y:auto;z-index:25}
+.nav .ntab,html.dark-mode .nav .ntab{color:#c4d0df!important;border:0!important;border-radius:9px;padding:12px 14px}
+.nav .ntab.on,html.dark-mode .nav .ntab.on{color:#fff!important;background:#1477ee!important;border:0!important}
+.nav .ntab:hover,html.dark-mode .nav .ntab:hover{color:#fff!important;background:#203a59}
+.hdr{margin-left:232px!important;min-height:68px}
+.content{margin-left:232px!important}
+.tf-hero,.tf-card{color:#172b49}
+.tf-hero p{color:#49617d!important}
+.tf-hero h1,.tf-card h3{color:#172b49!important}
+@media(max-width:760px){.nav,html.dark-mode .nav{position:relative;top:auto;bottom:auto;width:100%;padding:8px;flex-direction:row;overflow-x:auto}.nav::before{display:none}.hdr,.content{margin-left:0!important}}
+
+
+/* Sprint 1.1: remove sidebar/banner collision; improve task/calendar visual hierarchy */
+.overdue-banner{margin-left:232px!important;z-index:4!important}
+.overdue-banner.show{max-height:180px}
+.nav{z-index:20!important}
+.nav .ntab{transition:background .16s,color .16s;line-height:1.45}
+.nav .ntab.on{background:#1477ee!important;color:#fff!important}
+.tf-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px}
+.tf-metric{border-radius:13px;padding:18px;background:#fff;border:1px solid #e6edf6;box-shadow:0 3px 14px rgba(25,50,80,.04);display:flex;gap:12px;align-items:center}
+.tf-metric-icon{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:#eaf3ff;color:#0874ec;font-size:19px;flex-shrink:0}
+.tf-metric:nth-child(2) .tf-metric-icon{background:#fff0f0;color:#d92c3a}
+.tf-metric:nth-child(3) .tf-metric-icon{background:#e9f9ef;color:#118c47}
+.tf-metric:nth-child(4) .tf-metric-icon{background:#f3ebff;color:#8242d3}
+.tf-metric strong{display:block;font-size:25px;color:#122b4b;line-height:1.1}
+.tf-metric span{font-size:11px;color:#6c7e96}
+.tf-row .tf-due{font-size:10px;color:#70839d;white-space:nowrap}
+.tf-row .tf-check{cursor:pointer;accent-color:#1376ed;width:15px;height:15px;flex-shrink:0}
+.tf-card{min-height:270px}
+#pane-tasks .sec-title{font-size:19px}
+#pane-tasks .seg-btn{border-radius:8px 8px 0 0}
+#pane-tasks .tbl-wrap{border-radius:0 0 12px 12px;overflow-x:auto}
+#pane-weekly,#pane-monthly{background:#f5f8fc}
+#pane-weekly .tbl-wrap,#pane-monthly .tbl-wrap{border-radius:14px}
+@media(max-width:1100px){.tf-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.overdue-banner{margin-left:0!important}.tf-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.tf-metric{padding:12px}.tf-metric strong{font-size:21px}}
+@media(max-width:420px){.tf-metrics{grid-template-columns:1fr 1fr;gap:8px}.tf-metric-icon{width:30px;height:30px}.tf-metric{gap:7px}}
+
+
+/* Sprint 1.2 — task and calendar refinement */
+#pane-tasks{background:#f5f8fc!important;padding:20px!important}
+#pane-tasks>.sec-hdr,#pane-tasks>div{border-radius:10px}
+#pane-tasks .tbl-wrap,#pane-tasks table{background:white}
+#pane-tasks table{border-collapse:separate;border-spacing:0}
+#pane-tasks th{background:#f5f8fc;color:#6a7e99;font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:13px 12px}
+#pane-tasks td{padding:13px 12px;border-bottom:1px solid #edf2f8}
+#pane-tasks tbody tr:hover{background:#f6faff}
+#pane-tasks .seg-btn{border-radius:8px!important;font-weight:650}
+#pane-tasks .seg-btn.active{background:#e9f3ff!important;color:#096bd7!important;border-color:#cfe5ff!important}
+.tf-task-toolbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:12px 18px;background:white;border-bottom:1px solid #e9eef7}
+.tf-task-toolbar button{border:1px solid #e4eaf4;background:#f8faff;border-radius:8px;padding:8px 12px;color:#516780;font:600 12px Inter,sans-serif;cursor:pointer}
+.tf-task-toolbar button.tf-selected{color:#0b70df;background:#eaf3ff;border-color:#bcdcff}
+.tf-task-count{margin-left:auto;font-size:11px;color:#71829b}
+#pane-weekly,#pane-monthly{background:#f5f8fc;padding:24px!important}
+#pane-weekly .week-nav,#pane-monthly .month-nav{background:#fff;border:1px solid #e8eef7;border-radius:13px;padding:13px 17px;margin-bottom:13px;box-shadow:0 3px 15px rgba(25,55,95,.04)}
+#pane-weekly .week-grid,#pane-monthly .month-grid{background:#fff;border:1px solid #e6edf7;border-radius:13px;overflow:hidden;box-shadow:0 4px 20px rgba(25,55,95,.04)}
+#pane-weekly .week-title-txt,#pane-monthly .month-title-txt{font-weight:750;color:#173052}
+#pane-monthly .dow-row{background:#eaf2fd;border-radius:10px 10px 0 0;margin-top:10px}
+#pane-monthly .dow-hdr{font-weight:700;color:#58718e}
+.tf-calendar-switch{display:flex;gap:5px;align-items:center;margin-left:auto}
+.tf-calendar-switch button{background:#f0f4fa;color:#526680;border:0;border-radius:7px;padding:8px 12px;font:650 11px Inter,sans-serif;cursor:pointer}
+.tf-calendar-switch button.active{background:#1479ee;color:white}
+.tf-calendar-subtitle{font-size:12px;color:#6e8099;margin:0 0 12px}
+@media(max-width:760px){#pane-tasks,#pane-weekly,#pane-monthly{padding:12px!important}.tf-task-toolbar{padding:10px}.tf-calendar-switch{margin-left:0}}
+
+
+/* Sprint 1.3: full-width hierarchical task rows */
+.tf13-list-wrap{margin:14px 20px 26px;border:1px solid #e4ebf5;border-radius:14px;background:white;overflow:visible;box-shadow:0 4px 22px rgba(23,51,91,.05)}
+.tf13-list-head,.tf13-row{display:grid;grid-template-columns:minmax(340px,1fr) 100px 112px 125px 100px;align-items:center;gap:12px}
+.tf13-list-head{padding:14px 20px;background:#f3f7fc;border-radius:14px 14px 0 0;color:#647b96;font-size:11px;font-weight:750;text-transform:uppercase;letter-spacing:.045em}
+.tf13-section-label{display:flex;gap:9px;align-items:center;padding:11px 20px;background:#f8fafd;color:#415e7c;font-size:12px;font-weight:750;border-top:1px solid #e8eef6}
+.tf13-section-label span{border-radius:20px;background:#e7effa;padding:2px 8px;color:#54708c;font-size:11px}.tf13-click{cursor:pointer}
+.tf13-item{border-top:1px solid #edf1f7}.tf13-item:hover{background:#fbfdff}.tf13-row{padding:15px 20px;min-height:72px}
+.tf13-main{display:flex;align-items:flex-start;gap:11px;min-width:0}.tf13-main input,.tf13-child input{width:17px;height:17px;accent-color:#1579eb;flex-shrink:0;margin-top:3px;cursor:pointer}
+.tf13-expander{border:0;background:#edf4fd;color:#2c639f;border-radius:6px;min-width:24px;height:24px;font-size:20px;line-height:19px;cursor:pointer;flex-shrink:0}.tf13-expander-placeholder{width:24px;flex-shrink:0}
+.tf13-title-block{min-width:0;flex:1}.tf13-title{font:700 13px/1.45 Inter,sans-serif;color:#1a304e;text-align:left;border:0;background:transparent;cursor:pointer;overflow-wrap:anywhere;padding:0}.tf13-title:hover{color:#126ddd}
+.tf13-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:5px;font-size:10.5px;color:#71859e}.tf13-tag{background:#eef3f9;color:#526b85;border-radius:5px;padding:3px 6px}.tf13-pin{color:#9b6b19}.tf13-progress{width:130px;height:4px;border-radius:6px;background:#e5edf8;margin-top:8px;overflow:hidden}.tf13-progress>div{height:100%;background:#1478eb;border-radius:6px}
+.tf13-priority{display:inline-block;font-size:11px;font-weight:700;border-radius:7px;padding:5px 9px;background:#fff3df;color:#a16a16}.tf13-priority.high{background:#fff0f0;color:#c33440}.tf13-priority.low{background:#e8f8ed;color:#228148}
+.tf13-col{font-size:12px;color:#647b96}.tf13-due.late{color:#ce3a42;font-weight:700}.tf13-state{display:inline-block;background:#eff5fc;color:#4b6685;padding:5px 9px;border-radius:20px;font-size:10.5px;white-space:nowrap}
+.tf13-actions{display:flex;gap:7px;align-items:center}.tf13-actions>button{border:1px solid #dce6f2;background:white;border-radius:7px;padding:7px 10px;color:#34516f;cursor:pointer;font-size:11px}
+.tf13-menu{position:relative}.tf13-menu summary{list-style:none;cursor:pointer;border:1px solid #dce6f2;border-radius:7px;padding:4px 9px;font-size:18px;color:#34516f}.tf13-menu summary::-webkit-details-marker{display:none}.tf13-menu-panel{position:absolute;right:0;top:31px;z-index:10;background:white;border:1px solid #dce6f2;border-radius:9px;box-shadow:0 8px 25px #1b365028;min-width:125px;padding:5px}.tf13-menu-panel button{display:block;width:100%;padding:8px;text-align:left;border:0;background:white;cursor:pointer;color:#36506c;font-size:11px}.tf13-menu-panel button:hover{background:#f2f7ff}.tf13-menu-panel .tf13-danger{color:#c3333c}
+.tf13-children{padding:0 20px 12px 68px;background:#fafcff}.tf13-child{display:flex;align-items:flex-start;gap:12px;padding:11px 12px;border-left:2px solid #cfe2fa;border-bottom:1px solid #edf2f8;min-height:44px}.tf13-branch{color:#89a6c5;font-size:16px}.tf13-child-main{min-width:0;flex:1;font-size:12px;color:#314967;overflow-wrap:anywhere}.tf13-child-main small{display:block;color:#879bb2;font-size:11px;margin-top:4px;white-space:normal}.tf13-strike{text-decoration:line-through;color:#9aa9bb}.tf13-empty{padding:35px;text-align:center;color:#788ba3}
+@media(max-width:1150px){.tf13-list-head,.tf13-row{grid-template-columns:minmax(240px,1fr) 90px 100px 100px 90px;gap:8px}.tf13-list-wrap{overflow-x:auto}}
+@media(max-width:760px){.tf13-list-head{display:none}.tf13-list-wrap{margin:12px}.tf13-row{grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:13px}.tf13-main{grid-column:1/-1}.tf13-col{display:inline-flex}.tf13-col:nth-child(4){display:none}.tf13-actions{justify-content:flex-end}.tf13-children{padding-left:35px;padding-right:8px}.tf13-section-label{padding:10px 13px}}
+
+
+/* Sprint 1.3.1: coherent slate/navy dark theme. Scoped to dark mode only.
+   Light mode remains unchanged. Keep structure and all task interactions. */
+html.dark-mode {
+  --bg:#111827;
+  --surface:#1e293b;
+  --surface2:#253449;
+  --border:#34445b;
+  --border2:#304158;
+  --text-1:#f1f5f9;
+  --text-2:#d8e2ef;
+  --text-3:#b6c7dc;
+  --text-4:#94a9c3;
+  --hover-bg:#2b3b52;
+  --input-bg:#26364a;
+  color-scheme:dark;
+}
+html.dark-mode body,
+html.dark-mode .content,
+html.dark-mode .pane,
+html.dark-mode #pane-tasks,
+html.dark-mode #pane-weekly,
+html.dark-mode #pane-monthly {background:#111827!important;color:#e2e8f0!important;}
+html.dark-mode .hdr{background:#1b293c!important;border-bottom:1px solid #34445b!important;color:#e2e8f0!important;}
+html.dark-mode .hdr-title{color:#f1f5f9!important}
+html.dark-mode .hdr-sub,html.dark-mode .hdr-date{color:#b3c3d8!important}
+html.dark-mode .hdr .gcal-btn,html.dark-mode .hdr #forceSyncBtn,
+html.dark-mode .hdr #darkToggleBtn{background:#273a52!important;color:#e5efff!important;border-color:#405671!important}
+html.dark-mode .tf-backup-btn{background:#1d3b5d!important;color:#a9d3ff!important;border-color:#41658c!important}
+html.dark-mode .tf13-list-wrap{background:#1e293b!important;border-color:#34445b!important;box-shadow:0 8px 24px #050b1766!important}
+html.dark-mode .tf13-list-head{background:#28384e!important;color:#c3d3e6!important;border-bottom:1px solid #3b5069!important}
+html.dark-mode .tf13-section-label{background:#26354a!important;color:#dbe8f8!important;border-color:#3c4e65!important}
+html.dark-mode .tf13-section-label span{background:#38516f!important;color:#e0efff!important}
+html.dark-mode .tf13-item{background:#1e293b!important;border-color:#34445b!important}
+html.dark-mode .tf13-item:hover{background:#25364d!important}
+html.dark-mode .tf13-row{background:transparent!important}
+html.dark-mode .tf13-title{color:#f1f5f9!important}
+html.dark-mode .tf13-title:hover{color:#93c5fd!important}
+html.dark-mode .tf13-meta,html.dark-mode .tf13-col{color:#bacbe0!important}
+html.dark-mode .tf13-tag{background:#354963!important;color:#d6e8ff!important}
+html.dark-mode .tf13-pin{color:#f7c977!important}
+html.dark-mode .tf13-progress{background:#3b4e68!important}
+html.dark-mode .tf13-progress>div{background:#60a5fa!important}
+html.dark-mode .tf13-expander{background:#354d6a!important;color:#dbeafe!important}
+html.dark-mode .tf13-state{background:#344861!important;color:#d5e6fa!important}
+html.dark-mode .tf13-priority.high{background:#56303c!important;color:#ffb7bf!important}
+html.dark-mode .tf13-priority.low{background:#254c41!important;color:#a7f3d0!important}
+html.dark-mode .tf13-priority:not(.high):not(.low){background:#59452d!important;color:#fbd38d!important}
+html.dark-mode .tf13-due.late{color:#ff949e!important}
+html.dark-mode .tf13-actions>button,html.dark-mode .tf13-menu summary{background:#2b3d55!important;border-color:#4a607b!important;color:#e2efff!important}
+html.dark-mode .tf13-actions>button:hover,html.dark-mode .tf13-menu summary:hover{background:#385372!important}
+html.dark-mode .tf13-menu-panel{background:#24364b!important;border-color:#4a607b!important;box-shadow:0 10px 26px #050b17a8!important}
+html.dark-mode .tf13-menu-panel button{background:#24364b!important;color:#e1edfa!important}
+html.dark-mode .tf13-menu-panel button:hover{background:#354c68!important}
+html.dark-mode .tf13-menu-panel .tf13-danger{color:#ffabb2!important}
+html.dark-mode .tf13-children{background:#273449!important}
+html.dark-mode .tf13-child{background:transparent!important;border-left-color:#54749b!important;border-bottom-color:#3c4d63!important}
+html.dark-mode .tf13-branch{color:#8db6e7!important}
+html.dark-mode .tf13-child-main{color:#e0e9f5!important}
+html.dark-mode .tf13-child-main small{color:#aabed6!important}
+html.dark-mode .tf13-strike{color:#9db1ca!important;text-decoration-color:#8196b0!important;opacity:1!important}
+html.dark-mode .tf13-empty{color:#b9cbe0!important}
+html.dark-mode .tf-task-toolbar{background:#243449!important;border-bottom-color:#3b4e66!important}
+html.dark-mode .tf-task-toolbar button{background:#2c4059!important;color:#d6e5f8!important;border-color:#465e7b!important}
+html.dark-mode .tf-task-toolbar button.tf-selected{background:#1c4c7c!important;color:#d6ebff!important;border-color:#4b86c4!important}
+html.dark-mode .tf-task-count{color:#afc2d9!important}
+html.dark-mode #pane-tasks .sec-title{color:#f1f5f9!important}
+html.dark-mode .tf-hero{background:linear-gradient(115deg,#203b59,#26374f 65%,#1d3551)!important;color:#f1f5f9!important}
+html.dark-mode .tf-hero h1,html.dark-mode .tf-hero .tf-clock{color:#f1f5f9!important}
+html.dark-mode .tf-hero p,html.dark-mode .tf-hero small{color:#c0d0e3!important}
+html.dark-mode .tf-card,html.dark-mode .tf-metric{background:#1e293b!important;border-color:#34445b!important}
+html.dark-mode .tf-card h3,html.dark-mode .tf-metric strong{color:#f1f5f9!important}
+html.dark-mode .tf-row{color:#e2e8f0!important;border-color:#34445b!important}
+html.dark-mode .tf-metric span,html.dark-mode .tf-row .tf-due,html.dark-mode .tf-muted{color:#b3c5dc!important}
+html.dark-mode .tf-quick-grid button{background:#2c4460!important;color:#c5e0ff!important}
+html.dark-mode .tf-quick-grid button:nth-child(2){background:#244d42!important;color:#a7f3d0!important}
+html.dark-mode .tf-quick-grid button:nth-child(3){background:#48395f!important;color:#e9d5ff!important}
+html.dark-mode .tf-quick-grid button:nth-child(4){background:#58412f!important;color:#ffdbad!important}
+html.dark-mode .tf-action{background:#2b4867!important;color:#d5e9ff!important}
+html.dark-mode #pane-weekly .week-nav,html.dark-mode #pane-monthly .month-nav,
+html.dark-mode #pane-weekly .week-grid,html.dark-mode #pane-monthly .month-grid{background:#1e293b!important;border-color:#34445b!important}
+html.dark-mode #pane-weekly .week-title-txt,html.dark-mode #pane-monthly .month-title-txt{color:#f1f5f9!important}
+html.dark-mode .tf-calendar-subtitle{color:#b6c7dc!important}
+html.dark-mode .tf-calendar-switch button{background:#30435c!important;color:#d3e3f6!important}
+html.dark-mode .tf-calendar-switch button.active{background:#2563eb!important;color:#fff!important}
+html.dark-mode #pane-monthly .dow-row{background:#293d55!important}
+html.dark-mode #pane-monthly .dow-hdr{color:#cfdeef!important}
+html.dark-mode .overdue-banner{background:#422b38!important;color:#ffd9dd!important;border-color:#a75261!important}
+html.dark-mode .overdue-banner *{color:inherit}
+html.dark-mode .nav .ntab.on{color:#fff!important}
+
+
+/* Sprint 1.4 — compact controls and right-hand task drawer */
+#pane-tasks .tf14-toolbar{background:#fff;border:1px solid #e4ebf5;border-radius:13px;margin:12px 20px 0;padding:8px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+#pane-tasks .tf14-toolbar>.tf-task-toolbar{display:flex;flex:1 1 360px;min-width:0;background:transparent;border:0;padding:0;gap:6px}
+#pane-tasks .tf14-toolbar>.tf-task-toolbar button{padding:8px 10px;white-space:nowrap}
+#pane-tasks .tf14-toolbar>.tf-task-toolbar .tf-task-count{display:none}
+#pane-tasks .tf14-toolbar>div:nth-child(2){padding:0!important;background:transparent!important;display:flex!important;gap:4px!important}
+#pane-tasks .tf14-toolbar>div:nth-child(3){padding:0!important;background:transparent!important;border:0!important;display:flex!important;gap:6px!important;align-items:center;flex:1 1 100%;}
+#pane-tasks .tf14-toolbar>div:nth-child(3) input{max-width:none!important;flex:1 1 180px!important;min-width:120px!important}
+#pane-tasks .tf14-toolbar>div:nth-child(3) select{min-width:95px}
+#pane-tasks .tf14-toolbar .seg-btn{padding:8px 11px}
+.tf14-tools-extra{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.tf14-tools-extra select,.tf14-tools-extra button,.tf14-bulk-bar button,.tf14-bulk-bar select{border:1px solid #dbe5f2;border-radius:8px;background:#f7faff;color:#284766;padding:8px 10px;font:600 11px Inter,sans-serif;cursor:pointer}
+.tf14-sort-label{font-size:11px;color:#7486a0}
+#pane-tasks #catFilterBar{margin:6px 20px 0;border:0!important;border-radius:10px;padding:6px 10px!important;flex-wrap:wrap}
+.tf14-bulk-bar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:10px 20px 0;padding:12px 14px;background:#eaf3ff;border:1px solid #c9def8;border-radius:11px;color:#24496e;font-size:12px}
+.tf14-bulk-bar[hidden]{display:none!important}
+.tf14-bulk-bar label{display:flex;gap:7px;align-items:center}.tf14-bulk-bar strong{margin-right:auto}
+.tf14-row-select{display:none!important}
+.tf14-selection-on .tf14-row-select{display:inline-block!important}
+.tf14-selection-on .tf13-row>.tf13-main>input[type=checkbox]:first-child{display:none!important}
+.tf14-row-select{accent-color:#1478eb;cursor:pointer}
+.tf14-overdue-restore{position:fixed;top:72px;right:16px;z-index:18;border:1px solid #edbdc2;background:#fff4f4;color:#a72e37;border-radius:8px;padding:7px 12px;font:600 11px Inter,sans-serif;box-shadow:0 3px 10px #10223c19;cursor:pointer}
+.tf14-overdue-restore[hidden]{display:none!important}
+.tf13-title{text-transform:none!important;letter-spacing:normal!important}
+.tf14-progress-label{font-size:10px;color:#657e9a;font-weight:600;margin-left:2px}
+.tf13-progress{height:5px!important;width:155px!important}
+.tf14-date-hint{font-size:10px;white-space:nowrap}
+/* Task details reuse existing modal content as a slide-in drawer. */
+.td-overlay{justify-content:flex-end!important;align-items:stretch!important;padding:0!important;background:rgba(8,24,43,.40)!important}
+.td-modal{width:min(520px,100vw)!important;max-width:100%!important;height:100dvh!important;max-height:100dvh!important;border-radius:16px 0 0 16px!important;transform:translateX(35px)!important;transition:transform .22s ease!important;overflow-y:auto!important}
+.td-overlay.show .td-modal{transform:translateX(0)!important}
+.td-hdr{border-radius:16px 0 0 0!important}
+html.dark-mode #pane-tasks .tf14-toolbar{background:#1e293b!important;border-color:#34445b!important}
+html.dark-mode #pane-tasks .tf14-toolbar>div:nth-child(2),html.dark-mode #pane-tasks .tf14-toolbar>div:nth-child(3){background:transparent!important}
+html.dark-mode .tf14-tools-extra select,html.dark-mode .tf14-tools-extra button,html.dark-mode .tf14-bulk-bar button,html.dark-mode .tf14-bulk-bar select{background:#30435c!important;color:#e3effe!important;border-color:#48617f!important}
+html.dark-mode .tf14-sort-label,html.dark-mode .tf14-progress-label{color:#b8cbe1!important}
+html.dark-mode .tf14-bulk-bar{background:#223c59!important;border-color:#3e5e83!important;color:#e4f0ff!important}
+html.dark-mode .tf14-overdue-restore{background:#422b38!important;color:#ffd9dd!important;border-color:#a75261!important}
+html.dark-mode .td-modal{background:#1e293b!important;color:#f1f5f9!important}
+html.dark-mode .td-hdr{background:#203d60!important}
+html.dark-mode .td-st-item{background:#29394f!important}
+html.dark-mode .td-st-item div{color:#dce8f6!important}
+html.dark-mode #pane-tasks .sec-title{color:#f1f5f9!important}
+@media(max-width:760px){#pane-tasks .tf14-toolbar{margin:8px 10px 0}#pane-tasks .tf14-toolbar>div:nth-child(3){overflow-x:auto;flex-wrap:wrap!important}.tf14-bulk-bar{margin:8px 10px}.td-modal{width:100vw!important;border-radius:0!important}.td-hdr{border-radius:0!important}}
+
+
+/* Sprint 1.4.1 — functional and visual corrective release */
+.tf15-list-hint{padding:10px 18px;background:#eff6ff;color:#345a86;font-size:12px;border:1px solid #dceafb;border-radius:10px;margin-bottom:10px}
+.tf15-quickedit{padding:16px;border:1px solid #d9e6f6;background:#f3f8ff;border-radius:13px;margin-bottom:18px}
+.tf15-quickedit-heading{font-weight:800;font-size:14px;color:#17395d;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tf15-quickedit-heading span{font-size:10px;font-weight:500;color:#647d9a}
+.tf15-quickedit-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tf15-field{font-size:11px;font-weight:700;color:#526d8a;display:flex;flex-direction:column;gap:5px}
+.tf15-field.tf15-wide{grid-column:1/-1}
+.tf15-field input,.tf15-field select,.tf15-field textarea{width:100%;border:1px solid #cfdeef;border-radius:8px;padding:10px 11px;background:#fff;color:#1b3350;font:500 12px Inter,sans-serif;outline:none;box-sizing:border-box}
+.tf15-field input:focus,.tf15-field select:focus,.tf15-field textarea:focus{border-color:#2784f4;box-shadow:0 0 0 3px #2784f41c}
+.tf15-quickedit-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:13px}
+.tf15-quickedit-actions button{border:1px solid #cddded;background:#fff;color:#355a81;border-radius:8px;padding:10px 14px;font:700 12px Inter,sans-serif;cursor:pointer}
+.tf15-quickedit-actions button.tf15-primary{background:#1478e9;border-color:#1478e9;color:#fff}
+#tf15Saved{font-size:11px;color:#16824b}
+.td-overlay .td-modal{width:min(610px,100vw)!important;box-shadow:-15px 0 50px #061a304d!important}
+.td-overlay .td-body{padding:22px!important}
+.td-overlay .td-title{font-size:19px!important;line-height:1.45!important;padding-right:28px}
+.td-overlay .td-grid{background:#f7fafc!important}
+#taskOv .modal{width:min(740px,100%)!important;padding:0!important;max-height:92vh!important;overflow-y:auto!important}
+#taskOv .modal>.form-grid,#taskOv .modal>.st-section,#taskOv .modal>.mac,#taskOv .modal>.tf15-section-title{margin-left:28px!important;margin-right:28px!important}
+#taskOv .modal>.form-grid{padding:0 0 10px!important}
+#taskOv .modal>.mac{margin-bottom:24px!important;border-top:1px solid #e3eaf3;padding-top:18px!important}
+.tf15-modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:24px 28px 20px;margin-bottom:20px;background:linear-gradient(110deg,#eff6ff,#fff);border-bottom:1px solid #e1eaf6}
+.tf15-modal-head .modal-title{font-size:24px!important;letter-spacing:-.5px;margin:3px 0 5px!important;color:#163251}
+.tf15-kicker{font-size:10px;letter-spacing:1.4px;font-weight:800;color:#2879cf}
+.tf15-modal-subtitle{font-size:12px;color:#657b97}
+.tf15-modal-close{border:1px solid #d6e3f2;border-radius:9px;background:#fff;color:#4b688a;width:33px;height:33px;font-size:22px;cursor:pointer}
+.tf15-section-title{font-size:11px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:#69819d;margin-bottom:12px}
+.tf15-subtask-section{background:#f7faff;border:1px solid #e3ebf6;border-radius:12px;padding:18px!important;margin-top:8px;margin-bottom:22px}
+.tf15-help{font-size:11px;color:#7286a0;margin-top:10px}
+.tf14-tools-extra .tf14-bulk-toggle{background:#e6f1ff!important;border-color:#9fc9fa!important;color:#1166c2!important;font-weight:800!important}
+.tf14-selection-on .tf14-bulk-toggle{background:#fff0e8!important;color:#9d5118!important}
+.tf14-selection-on .tf13-item{outline:1px solid #dce9fa;outline-offset:-1px}
+.tf15-bulk-hint{font-size:11px;color:#58799e}
+.tf14-bulk-bar{position:sticky;top:0;z-index:7;box-shadow:0 8px 22px #10253b19}
+html.dark-mode .tf15-list-hint{background:#223d5c;color:#c1dcfa;border-color:#3e5d7f}
+html.dark-mode .tf15-quickedit{background:#26374c;border-color:#45617f}
+html.dark-mode .tf15-quickedit-heading{color:#eaf4ff}
+html.dark-mode .tf15-quickedit-heading span,html.dark-mode .tf15-field{color:#c2d5eb}
+html.dark-mode .tf15-field input,html.dark-mode .tf15-field select,html.dark-mode .tf15-field textarea{background:#1a2a3e;border-color:#4b6380;color:#eef6ff}
+html.dark-mode .tf15-quickedit-actions button{background:#314863;border-color:#536f8e;color:#e3f0ff}
+html.dark-mode .tf15-quickedit-actions button.tf15-primary{background:#2479d8;border-color:#2479d8;color:#fff}
+html.dark-mode #tf15Saved{color:#8ee0b4}
+html.dark-mode .td-overlay .td-grid{background:#26374b!important;border-color:#425773!important}
+html.dark-mode .td-overlay .td-field{border-color:#425773!important}
+html.dark-mode .td-overlay .td-field-val{color:#e3effe!important}
+html.dark-mode .td-overlay .td-field-lbl{color:#adc1db!important}
+html.dark-mode .td-overlay .td-notes{background:#273a50!important;border-color:#425773!important;color:#e0edff!important}
+html.dark-mode .tf15-modal-head{background:linear-gradient(110deg,#253d59,#1e2f45);border-color:#405670}
+html.dark-mode .tf15-modal-head .modal-title{color:#f1f6ff!important}
+html.dark-mode .tf15-modal-subtitle,html.dark-mode .tf15-section-title{color:#c3d3e7!important}
+html.dark-mode .tf15-modal-close{background:#32465f;border-color:#56708d;color:#f0f6ff}
+html.dark-mode .tf15-subtask-section{background:#26384e;border-color:#405873}
+html.dark-mode .tf15-help{color:#bfd0e3}
+html.dark-mode .tf14-tools-extra .tf14-bulk-toggle{background:#245783!important;color:#e0f0ff!important;border-color:#5586b8!important}
+html.dark-mode .tf15-bulk-hint{color:#bbd0e9}
+@media(max-width:650px){.tf15-quickedit-grid{grid-template-columns:1fr}.tf15-field.tf15-wide{grid-column:auto}.tf15-quickedit-heading{display:block}.tf15-quickedit-heading span{display:block;margin-top:5px}#taskOv .modal>.form-grid,#taskOv .modal>.st-section,#taskOv .modal>.mac,#taskOv .modal>.tf15-section-title{margin-left:16px!important;margin-right:16px!important}.tf15-modal-head{padding:20px 16px}}
+
+
+/* Sprint 1.4.2 — quick-create and accessible notification control */
+#taskOv .modal{width:min(580px,calc(100vw - 24px))!important}
+#taskOv .modal>.form-grid{row-gap:15px!important}
+#taskOv .tf15-modal-head{padding:19px 24px 16px!important;margin-bottom:16px!important}
+#taskOv .tf15-section-title{display:none}
+#taskOv .modal>.form-grid,#taskOv .modal>.mac{margin-left:24px!important;margin-right:24px!important}
+#taskOv .modal .flbl{font-weight:650}
+#taskOv .modal #fTitle{font-size:15px}
+#taskOv .tf142-advanced,#taskOv .tf142-subtasks{margin:4px 24px 12px;border:1px solid #dfe9f5;border-radius:11px;overflow:hidden;background:#fff}
+#taskOv .tf142-advanced summary,#taskOv .tf142-subtasks summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;padding:13px 16px;font-size:13px;font-weight:700;color:#244d78;background:#f6f9fe}
+#taskOv .tf142-advanced summary::-webkit-details-marker,#taskOv .tf142-subtasks summary::-webkit-details-marker{display:none}
+#taskOv .tf142-advanced summary:before,#taskOv .tf142-subtasks summary:before{content:"＋";color:#1479ee;font-size:16px}
+#taskOv .tf142-advanced[open] summary:before,#taskOv .tf142-subtasks[open] summary:before{content:"−"}
+#taskOv .tf142-advanced summary span,#taskOv .tf142-subtasks summary span{font-weight:400;color:#72859e;font-size:11px;margin-left:auto}
+#taskOv .tf142-advanced>.form-grid{padding:16px!important;row-gap:14px!important}
+#taskOv .tf142-subtasks .tf15-subtask-section{margin:0!important;border:0!important;border-radius:0!important}
+#taskOv #fTag{width:100%;border-radius:9px}
+#taskOv .mac{position:sticky;bottom:0;background:var(--surface,#fff);padding:13px 0!important;z-index:3}
+.hdr .notif-btn,html:not(.dark-mode) .notif-btn{width:39px!important;height:39px!important;border-radius:10px!important;background:#edf4fc!important;border:1px solid #cadcf0!important;color:#163b65!important;box-shadow:0 1px 2px #10253b0d!important}
+.hdr .notif-btn:hover,html:not(.dark-mode) .notif-btn:hover{background:#dcecff!important;color:#075bbb!important;border-color:#94bff1!important}
+.hdr .notif-btn:focus-visible{outline:3px solid #60a5fa!important;outline-offset:2px!important}
+.notif-btn svg{display:block;stroke:currentColor!important;opacity:1!important;flex-shrink:0}
+.notif-badge{top:-7px!important;right:-7px!important;min-width:19px!important;height:19px!important;font-size:10px!important;border:2px solid #fff!important}
+html.dark-mode .hdr .notif-btn,html.dark-mode .notif-btn{background:#304660!important;border-color:#526c8b!important;color:#f1f7ff!important}
+html.dark-mode .hdr .notif-btn:hover{background:#405d7d!important;color:#fff!important}
+html.dark-mode .notif-badge{border-color:#1b293c!important}
+html.dark-mode #taskOv .tf142-advanced,html.dark-mode #taskOv .tf142-subtasks{background:#1e2e43;border-color:#415873}
+html.dark-mode #taskOv .tf142-advanced summary,html.dark-mode #taskOv .tf142-subtasks summary{background:#263c55;color:#e0efff}
+html.dark-mode #taskOv .tf142-advanced summary span,html.dark-mode #taskOv .tf142-subtasks summary span{color:#b8cce3}
+@media(max-width:650px){#taskOv .tf142-advanced,#taskOv .tf142-subtasks{margin-left:16px;margin-right:16px}#taskOv .tf142-advanced summary span,#taskOv .tf142-subtasks summary span{display:none}#taskOv .modal>.form-grid,#taskOv .modal>.mac{margin-left:16px!important;margin-right:16px!important}}
+
+
+/* Sprint 1.4.3 final polish: compact, scrollable notifications */
+.notif-dropdown{width:min(350px,calc(100vw - 24px))!important;max-height:min(520px,calc(100dvh - 110px))!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
+.notif-hdr,.notif-footer{flex-shrink:0!important}
+.notif-list{flex:1 1 auto!important;min-height:0!important;max-height:min(365px,calc(100dvh - 215px))!important;overflow-y:auto!important;overscroll-behavior:contain;scrollbar-width:thin}
+.notif-item{padding:10px 12px!important;gap:9px!important}
+.notif-icon{width:29px!important;height:29px!important}
+.notif-title{font-size:12.5px!important;line-height:1.3!important}
+.notif-desc{font-size:11.5px!important;line-height:1.4!important;overflow-wrap:anywhere}
+.notif-time{font-size:10px!important}
+.notif-hdr{padding:11px 13px!important}
+.notif-footer{padding:9px 12px!important}
+/* Keep new-task creation compact; advanced details and subtasks remain optional */
+#taskOv .tf142-advanced:not([open])> :not(summary),#taskOv .tf142-subtasks:not([open])> :not(summary){display:none!important}
+#taskOv .tf142-advanced summary:focus-visible,#taskOv .tf142-subtasks summary:focus-visible{outline:2px solid #3b82f6;outline-offset:-2px}
+html.dark-mode .notif-hdr,html.dark-mode .notif-footer{background:#263b53!important;border-color:#42566e!important}
+html.dark-mode .notif-title{color:#eaf2ff!important}
+html.dark-mode .notif-desc{color:#c2d1e5!important}
+html.dark-mode .notif-time{color:#9fb4d0!important}
+html.dark-mode .notif-hdr-title{color:#eaf2ff!important}
+@media(max-width:600px){.notif-dropdown{right:-8px!important;max-height:65dvh!important}.notif-list{max-height:calc(65dvh - 110px)!important}}
+
 </style>
 </head>
 <body>
@@ -1595,17 +1991,19 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
 <div class="hdr">
   <div class="hdr-left">
     <div>
-      <div class="hdr-title">TaskFlow Dashboard</div>
+      <div class="hdr-title">TaskFlow <span style="font-weight:500;opacity:.8">· Daily Workspace</span></div>
       <div class="hdr-sub">Smart Quality Systems · Singapore</div>
     </div>
   </div>
   <div class="hdr-right" style="position:relative;">
+    <button type="button" class="tf-backup-btn" onclick="downloadTaskFlowBackup()" title="Download a backup of your locally saved TaskFlow tasks and calendar">↓ Backup</button>
+    <span id="tf144CloudStatus" role="status" aria-live="polite" style="font-size:11px;color:#64748b;white-space:nowrap" title="Firebase cloud connection status">☁ Checking…</span>
     <span class="hdr-date" id="hdrDate"></span>
     <span class="phase-pill" id="phasePill">—</span>
     <!-- Notification bell -->
     <div style="position:relative;">
-      <button class="notif-btn" id="notifBtn" onclick="toggleNotifDropdown()" title="Notifications">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button class="notif-btn" id="notifBtn" type="button" onclick="toggleNotifDropdown()" title="Notifications" aria-label="Notifications" aria-haspopup="true" aria-controls="notifDropdown">
+        <svg width="20" height="20" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
         </svg>
         <div class="notif-badge" id="notifBadge">0</div>
@@ -1639,8 +2037,8 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
 
 <!-- NAV -->
 <div class="nav">
-  <div class="ntab on" onclick="switchTab('overview',this)">Overview</div>
-  <div class="ntab" onclick="switchTab('tasks',this)">Tasks & Actions</div>
+  <div class="ntab on" onclick="switchTab('overview',this)">Home</div>
+  <div class="ntab" onclick="switchTab('tasks',this)">Tasks</div>
   <div class="ntab" onclick="switchTab('schedule',this)">Schedule</div>
   <div class="ntab" onclick="switchTab('weekly',this)">Weekly Calendar</div>
   <div class="ntab" onclick="switchTab('monthly',this)">Monthly Calendar</div>
@@ -1652,6 +2050,7 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
   <div class="ntab" onclick="switchTab('archive',this)">🗂 Archive</div>
 </div>
 
+<button id="tf14OverdueRestore" class="tf14-overdue-restore" onclick="tf14ToggleOverdue(false)" hidden>⚠ Show overdue alerts</button>
 <!-- ══ OVERDUE BANNER ══════════════════════════ -->
 <div class="overdue-banner" id="overdueBanner">
   <div class="overdue-banner-inner">
@@ -1662,8 +2061,8 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
       <div class="overdue-banner-tasks" id="overdueBannerTasks"></div>
     </div>
     <div class="overdue-banner-actions">
-      <button class="overdue-banner-btn primary" onclick="switchTab('tasks',document.querySelector('[onclick*=tasks]'));document.getElementById('fStatus').value='Overdue';renderTasksTab();dismissOverdueBanner();">View overdue</button>
-      <button class="overdue-dismiss" onclick="dismissOverdueBanner()" title="Dismiss">×</button>
+      <button class="overdue-banner-btn primary" onclick="switchTab('tasks',document.querySelectorAll('.ntab')[1]);document.getElementById('fStatus').value='Overdue';renderTasksTab();dismissOverdueBanner();">View overdue</button>
+      <button class="overdue-dismiss" onclick="tf14ToggleOverdue(true)" title="Collapse overdue alert" aria-label="Collapse overdue alert">×</button>
     </div>
   </div>
 </div>
@@ -1672,9 +2071,41 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
 
 <!-- ══ OVERVIEW ══════════════════════════════ -->
 <div class="pane on" id="pane-overview">
+  
+  <section class="tf-hero" aria-label="Welcome">
+    <div><h1 id="tfGreeting">Welcome back</h1><p>Let's make today productive.</p><p style="font-size:12px;margin-top:9px;font-style:italic">Small steps make big progress.</p></div>
+    <div class="tf-clock"><small id="tfToday"></small><span id="tfTime"></span></div>
+  </section>
+<section class="tf-metrics" aria-label="Task summary">
+<div class="tf-metric"><div class="tf-metric-icon">☑</div><div><strong id="tfTotal">0</strong><span>Total tasks</span></div></div>
+<div class="tf-metric"><div class="tf-metric-icon">⚠</div><div><strong id="tfOverdue">0</strong><span>Overdue</span></div></div>
+<div class="tf-metric"><div class="tf-metric-icon">▦</div><div><strong id="tfWeek">0</strong><span>Due this week</span></div></div>
+<div class="tf-metric"><div class="tf-metric-icon">◎</div><div><strong id="tfActive">0</strong><span>Active project groups</span></div></div>
+</section>
+  <section class="tf-dashboard" aria-label="Daily dashboard">
+    <div class="tf-card">
+      <div class="tf-card-head"><h3>◎ Today's Focus</h3><button class="tf-action" onclick="openAddTask()">＋ Add Task</button></div>
+      <div id="tfFocus"></div>
+      <button class="tf-action" onclick="switchTab('tasks',document.querySelectorAll('.ntab')[1])">View all tasks →</button>
+    </div>
+    <div class="tf-card">
+      <div class="tf-card-head"><h3>▦ Upcoming Agenda</h3><button class="tf-action" onclick="switchTab('weekly',document.querySelectorAll('.ntab')[3])">View Calendar</button></div>
+      <div id="tfAgenda"></div>
+    </div>
+    <div class="tf-card">
+      <h3>ϟ Quick Actions</h3>
+      <div class="tf-quick-grid">
+        <button onclick="openAddTask()">☑<br><br>Add Task</button>
+        <button onclick="switchTab('planner',document.querySelectorAll('.ntab')[6])">▣<br><br>Planner</button>
+        <button onclick="switchTab('ai',document.querySelectorAll('.ntab')[7])">✦<br><br>AI Assistant</button>
+        <button onclick="downloadTaskFlowBackup()">⇩<br><br>Backup</button>
+      </div>
+      <p class="tf-muted" style="margin-top:15px">Existing tools remain available in the sidebar.</p>
+    </div>
+  </section>
   <div id="archiveBanner" class="archive-banner" style="display:none;margin-bottom:16px;"></div>
   <div id="weeklySummary" style="margin-bottom:16px;"></div>
-  <div class="stats-grid" id="statsGrid"></div>
+  <div class="stats-grid" id="statsGrid" style="display:none"></div>
   <div class="sec-hdr">
     <span class="sec-title">Task Register</span>
     <div class="sec-actions">
@@ -1699,6 +2130,13 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
       <button id="toggleDoneBtn" onclick="toggleShowDone()" class="btn sm" style="white-space:nowrap;">Hide completed</button>
       <button class="btn primary" onclick="openAddTask()">+ Add task</button>
     </div>
+  </div>
+  <div class="tf14-toolbar"><div class="tf-task-toolbar" aria-label="Task quick filters">
+    <button id="tfFilterAll" class="tf-selected" onclick="tfSetTaskQuickFilter('all')">All tasks</button>
+    <button id="tfFilterToday" onclick="tfSetTaskQuickFilter('today')">Due today</button>
+    <button id="tfFilterOverdue" onclick="tfSetTaskQuickFilter('overdue')">Overdue</button>
+    <button id="tfFilterCompleted" onclick="tfSetTaskQuickFilter('completed')">Completed</button>
+    <span class="tf-task-count" id="tfQuickCount"></span>
   </div>
   <!-- Type segment: All / Projects / Individual -->
   <div style="padding:12px 20px 0;display:flex;gap:6px;background:#fff;">
@@ -1739,16 +2177,28 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
     <!-- Clear filters -->
     <button onclick="clearAllFilters()" class="btn sm" style="white-space:nowrap;font-size:11.5px;color:#718096;">✕ Clear</button>
   </div>
+  <div class="tf14-tools-extra">
+    <label for="tf14Sort" class="tf14-sort-label">Sort by</label>
+    <select id="tf14Sort" onchange="tf14Sort=this.value;renderTasksTab()" aria-label="Sort tasks">
+      <option value="default">Pinned / default</option><option value="due">Due date</option><option value="priority">Priority</option><option value="status">Status</option><option value="title">Task name</option>
+    </select>
+    <button type="button" class="tf14-bulk-toggle" onclick="tf14ToggleSelectionMode()" id="tf14SelectBtn">☐ Bulk actions</button>
+  </div>
+  </div>
+  <div id="tf14BulkBar" class="tf14-bulk-bar" hidden>
+    <label><input type="checkbox" id="tf14SelectAll" onchange="tf14SelectAllVisible(this.checked)"> Select visible</label>
+    <strong id="tf14BulkCount">0 selected</strong><span class="tf15-bulk-hint">Choose task checkboxes below, then apply an action.</span>
+    <button onclick="tf14BulkComplete()">✓ Complete</button>
+    <select id="tf14BulkPriority" onchange="tf14BulkSetPriority(this.value);this.value=''" aria-label="Bulk change priority"><option value="">Change priority…</option><option value="Hi">High</option><option value="Med">Medium</option><option value="Lo">Low</option></select>
+    <select id="tf14BulkCategory" onchange="tf14BulkSetCategory(this.value);this.value=''" aria-label="Bulk change category"><option value="">Change category…</option></select>
+    <button onclick="tf14BulkArchive()">Archive completed</button>
+    <button onclick="tf14ClearSelection()">Clear</button>
+  </div>
   <!-- Category pills -->
   <div id="catFilterBar" style="padding:8px 20px;background:#fff;border-bottom:1px solid #f0f4f8;display:none;"></div>
-  <div style="padding:10px 20px 0;">
-  <div style="display:none"><!-- spacer --></div>
-  <div class="tbl-wrap">
-    <table>
-      <thead><tr><th style="width:32px"></th><th>Task</th><th>Tags</th><th>Priority</th><th>Start</th><th>Due</th><th>Owner</th><th>Status</th><th>Calendar</th><th>Actions</th></tr></thead>
-      <tbody id="tasksTbl"></tbody>
-    </table>
-  </div>
+  <div class="tf13-list-wrap">
+    <div class="tf15-list-hint">Tip: Click any task title to open its details and quick-edit panel.</div><div class="tf13-list-head"><span>Task / Project</span><span>Priority</span><span>Due</span><span>Status</span><span>Actions</span></div>
+    <div id="tasksTbl" class="tf13-list" aria-live="polite"></div>
   </div>
 </div>
 
@@ -1820,6 +2270,11 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
     <button class="btn sm primary" onclick="openNewCalEvent(todayStr())">+ Add event</button>
     <span style="font-size:11.5px;color:#a0aec0;margin-left:auto" id="wkGcalStatus"></span>
   </div>
+  <div class="tf-calendar-switch" style="margin-bottom:12px;justify-content:flex-end">
+    <button class="active" onclick="tfCalendarView('weekly')">Week</button>
+    <button onclick="tfCalendarView('monthly')">Month</button>
+  </div>
+  <p class="tf-calendar-subtitle">Your weekly schedule, tasks and connected events.</p>
   <div class="week-grid" id="weekGrid" style="flex:1;min-height:0;"></div>
   <div id="weekDetail"></div>
 </div>
@@ -1835,6 +2290,11 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
     <button class="btn sm" onclick="moOff=0;renderMonthly()">Today</button>
     <button class="btn sm primary" onclick="openNewCalEvent(todayStr())">+ Add event</button>
   </div>
+  <div class="tf-calendar-switch" style="margin-bottom:12px;justify-content:flex-end">
+    <button onclick="tfCalendarView('weekly')">Week</button>
+    <button class="active" onclick="tfCalendarView('monthly')">Month</button>
+  </div>
+  <p class="tf-calendar-subtitle">Plan ahead with a clear monthly overview.</p>
   <div class="dow-row" id="dowRow"></div>
   <div class="month-grid" id="monthGrid"></div>
   <div id="monthDetail"></div>
@@ -2140,6 +2600,18 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
       <div class="td-badges" id="tdBadges"></div>
     </div>
     <div class="td-body">
+      <div class="tf15-quickedit" aria-label="Quick edit task">
+        <div class="tf15-quickedit-heading">Quick edit <span>Changes save to your existing task records</span></div>
+        <div class="tf15-quickedit-grid">
+          <label class="tf15-field tf15-wide">Task name<input id="tf15Title" maxlength="240" placeholder="Task name"/></label>
+          <label class="tf15-field">Priority<select id="tf15Priority"><option value="Hi">High</option><option value="Med">Medium</option><option value="Lo">Low</option></select></label>
+          <label class="tf15-field">Status<select id="tf15Status"><option>Open</option><option>To Start</option><option>In Progress</option><option>Pending External</option><option>Under Review</option><option>Closed</option></select></label>
+          <label class="tf15-field">Due date<input id="tf15Due" type="date"/></label>
+          <label class="tf15-field">Owner<input id="tf15Owner" placeholder="Optional"/></label>
+          <label class="tf15-field tf15-wide">Notes<textarea id="tf15Notes" rows="3" placeholder="Add context or next steps"></textarea></label>
+        </div>
+        <div class="tf15-quickedit-actions"><button type="button" class="tf15-primary" onclick="tf15SaveQuickEdit()">Save changes</button><button type="button" onclick="tf15ResetQuickEdit()">Discard changes</button><span id="tf15Saved" role="status"></span></div>
+      </div>
       <div class="td-grid" id="tdGrid"></div>
       <div id="tdNotesWrap" style="display:none">
         <div class="td-section-lbl">Notes / observations</div>
@@ -2163,21 +2635,26 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
 <!-- ── TASK MODAL ── -->
 <div class="overlay" id="taskOv" onclick="if(event.target===this)closeTaskModal()">
   <div class="modal">
-    <div class="modal-title" id="taskModalTitle">Add task</div>
+    <div class="tf15-modal-head"><div><div class="tf15-kicker">TASKFLOW · TASK MANAGEMENT</div><div class="modal-title" id="taskModalTitle">Add task</div><p class="tf15-modal-subtitle">Capture the essentials now. Add details and subtasks as needed.</p></div><button type="button" class="tf15-modal-close" aria-label="Close task form" onclick="closeTaskModal()">×</button></div>
+    <div class="tf15-section-title">Task information</div>
     <div class="form-grid">
       <div class="ff full"><label class="flbl">Task name <span class="req">*</span></label><input id="fTitle" placeholder="e.g. Review NCR report"/></div>
       <div class="ff full"><label class="flbl">Category
           <button type="button" onclick="toggleCatManager()" style="border:none;background:none;color:#3b82f6;font-size:11px;font-weight:600;cursor:pointer;margin-left:8px;">⚙ Manage</button>
         </label>
-        <input type="hidden" id="fTag" value="Work"/>
-        <div class="cat-picker" id="catPicker"></div>
+        <select id="fTag" aria-label="Task category"></select>
+        <div class="cat-picker" id="catPicker" style="display:none"></div>
         <div id="catManager" style="display:none;margin-top:10px;padding:10px 12px;background:#f7fafc;border:1px solid #e2e8f0;border-radius:8px;"></div>
       </div>
       <div class="ff"><label class="flbl">Priority</label>
         <select id="fPriority"><option value="Hi">High</option><option value="Med" selected>Medium</option><option value="Lo">Low</option></select>
       </div>
-      <div class="ff"><label class="flbl">Start date</label><input type="date" id="fStart"/></div>
       <div class="ff"><label class="flbl">Due date</label><input type="date" id="fDue"/></div>
+    </div>
+    <details id="tf142Advanced" class="tf142-advanced">
+      <summary>Additional details <span>Start date, owner, status, repeat and notes</span></summary>
+      <div class="form-grid">
+      <div class="ff"><label class="flbl">Start date</label><input type="date" id="fStart"/></div>
       <div class="ff"><label class="flbl">Owner</label><input id="fOwnerInput" placeholder="Full name"/></div>
       <div class="ff"><label class="flbl">Overall status</label>
         <select id="fStatusM">
@@ -2198,9 +2675,11 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
         </select>
       </div>
       <div class="ff full"><label class="flbl">Notes / observations</label><textarea id="fNotes" placeholder="Key issues, context, or flags…"></textarea></div>
-    </div>
+      </div>
+    </details>
     <!-- SUBTASKS SECTION -->
-    <div class="st-section">
+    <details id="tf142Subtasks" class="tf142-subtasks"><summary>Subtasks <span>Add steps to this task</span></summary>
+    <div class="st-section tf15-subtask-section">
       <div class="st-section-hdr">
         <span class="st-section-lbl">Subtasks</span>
         <div class="st-progress" id="stProgress" style="display:none">
@@ -2209,9 +2688,10 @@ html.dark-mode tr.rank-drag-over td{border-top:2px solid var(--accent) !importan
         </div>
       </div>
       <div id="stList"></div>
-      <button class="add-st-btn" onclick="addSubtask()">+ Add subtask</button>
+      <button class="add-st-btn" onclick="addSubtask()">+ Add subtask</button><p class="tf15-help">Break down larger tasks into clear, trackable steps.</p>
     </div>
 
+    </details>
     <input type="checkbox" id="fGcal" style="display:none"/>
     <div class="mac">
       <button class="mbtn cancel" onclick="closeTaskModal()">Cancel</button>
@@ -2521,7 +3001,8 @@ async function forcePullFromCloud(){
     if(window._fbUnsub) window._fbUnsub();
     _fbListening = false;
     startFirebaseSync();
-    toast('☁ Pulled latest data from cloud','ok');
+    tf144SetCloudStatus('☁ Awaiting cloud data');
+    toast('Cloud refresh requested — awaiting Firebase snapshot','');
   } catch(e){
     toast('Sync error: '+e.message,'warn');
     console.error(e);
@@ -2530,10 +3011,18 @@ async function forcePullFromCloud(){
   }
 }
 
+function tf144SetCloudStatus(message,kind){
+  const el=document.getElementById('tf144CloudStatus');
+  if(!el)return;
+  el.textContent=message;
+  el.style.color=kind==='ok'?'#15803d':kind==='error'?'#b91c1c':'#64748b';
+  el.title=message;
+}
 function fbSave(){
+  tf144SetCloudStatus('☁ Pending sync');
   clearTimeout(_fbSaveTimer);
   _fbSaveTimer = setTimeout(async ()=>{
-    if(!window._fbSaveDoc) return;
+    if(!window._fbSaveDoc){tf144SetCloudStatus('☁ Offline · local saved','error');return;}
     try{
       const now = new Date().toISOString();
       await window._fbSaveDoc({
@@ -2549,7 +3038,8 @@ function fbSave(){
         deviceId:  _deviceId
       });
       _lastFbSaveTime = Date.now();
-    }catch(e){ console.warn('Firebase save error:', e); }
+      tf144SetCloudStatus('☁ Cloud saved','ok');
+    }catch(e){tf144SetCloudStatus('☁ Sync failed','error');console.warn('Firebase save error:', e);toast('Cloud sync failed; local copy retained','warn');}
   }, 800);
 }
 
@@ -2572,6 +3062,7 @@ function startFirebaseSync(){
     }
 
     const data = snapshot.data();
+    tf144SetCloudStatus('☁ Cloud connected','ok');
 
     // On startup: always accept Firebase data (it's the source of truth)
     // After startup: skip only our own echoes via deviceId
@@ -2862,8 +3353,8 @@ function renderNotifList(){
     <div class="notif-item ${n.read?'':'unread'}" onclick="handleNotifClick('${n.id}')">
       <div class="notif-icon ${n.iconClass}" style="font-size:14px;">${n.icon}</div>
       <div class="notif-body">
-        <div class="notif-title">${n.title}</div>
-        <div class="notif-desc">${n.desc}</div>
+        <div class="notif-title">${esc(n.title)}</div>
+        <div class="notif-desc">${esc(n.desc)}</div>
         <div class="notif-time">${timeAgo(n.time)}</div>
       </div>
       ${n.read?'':'<div class="notif-unread-dot"></div>'}
@@ -2895,7 +3386,19 @@ function closeNotifOnOutside(e){
 
 function handleNotifClick(id){
   const n = _notifications.find(n=>n.id===id);
-  if(n){ n.read=true; localStorage.setItem('tf_notifs',JSON.stringify(_notifications)); renderNotifBadge(); renderNotifList(); }
+  if(!n) return;
+  n.read=true;
+  localStorage.setItem('tf_notifs',JSON.stringify(_notifications));
+  renderNotifBadge();renderNotifList();
+  const dd=document.getElementById('notifDropdown');
+  if(dd) dd.classList.remove('open');
+  document.removeEventListener('click',closeNotifOnOutside);
+  if(n.taskId===undefined || n.taskId===null){toast('This notification has no linked task','warn');return;}
+  const task=tasks.find(t=>String(t.id)===String(n.taskId));
+  if(!task){toast('Linked task is no longer available','warn');return;}
+  const tab=document.querySelector('.ntab[onclick*="tasks"]');
+  if(tab) switchTab('tasks',tab);
+  openTaskDetail(task.id);
 }
 
 function markAllRead(){
@@ -3060,6 +3563,8 @@ window.addEventListener('DOMContentLoaded',()=>{
   if(hdrDate) hdrDate.textContent=new Date().toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'});
   try{ const a=localStorage.getItem('tf_archives'); if(a) _archives=JSON.parse(a); }catch(e){}
   renderAll(); renderTop3(); updatePomUI();
+  // Sprint 1 default landing: show the redesigned Home dashboard.
+  switchTab('overview', document.querySelector('.ntab[onclick*=overview]'));
   const ppb=document.getElementById('pushPermBtn');
   if(ppb&&localStorage.getItem('tf_push')==='granted'&&Notification.permission==='granted'){
     ppb.textContent='✓ Push notifications on'; ppb.style.color='#16a34a';
@@ -3202,9 +3707,36 @@ function renderWeeklySummary(){
   </div>`;
 }
 
+
+function renderSprintDashboard(){
+  const now=new Date();
+  const greeting=now.getHours()<12?'Good morning':now.getHours()<17?'Good afternoon':'Good evening';
+  const el=document.getElementById('tfGreeting');if(!el)return;
+  el.textContent=greeting+', welcome to TaskFlow';
+  document.getElementById('tfToday').textContent=now.toLocaleDateString('en-SG',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  document.getElementById('tfTime').textContent=now.toLocaleTimeString('en-SG',{hour:'2-digit',minute:'2-digit',hour12:false});
+  const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const today=localStr(now);
+  const weekEnd=new Date(now);weekEnd.setDate(now.getDate()+((7-now.getDay())%7));
+  const weekEndStr=localStr(weekEnd);
+  const open=tasks.filter(t=>!t.done);
+  document.getElementById('tfTotal').textContent=tasks.length;
+  document.getElementById('tfOverdue').textContent=open.filter(t=>isOverdue(t)).length;
+  document.getElementById('tfWeek').textContent=open.filter(t=>t.dueDate&&t.dueDate>=today&&t.dueDate<=weekEndStr).length;
+  document.getElementById('tfActive').textContent=tasks.filter(t=>!t.done&&(t.subtasks||[]).length>0).length;
+  const score=t=>(isOverdue(t)?-1000:0)+(t.dueDate?Math.max(-500,Math.round((new Date(t.dueDate+'T00:00:00')-new Date(today+'T00:00:00'))/86400000))*10:600)+(t.priority==='Hi'?-30:t.priority==='Med'?-15:0)+(t.pinned?-70:0);
+  const focus=[...open].sort((a,b)=>score(a)-score(b)).slice(0,5);
+  document.getElementById('tfFocus').innerHTML=focus.length?focus.map(t=>'<div class="tf-row"><input class="tf-check" type="checkbox" aria-label="Complete '+safe(t.title)+'" onchange="toggleDone('+Number(t.id)+');renderOverview()"><span class="tf-title" title="'+safe(t.title)+'">'+safe(t.title)+'</span>'+(t.dueDate?'<span class="tf-due">'+safe(fmtS(t.dueDate))+'</span>':'')+'<span class="tf-chip '+(t.priority==='Hi'?'high':t.priority==='Med'?'medium':'')+'">'+safe(t.priority==='Hi'?'High':t.priority==='Med'?'Medium':'Low')+'</span></div>').join(''):'<p class="tf-empty">No open tasks. Add one to get started.</p>';
+  const startToday=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const eventDate=e=>{const v=e.start?.dateTime||e.start?.date||e.start||e.startTime||e.date||e.startDate;return new Date(v||'');};
+  const events=Array.isArray(calEvs)?calEvs.filter(e=>{const d=eventDate(e);return Number.isFinite(d.getTime())&&d>=startToday;}).sort((a,b)=>eventDate(a)-eventDate(b)).slice(0,5):[];
+  document.getElementById('tfAgenda').innerHTML=events.length?events.map(e=>{const d=eventDate(e);return '<div class="tf-row"><span class="tf-chip">'+safe(d.toLocaleDateString('en-SG',{day:'numeric',month:'short'}))+'</span><span class="tf-title">'+safe(e.title||e.summary||'Calendar event')+'</span><span class="tf-due">'+safe(d.toLocaleTimeString('en-SG',{hour:'2-digit',minute:'2-digit'}))+'</span></div>';}).join(''):'<p class="tf-empty">No upcoming calendar events found.</p>';
+}
+
 function renderOverview(){
+  renderSprintDashboard();
   renderWeeklySummary();
-  setTimeout(()=>checkAndPromptArchive(false), 500);
+  // Archive remains available from the sidebar; no automatic dashboard interruption.
   updatePhasePill();
   const total=tasks.length,done=tasks.filter(t=>t.done).length;
   const ov=tasks.filter(t=>isOverdue(t)).length,hi=tasks.filter(t=>t.priority==='Hi'&&!t.done).length;
@@ -3268,8 +3800,106 @@ function toggleShowDone(){
   renderTasksTab();
 }
 
+
+/* Sprint 1.2 quick filters: preserve existing render/filter pipeline. */
+let tfQuickFilter='all';
+let tf14Sort='default';
+let tf14SelectionMode=false;
+const tf14Selected=new Set();
+let tf14VisibleIds=[];
+function tfSetTaskQuickFilter(mode){
+  tfQuickFilter=mode;
+  const status=document.getElementById('fStatus');
+  if(status) status.value=mode==='overdue'?'Overdue':'all';
+  if(mode==='completed') _showDone=false;
+  document.querySelectorAll('.tf-task-toolbar button').forEach(b=>b.classList.toggle('tf-selected',b.id==='tfFilter'+mode.charAt(0).toUpperCase()+mode.slice(1)));
+  renderTasksTab();
+}
+function tfCalendarView(mode){
+  const id=mode==='monthly'?'monthly':'weekly';
+  const el=[...document.querySelectorAll('.ntab')].find(n=>(n.getAttribute('onclick')||'').includes("'"+id+"'"));
+  if(el) switchTab(id,el);
+}
+
+const tf13Expanded=new Set();
+function tf13Toggle(id){const key=String(id);if(tf13Expanded.has(key))tf13Expanded.delete(key);else tf13Expanded.add(key);renderTasksTab();}
+
+/* Sprint 1.4 — safe selection and batch changes; no new Firebase schema */
+function tf14SentenceCase(value){const v=String(value||'');return v===v.toUpperCase()&&/[A-Z]/.test(v)?v.toLowerCase().replace(/(^|[.!?]\s+)([a-z])/g,(_,p,c)=>p+c.toUpperCase()).replace(/\b(ncr|iso|ctm|crma|qa|ai|pta|crm|sqs|sji|cctv|it|hr|pdf|api|ui|ux)\b/gi,x=>x.toUpperCase()):v;}
+function tf14FriendlyDate(iso){
+  if(!iso)return '—';
+  const day=String(iso).slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(day))return iso;
+  const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const [y,m,d]=day.split('-').map(Number),date=new Date(y,m-1,d);
+  const delta=Math.round((date-today)/86400000);
+  if(delta===0)return 'Today';if(delta===1)return 'Tomorrow';if(delta===-1)return 'Yesterday';
+  if(delta<0)return `${Math.abs(delta)}d overdue`;
+  if(delta<=6)return `In ${delta} days`;
+  return date.toLocaleDateString('en-SG',{day:'numeric',month:'short',year:y!==today.getFullYear()?'numeric':undefined});
+}
+function tf14ToggleOverdue(collapsed){
+  localStorage.setItem('tf14_overdue_collapsed',collapsed?'1':'0');
+  const r=document.getElementById('tf14OverdueRestore');if(r)r.hidden=!collapsed;
+  if(collapsed){const b=document.getElementById('overdueBanner');if(b)b.classList.remove('show');}
+  else renderOverdueBanner();
+}
+function tf14ToggleSelectionMode(){
+  tf14SelectionMode=!tf14SelectionMode;
+  document.getElementById('pane-overview').classList.toggle('tf14-selection-on',tf14SelectionMode);
+  const btn=document.getElementById('tf14SelectBtn');if(btn)btn.textContent=tf14SelectionMode?'✕ Exit bulk mode':'☐ Bulk actions';
+  const bar=document.getElementById('tf14BulkBar');if(bar)bar.hidden=!tf14SelectionMode;
+  if(!tf14SelectionMode)tf14Selected.clear();
+  tf14SyncSelection();renderTasksTab();
+}
+function tf14SelectTask(id,checked){const key=String(id);if(checked)tf14Selected.add(key);else tf14Selected.delete(key);tf14SyncSelection();}
+function tf14SelectAllVisible(checked){for(const id of tf14VisibleIds){if(checked)tf14Selected.add(id);else tf14Selected.delete(id);}renderTasksTab();}
+function tf14ClearSelection(){tf14Selected.clear();renderTasksTab();}
+function tf14SyncSelection(){
+  const count=document.getElementById('tf14BulkCount');if(count)count.textContent=tf14Selected.size+' selected';
+  const all=document.getElementById('tf14SelectAll');if(all){all.checked=tf14VisibleIds.length>0&&tf14VisibleIds.every(id=>tf14Selected.has(id));all.indeterminate=tf14VisibleIds.some(id=>tf14Selected.has(id))&&!all.checked;}
+}
+function tf14SelectedTasks(){return tasks.filter(t=>tf14Selected.has(String(t.id)));}
+function tf14BulkComplete(){
+  const chosen=tf14SelectedTasks();if(!chosen.length)return toast('Select tasks first','warn');
+  const blocked=chosen.filter(t=>!t.done&&(t.subtasks||[]).some(st=>!st.done));
+  if(blocked.length)return toast(`${blocked.length} task(s) have open subtasks. Finish them first.`,'warn');
+  const pending=chosen.filter(t=>!t.done);
+  if(!pending.length)return toast('Selected tasks are already complete','warn');
+  if(!confirm(`Complete ${pending.length} selected task(s)?`))return;
+  pending.forEach(t=>{t.done=true;t.status='Closed';t.pinned=false;t.pinRank=0;});
+  tasks.filter(t=>t.pinned).sort((a,b)=>a.pinRank-b.pinRank).forEach((t,i)=>t.pinRank=i+1);
+  tf14Selected.clear();save();refreshActive();toast(`${pending.length} tasks completed`,'ok');
+}
+function tf14BulkSetPriority(value){if(!['Hi','Med','Lo'].includes(value))return;const chosen=tf14SelectedTasks();if(!chosen.length)return toast('Select tasks first','warn');if(!confirm(`Change priority for ${chosen.length} task(s)?`))return;chosen.forEach(t=>t.priority=value);tf14Selected.clear();save();refreshActive();toast('Priority updated','ok');}
+function tf14RenderBulkCategoryOptions(){
+  const select=document.getElementById('tf14BulkCategory');if(!select)return;
+  const current=select.value;
+  const cats=[...new Set([...Object.keys(typeof getActiveCats==='function'?getActiveCats():{}),...tasks.flatMap(t=>t.tags||[])])].sort();
+  select.innerHTML='<option value="">Change category…</option>'+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  if(cats.includes(current))select.value=current;
+}
+function tf14BulkSetCategory(category){if(!category)return;const chosen=tf14SelectedTasks();if(!chosen.length)return toast('Select tasks first','warn');if(!confirm(`Set category to ${category} for ${chosen.length} task(s)?`))return;chosen.forEach(t=>t.tags=[category]);tf14Selected.clear();save();refreshActive();toast('Category updated','ok');}
+function tf14BulkArchive(){
+  const chosen=tf14SelectedTasks();if(!chosen.length)return toast('Select tasks first','warn');
+  const open=chosen.filter(t=>!t.done);if(open.length)return toast('Only completed tasks can be archived. Deselect open tasks.','warn');
+  if(!confirm(`Archive ${chosen.length} completed task(s)? You can restore them from Archive.`))return;
+  // Reuse the existing monthly archive format and saveArchives() persistence.
+  const monthKey=typeof getMonthKey==='function'?getMonthKey(new Date()):new Date().toISOString().slice(0,7);
+  const label=typeof getMonthLabel==='function'?getMonthLabel(monthKey):monthKey;
+  let entry=_archives.find(a=>a.monthKey===monthKey);
+  if(!entry){entry={monthKey,label,archivedAt:new Date().toISOString(),stats:{total:0,done:0,open:0,completion:0},tasks:[]};_archives.unshift(entry);}
+  const ids=new Set(chosen.map(t=>String(t.id)));
+  const existing=new Set(entry.tasks.map(t=>String(t.id)));
+  chosen.forEach(t=>{if(!existing.has(String(t.id)))entry.tasks.push({...t});});
+  entry.stats={total:entry.tasks.length,done:entry.tasks.filter(t=>t.done).length,open:entry.tasks.filter(t=>!t.done).length,completion:entry.tasks.length?Math.round(entry.tasks.filter(t=>t.done).length/entry.tasks.length*100):0};
+  tasks=tasks.filter(t=>!ids.has(String(t.id)));
+  tf14Selected.clear();saveArchives();save();refreshActive();toast(`${chosen.length} completed tasks archived`,'ok');
+}
+
 function renderTasksTab(){
+  const countEl=document.getElementById("tfQuickCount");if(countEl)countEl.textContent=tasks.length+" total records";
   renderCatFilterBar();
+  tf14RenderBulkCategoryOptions();
   // Populate owner dropdown
   const ownerSel=document.getElementById('fOwner');
   if(ownerSel){
@@ -3288,6 +3918,7 @@ function renderTasksTab(){
       return `<option value="${m}" ${curMonth===m?'selected':''}>${MON[parseInt(mo)-1]} ${y}</option>`;
     }).join('');
   }
+  const tfTodayISO=typeof todayStr==='function'?todayStr():new Date().toISOString().slice(0,10);
   const fs=document.getElementById('fStatus').value;
   const fp=document.getElementById('fPri').value;
   const fq=(document.getElementById('fSearch').value||'').toLowerCase();
@@ -3295,6 +3926,10 @@ function renderTasksTab(){
   const fo=(document.getElementById('fOwner')||{}).value||'all';
   const fm=(document.getElementById('fMonth')||{}).value||'all';
   const matchesFilter = t => {
+    if(tfQuickFilter==='today' && (t.done || t.dueDate!==tfTodayISO)) return false;
+    if(tfQuickFilter==='overdue' && !isOverdue(t)) return false;
+    if(tfQuickFilter==='completed' && !t.done) return false;
+
     if(fq&&!t.title.toLowerCase().includes(fq)&&!(t.tags||[]).join(' ').toLowerCase().includes(fq)&&!(t.owner||'').toLowerCase().includes(fq))return false;
     if(fp!=='all'&&(t.priority||'Med')!==fp)return false;
     if(_catFilter&&!(t.tags||[]).includes(_catFilter))return false;
@@ -3327,79 +3962,55 @@ function renderTasksTab(){
   if(segProjC) segProjC.textContent=countBase.filter(t=>(t.subtasks||[]).length>0).length;
   if(segIndC) segIndC.textContent=countBase.filter(t=>(t.subtasks||[]).length===0).length;
 
-  const pinned = tasks.filter(t=>t.pinned&&!t.done&&matchesFilter(t))
-                       .sort((a,b)=>a.pinRank-b.pinRank);
-  const active = tasks.filter(t=>!t.done&&!t.pinned&&matchesFilter(t));
-  const done   = tasks.filter(t=>t.done&&matchesFilter(t));
-
-  const tbody=document.getElementById('tasksTbl');
-  if(!active.length&&!done.length){tbody.innerHTML=`<tr><td class="empty-td" colspan="10">No matching tasks.</td></tr>`;return;}
-
-  const taskRow = t => {
-    const subs=t.subtasks||[];
-    const sDone=subs.filter(s=>s.done).length;
-    const hasSubs=subs.length>0;
-    return `<tr class="${t.done?'tr-done':''} ${t.pinned?'tr-pinned':''}" style="border-left:3px solid ${andonColor(t)};">
-      <td><div class="pchk ${t.done?'done-c':''}" onclick="toggleDone(${t.id})" title="${hasSubs&&!t.done?'Complete all subtasks first':'Mark done'}">${t.done?'✓':''}</div></td>
-      <td style="max-width:200px">
-        <div style="display:flex;align-items:flex-start;gap:6px">
-          ${hasSubs?`<button onclick="toggleExpandRow('trow_${t.id}')" id="exp_trow_${t.id}" style="width:16px;height:16px;border-radius:3px;border:0.5px solid #e2e8f0;background:#f7fafc;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;flex-shrink:0;margin-top:2px;color:#718096;">▶</button>`:'<span style="width:16px;flex-shrink:0"></span>'}
-          <div style="min-width:0;flex:1">
-            ${t.pinned?`<div class="rank-controls" style="margin-right:4px;">
-              <button class="rank-move" onclick="event.stopPropagation();movePinnedRank(${t.id},-1)" title="Move up">▲</button>
-              <span class="rank-badge ${t.pinRank===1?'rank-1':t.pinRank===2?'rank-2':t.pinRank===3?'rank-3':'rank-n'}" title="Priority #${t.pinRank}">${t.pinRank}</span>
-              <button class="rank-move" onclick="event.stopPropagation();movePinnedRank(${t.id},1)" title="Move down">▼</button>
-            </div>`:''}
-            <span class="task-link" onclick="event.stopPropagation();openTaskDetail(${t.id})" title="${esc(t.title)}" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'inherit'};font-weight:${t.pinned?'700':'400'};">${truncTitle(t.title,55)}</span>${hasSubs?`<span class="proj-badge">📁 PROJECT</span>`:''}${t.repeat?`<span style="font-size:9.5px;background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:1px 6px;margin-left:5px;font-weight:500;">↻ ${t.repeat}</span>`:''}${isNewTask(t)?`<span style="font-size:9.5px;background:#00B2FF22;color:#0284c7;border-radius:10px;padding:1px 6px;margin-left:5px;font-weight:600;">NEW</span>`:''}
-            ${t.notes?`<div style="font-size:11px;color:#a0aec0;margin-top:2px">${esc(t.notes).substring(0,55)}${t.notes.length>55?'…':''}</div>`:''}
-            ${hasSubs?`<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><div style="height:3px;width:50px;background:#e2e8f0;border-radius:2px;overflow:hidden"><div style="height:100%;width:${Math.round((sDone/subs.length)*100)}%;background:#1a3a5c;border-radius:2px"></div></div><span style="font-size:10.5px;color:#718096">${sDone}/${subs.length} subtasks</span></div>`:''}
-          </div>
-        </div>
-        <div id="trow_${t.id}" style="display:none;margin-top:8px;">${renderSubtasksInRow(t)}</div>
-      </td>
-      <td>${(t.tags||[]).map(g=>`<span class="tag-chip">${g}</span>`).join('')}</td>
-      <td>${priBadge(t.priority||'Med')}</td>
-      <td style="font-size:12px;color:#718096">${fmtS(t.startDate)}</td>
-      <td style="font-size:12px;color:${isOverdue(t)?'#9b2c2c':'#718096'}">${fmtS(t.dueDate)}${isOverdue(t)?` ⚠ ${overdueDays(t)}d`:''}</td>
-      <td style="font-size:12px;color:#718096">${esc(t.owner||'—')}</td>
-      <td>${statusBadge(t)}</td>
-      <td>${calBadge(t)}</td>
-      <td style="display:flex;gap:4px;flex-wrap:nowrap;align-items:center;">
-        <button class="pin-btn ${t.pinned?'pinned':''}" onclick="togglePin(${t.id})" title="${t.pinned?'Unpin task':'Pin to top'}">📌</button>
-        <button class="btn sm ${t.done?'':'success'}" onclick="toggleDone(${t.id})">${t.done?'Reopen':'Done'}</button>
-        <button class="btn sm" onclick="openEditTask(${t.id})">Edit</button>
-        <button class="btn sm" onclick="duplicateTask(${t.id})" title="Duplicate task">⧉</button>
-        <button class="btn sm danger" onclick="deleteTask(${t.id})">Del</button>
-      </td>
-    </tr>`;
+  const tf14Compare=(a,b)=>{
+    if(tf14Sort==='priority')return ({Hi:0,Med:1,Lo:2}[a.priority||'Med']??1)-({Hi:0,Med:1,Lo:2}[b.priority||'Med']??1);
+    if(tf14Sort==='due')return (a.dueDate||'9999-12-31').localeCompare(b.dueDate||'9999-12-31');
+    if(tf14Sort==='status')return String(a.status||'Open').localeCompare(String(b.status||'Open'));
+    if(tf14Sort==='title')return String(a.title||'').localeCompare(String(b.title||''));
+    return 0;
   };
+  const pinned = tasks.filter(t=>t.pinned&&!t.done&&matchesFilter(t))
+                       .sort((a,b)=>tf14Sort==='default'?a.pinRank-b.pinRank:tf14Compare(a,b));
+  const active = tasks.filter(t=>!t.done&&!t.pinned&&matchesFilter(t)).sort(tf14Compare);
+  const done   = tasks.filter(t=>t.done&&matchesFilter(t)).sort(tf14Compare);
+  tf14VisibleIds=[...pinned,...active,...done].map(t=>String(t.id));
+  tf14SyncSelection();
 
-  const doneSection = done.length === 0 ? '' : `
-    <tr>
-      <td colspan="10" style="padding:0;background:#f0f2f5;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;">
-        <div style="display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer" onclick="toggleDoneSection()">
-          <span id="doneSectionArrow" style="font-size:10px;color:#718096;transition:transform .2s">${_showDone?'▾':'▶'}</span>
-          <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#718096">Completed</span>
-          <span style="background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:1px 9px;font-size:11px;color:#718096">${done.length} task${done.length>1?'s':''}</span>
+  const list=document.getElementById('tasksTbl');
+  const visibleCount=pinned.length+active.length+done.length;
+  if(!visibleCount){list.innerHTML='<div class="tf13-empty">No matching tasks. Try clearing your filters or adding a task.</div>';const c=document.getElementById('tfQuickCount');if(c)c.textContent='0 matching tasks';return;}
+  const taskRow=t=>{
+    const subs=Array.isArray(t.subtasks)?t.subtasks:[];
+    const nDone=subs.filter(x=>x.done).length;
+    const hasSubs=subs.length>0;
+    const isExpanded=tf13Expanded.has(String(t.id));
+    const id=Number(t.id);
+    const safeTitle=esc(tf14SentenceCase(t.title||'Untitled task'));
+    const due=t.dueDate?esc(tf14FriendlyDate(t.dueDate)):'—';
+    const status=t.done?'Completed':esc(t.status||'Open');
+    const priority=t.priority==='Hi'?'High':t.priority==='Lo'?'Low':'Medium';
+    const tags=(t.tags||[]).map(x=>'<span class="tf13-tag">'+esc(x)+'</span>').join('');
+    const subsHtml=hasSubs&&isExpanded?'<div class="tf13-children">'+subs.map(st=>{
+      const sid=JSON.stringify(String(st.id));
+      return `<div class="tf13-child"><span class="tf13-branch" aria-hidden="true">↳</span><input type="checkbox" aria-label="Complete subtask" ${st.done?'checked':''} onchange='toggleSubtaskDone(${id},${sid})'><div class="tf13-child-main"><span class="${st.done?'tf13-strike':''}">${esc(tf14SentenceCase(st.title||'Untitled subtask'))}</span>${st.notes?`<small>${esc(st.notes)}</small>`:''}</div><span class="tf13-state">${st.done?'Completed':esc(st.status||'Open')}</span></div>`;
+    }).join('')+'</div>':'';
+    return `<article class="tf13-item ${t.done?'tf13-done':''}">
+      <div class="tf13-row">
+        <div class="tf13-main">
+          <input class="tf14-row-select" type="checkbox" aria-label="Select task" ${tf14Selected.has(String(t.id))?'checked':''} onchange="tf14SelectTask(${id},this.checked)">
+          <input type="checkbox" aria-label="Complete task" ${t.done?'checked':''} onchange="toggleDone(${id})">
+          ${hasSubs?`<button class="tf13-expander" aria-expanded="${isExpanded}" aria-label="${isExpanded?'Collapse':'Expand'} subtasks" onclick="tf13Toggle(${id})">${isExpanded?'⌄':'›'}</button>`:'<span class="tf13-expander-placeholder"></span>'}
+          <div class="tf13-title-block"><button class="tf13-title ${t.done?'tf13-strike':''}" onclick="openTaskDetail(${id})">${safeTitle}</button><div class="tf13-meta">${t.pinned?'<span class="tf13-pin">📌 Pinned #'+Number(t.pinRank||0)+'</span>':''}${tags}${hasSubs?`<span>${nDone} of ${subs.length} subtasks · ${Math.round(nDone/subs.length*100)}%</span>`:''}${t.owner?`<span>· ${esc(t.owner)}</span>`:''}</div>${hasSubs?`<div class="tf13-progress"><div style="width:${Math.round(nDone/subs.length*100)}%"></div></div>`:''}</div>
         </div>
-      </td>
-    </tr>
-    ${_showDone ? '' : done.map(taskRow).join('')}`;
-
-  const pinnedSection = pinned.length === 0 ? '' : `
-    <tr>
-      <td colspan="10" style="padding:0;">
-        <div class="pinned-section-hdr">
-          <span>📌</span>
-          <span class="pinned-section-lbl">Priority Queue</span>
-          <span style="font-size:10px;color:#718096;font-weight:400;">${pinned.length} pinned · use ▲▼ to reorder</span>
-        </div>
-      </td>
-    </tr>
-    ${pinned.map(taskRow).join('')}
-    <tr><td colspan="10" style="height:6px;background:transparent;border:none;"></td></tr>`;
-
-  tbody.innerHTML = pinnedSection + active.map(taskRow).join('') + doneSection;
+        <div class="tf13-col"><span class="tf13-priority ${priority.toLowerCase()}">${priority}</span></div>
+        <div class="tf13-col tf13-due ${isOverdue(t)?'late':''}">${due}</div>
+        <div class="tf13-col"><span class="tf13-state">${status}</span></div>
+        <div class="tf13-col tf13-actions"><button onclick="openEditTask(${id})">Edit</button><details class="tf13-menu"><summary aria-label="More task actions">⋯</summary><div class="tf13-menu-panel"><button onclick="togglePin(${id})">${t.pinned?'Unpin':'Pin task'}</button><button onclick="duplicateTask(${id})">Duplicate</button><button class="tf13-danger" onclick="deleteTask(${id})">Delete</button></div></details></div>
+      </div>${subsHtml}</article>`;
+  };
+  const section=(name,arr)=>arr.length?`<div class="tf13-section-label">${name}<span>${arr.length}</span></div>`+arr.map(taskRow).join(''):'';
+  list.innerHTML=section('📌 Priority queue',pinned)+section('Active tasks',active)+(done.length?`<div class="tf13-section-label tf13-click" onclick="toggleDoneSection()">${_showDone?'▸':'⌄'} Completed <span>${done.length}</span></div>`+(_showDone?'':done.map(taskRow).join('')):'');
+  const countEl2=document.getElementById('tfQuickCount');if(countEl2)countEl2.textContent=visibleCount+' matching tasks';
 }
 
 function toggleDoneSection(){
@@ -4900,6 +5511,8 @@ let _bannerDismissed = false;
 let _bannerDismissedKey = '';
 
 function renderOverdueBanner(){
+  if(localStorage.getItem('tf14_overdue_collapsed')==='1'){const b=document.getElementById('overdueBanner');if(b)b.classList.remove('show');const r=document.getElementById('tf14OverdueRestore');if(r)r.hidden=!tasks.some(t=>!t.done&&isOverdue(t));return;}
+  const restore=document.getElementById('tf14OverdueRestore');if(restore)restore.hidden=true;
   const overdue = tasks.filter(t => !t.done && isOverdue(t));
   const banner = document.getElementById('overdueBanner');
   if(!banner) return;
@@ -5353,7 +5966,11 @@ function renderCatPicker(selected){
       ${c}
     </button>`;
   }).join('');
-  document.getElementById('fTag').value = selected || allCats[0] || '';
+  const catSelect=document.getElementById('fTag');
+  catSelect.innerHTML='';
+  allCats.forEach(c=>{const opt=document.createElement('option');opt.value=c;opt.textContent=c;catSelect.appendChild(opt);});
+  catSelect.value=allCats.includes(selected)?selected:(allCats[0]||'');
+
 }
 
 function selectCat(name){
@@ -5362,6 +5979,8 @@ function selectCat(name){
 }
 
 function clearAllFilters(){
+  tfQuickFilter='all';document.querySelectorAll('.tf-task-toolbar button').forEach(b=>b.classList.toggle('tf-selected',b.id==='tfFilterAll'));
+  tf14Sort='default';const sort=document.getElementById('tf14Sort');if(sort)sort.value='default';
   const ids=['fStatus','fPri','fOwner','fMonth','fSearch'];
   ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=el.tagName==='INPUT'?'':'all'; });
   _catFilter='';
@@ -5857,7 +6476,10 @@ function openAddTask(){
   document.getElementById('fTag').value='Work';
   window._editSubtasks = [];
   renderSubtaskList();
+  document.getElementById('tf142Advanced').open=false;
+  document.getElementById('tf142Subtasks').open=false;
   document.getElementById('taskOv').classList.add('show');
+  document.getElementById('fTitle').focus();
 }
 function openEditTask(id){
   const t=tasks.find(t=>t.id===id||t.id==id);if(!t)return;
@@ -5875,6 +6497,8 @@ function openEditTask(id){
   document.getElementById('fTag').value=(t.tags&&t.tags[0])||'Work';
   window._editSubtasks = JSON.parse(JSON.stringify(t.subtasks||[]));
   renderSubtaskList();
+  document.getElementById('tf142Advanced').open=true;
+  document.getElementById('tf142Subtasks').open=Boolean((t.subtasks||[]).length);
   document.getElementById('taskOv').classList.add('show');
 }
 function closeTaskModal(){document.getElementById('taskOv').classList.remove('show');}
@@ -6187,7 +6811,7 @@ function renderSubtasksInRow(t){
 function toggleSubtaskDone(taskId, stId){
   const t = tasks.find(t=>t.id===taskId||t.id==taskId);
   if(!t||!t.subtasks) return;
-  const s = t.subtasks.find(s=>s.id===stId);
+  const s = t.subtasks.find(s=>String(s.id)===String(stId));
   if(s){
     s.done=!s.done;
     s.status=s.done?'Closed':'Open';
@@ -6662,8 +7286,8 @@ function refreshActive(){
   const active=document.querySelector('.ntab.on');
   if(!active) return;
   const txt=active.textContent.trim();
-  if(txt==='Overview') renderOverview();
-  else if(txt==='Tasks & Actions') renderTasksTab();
+  if(txt==='Overview'||txt==='Home') renderOverview();
+  else if(txt==='Tasks & Actions'||txt==='Tasks') renderTasksTab();
   else if(txt==='Schedule') renderSchedule();
   else if(txt==='Weekly Calendar') renderWeekly();
   else if(txt==='Monthly Calendar') renderMonthly();
@@ -7078,9 +7702,40 @@ function clearAIChat(){
 /* ════════════════════════════════════════════
    TASK DETAIL POPUP
 ════════════════════════════════════════════ */
+let tf15ActiveTaskId=null;
+
+/* Sprint 1.4.1: task quick edit is an explicit save action, never auto-writes. */
+function tf15FillQuickEdit(t){
+  const values={tf15Title:t.title||'',tf15Priority:t.priority||'Med',tf15Status:t.status||'Open',tf15Due:t.dueDate||'',tf15Owner:t.owner||'',tf15Notes:t.notes||''};
+  for(const [id,value] of Object.entries(values)){const el=document.getElementById(id);if(el)el.value=value;}
+  const saved=document.getElementById('tf15Saved');if(saved)saved.textContent='';
+}
+function tf15ResetQuickEdit(){
+  const t=tasks.find(t=>String(t.id)===String(tf15ActiveTaskId));if(t)tf15FillQuickEdit(t);
+}
+function tf15SaveQuickEdit(){
+  const t=tasks.find(t=>String(t.id)===String(tf15ActiveTaskId));
+  if(!t)return toast('Task no longer exists','warn');
+  const title=document.getElementById('tf15Title').value.trim();
+  if(!title)return toast('Task name is required','warn');
+  const due=document.getElementById('tf15Due').value;
+  if(due&&t.startDate&&due<t.startDate)return toast('Due date cannot be earlier than start date','warn');
+  const status=document.getElementById('tf15Status').value;
+  if(status==='Closed'&&(t.subtasks||[]).some(st=>!st.done))return toast('Complete open subtasks before closing the task','warn');
+  const wasDone=!!t.done;
+  Object.assign(t,{title,priority:document.getElementById('tf15Priority').value,status,dueDate:due,owner:document.getElementById('tf15Owner').value.trim(),notes:document.getElementById('tf15Notes').value,synced:false});
+  if(status==='Closed'){t.done=true;if(t.pinned){t.pinned=false;t.pinRank=0;tasks.filter(x=>x.pinned).sort((a,b)=>a.pinRank-b.pinRank).forEach((x,i)=>x.pinRank=i+1);}}
+  else if(wasDone)t.done=false;
+  save();refreshActive();openTaskDetail(t.id);
+  const saved=document.getElementById('tf15Saved');if(saved)saved.textContent='✓ Saved';
+  toast('Task changes saved','ok');
+}
+
 function openTaskDetail(id){
   const t = tasks.find(t=>t.id===id||t.id==id);
   if(!t) return;
+  tf15ActiveTaskId=t.id;
+  tf15FillQuickEdit(t);
 
   // Title
   document.getElementById('tdTitle').textContent = t.title;
@@ -7504,6 +8159,10 @@ function toggleDarkMode(){
 
 // Apply saved preference on load
 (function(){
+  if(localStorage.getItem('tf_visual_v2_initialized') !== '1'){
+    localStorage.setItem('tf_dark','0');
+    localStorage.setItem('tf_visual_v2_initialized','1');
+  }
   if(localStorage.getItem('tf_dark') === '1'){
     document.documentElement.classList.add('dark-mode');
     // Update button after DOM loads
@@ -7667,7 +8326,7 @@ function renderAnalytics(){
       icon:'⚠️', cls:'an-i-red',
       title:`${overdue.length} overdue task${overdue.length>1?'s':''} — oldest is ${daysOver} day${daysOver>1?'s':''} overdue`,
       desc:`"${worst.title.substring(0,55)}" was due ${fmtS(worst.dueDate)}. Review and either reschedule or mark as closed if completed.`,
-      btn:'View overdue', action:`switchTab('tasks',document.querySelector('[onclick*=tasks]'));document.getElementById('fStatus').value='Overdue';renderTasksTab();`
+      btn:'View overdue', action:`switchTab('tasks',document.querySelectorAll('.ntab')[1]);document.getElementById('fStatus').value='Overdue';renderTasksTab();`
     });
   }
 
@@ -7677,7 +8336,7 @@ function renderAnalytics(){
       icon:'📅', cls:'an-i-amber',
       title:`${noDue.length} active tasks have no due date`,
       desc:`Tasks without deadlines tend to be deprioritised. Setting due dates helps you plan and ensures nothing slips through.`,
-      btn:'Filter tasks', action:`switchTab('tasks',document.querySelector('[onclick*=tasks]'));renderTasksTab();`
+      btn:'Filter tasks', action:`switchTab('tasks',document.querySelectorAll('.ntab')[1]);renderTasksTab();`
     });
   }
 
@@ -7687,7 +8346,7 @@ function renderAnalytics(){
       icon:'🎯', cls:'an-i-red',
       title:`${hiPri.length} high priority tasks open — that's a lot`,
       desc:`Having too many "high priority" tasks dilutes urgency. Consider downgrading some to Medium and focusing on the true critical items first.`,
-      btn:'Review high priority', action:`switchTab('tasks',document.querySelector('[onclick*=tasks]'));document.getElementById('fPri').value='Hi';renderTasksTab();`
+      btn:'Review high priority', action:`switchTab('tasks',document.querySelectorAll('.ntab')[1]);document.getElementById('fPri').value='Hi';renderTasksTab();`
     });
   }
 
@@ -7697,7 +8356,7 @@ function renderAnalytics(){
       icon:'📈', cls:'an-i-amber',
       title:`Completion rate is ${pct}% — room to improve`,
       desc:`Try closing out small quick-win tasks first to build momentum. Archive old tasks you're no longer working on to keep the list clean.`,
-      btn:'View all tasks', action:`switchTab('tasks',document.querySelector('[onclick*=tasks]'));`
+      btn:'View all tasks', action:`switchTab('tasks',document.querySelectorAll('.ntab')[1]);`
     });
   } else if(pct >= 80){
     insights.push({
@@ -7980,6 +8639,52 @@ function anFilterByKeyword(word){
     const search = document.getElementById('fSearch');
     if(search){ search.value = word; renderTasksTab(); }
   }, 100);
+}
+
+
+/* Sprint 1: explicit, local-only backup. No OAuth tokens or credentials included. */
+function downloadTaskFlowBackup(){
+  try {
+    const keys=['sq_tasks3','tf6_tasks','cal_evts3','tf6_cal','tf6_top3','tf6_customcats','tf6_deletedcats'];
+    const data={format:'taskflow-local-backup',version:1,exportedAt:new Date().toISOString(),storage:{}};
+    for(const key of keys){
+      const raw=localStorage.getItem(key);
+      if(raw!==null){try{data.storage[key]=JSON.parse(raw)}catch(e){data.storage[key]=raw}}
+    }
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='taskflow-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    if(typeof toast==='function')toast('Local backup downloaded');
+  }catch(err){console.error('Backup failed',err);if(typeof toast==='function')toast('Could not create backup','error');}
+}
+
+/* Sprint 1.4.4: preview and guarded local restore. Cloud restore is intentionally NOT automatic. */
+async function tf144PreviewRestore(input){
+  const file=input.files&&input.files[0];input.value='';if(!file)return;
+  try{
+    const payload=JSON.parse(await file.text());
+    if(payload.format!=='taskflow-local-backup'||payload.version!==1||!payload.storage||typeof payload.storage!=='object')throw Error('Unsupported backup format');
+    const st=payload.storage;
+    const raw=st.sq_tasks3||st.tf6_tasks;
+    if(!Array.isArray(raw)||!raw.every(t=>t&&typeof t==='object'&&t.id!==undefined&&typeof t.title==='string'))throw Error('Invalid task records');
+    const calendar=st.cal_evts3||st.tf6_cal||[];
+    if(!Array.isArray(calendar))throw Error('Invalid calendar records');
+    const msg=`Backup date: ${payload.exportedAt||'unknown'}\nTasks: ${raw.length}\nCalendar entries: ${calendar.length}\n\nRestoring replaces this browser's local TaskFlow data. It does NOT restore Firebase automatically.\n\nDownload a current backup first. Continue?`;
+    if(!confirm(msg))return;
+    const keys=['sq_tasks3','tf6_tasks','cal_evts3','tf6_cal','tf6_top3','tf6_customcats','tf6_deletedcats'];
+    // Save a recovery copy before overwriting anything.
+    const recovery={format:'taskflow-local-backup',version:1,exportedAt:new Date().toISOString(),storage:{}};
+    for(const k of keys){const v=localStorage.getItem(k);if(v!==null){try{recovery.storage[k]=JSON.parse(v)}catch{recovery.storage[k]=v}}}
+    const a=document.createElement('a'),u=URL.createObjectURL(new Blob([JSON.stringify(recovery,null,2)],{type:'application/json'}));
+    a.href=u;a.download='taskflow-pre-restore-recovery.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);
+    // Avoid immediately pushing restored data to the cloud. Offline restoration only.
+    if(!confirm('Recovery copy downloaded. Apply backup locally now? Firebase may replace local data when the page reconnects.'))return;
+    for(const k of keys){if(Object.prototype.hasOwnProperty.call(st,k))localStorage.setItem(k,JSON.stringify(st[k]));}
+    alert('Local backup applied. Disconnect Firebase/cloud sync before reloading if you intend to keep this local restored version.');
+  }catch(e){alert('Restore cancelled: '+e.message)}
 }
 
 function toast(msg,type){
