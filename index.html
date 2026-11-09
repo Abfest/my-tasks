@@ -2475,6 +2475,23 @@ html.dark-mode #pane-calendar .tf1510-span{box-shadow:0 2px 8px rgba(0,0,0,.25)}
 #pane-calendar .tf1512-cell-add:focus-visible {outline:2px solid #4b9ee8;outline-offset:2px}
 @media(hover:none){#pane-calendar .tf1512-cell-add{opacity:.85}}
 
+
+/* Sprint 1.5.13 — explicit record classification */
+.tf1513-type-toggle{display:flex;gap:8px;flex-wrap:wrap;margin-top:5px}
+.tf1513-type-toggle label{position:relative;flex:1;min-width:135px;cursor:pointer}
+.tf1513-type-toggle input{position:absolute;opacity:0;width:1px;height:1px}
+.tf1513-type-toggle span{display:block;border:1px solid #dae4f0;border-radius:10px;background:#f8fafc;padding:11px 14px;color:#415671;font-size:13px;font-weight:650;text-align:center;transition:background .15s,border-color .15s}
+.tf1513-type-toggle input:checked+span{background:#e8f2ff;border-color:#247add;color:#165aaf;box-shadow:0 0 0 1px #247add inset}
+.tf1513-type-toggle input:focus-visible+span{outline:2px solid #247add;outline-offset:2px}
+.tf1513-type-hint{display:block;font-size:11px;color:#718096;margin-top:6px}
+.tf1513-type-chip{display:inline-flex;align-items:center;white-space:nowrap;padding:3px 7px;border-radius:6px;border:1px solid #c7d9ef;background:#eaf3ff;color:#255d98;font-size:10px;font-weight:750;letter-spacing:.02em}
+.tf1513-type-chip.task{background:#f2f5f9;border-color:#dce4ef;color:#61758d}
+html.dark-mode .tf1513-type-toggle span{background:#182b40;border-color:#3b526c;color:#d4e4f4}
+html.dark-mode .tf1513-type-toggle input:checked+span{background:#1a4469;border-color:#6cb2fb;color:#e4f4ff}
+html.dark-mode .tf1513-type-hint{color:#b0c4d9}
+html.dark-mode .tf1513-type-chip{background:#1b4260;color:#d5eeff;border-color:#4c83b0}
+html.dark-mode .tf1513-type-chip.task{background:#253549;color:#d8e0ea;border-color:#52657b}
+
 </style>
 </head>
 <body>
@@ -2484,7 +2501,7 @@ html.dark-mode #pane-calendar .tf1510-span{box-shadow:0 2px 8px rgba(0,0,0,.25)}
   <div class="hdr-left">
     <div>
       <div class="hdr-title">TaskFlow <span style="font-weight:500;opacity:.8">· Daily Workspace</span></div>
-      <div class="hdr-sub">Smart Quality Systems · Singapore</div>
+      <div class="hdr-sub">Tasks · Calendar · Projects</div>
     </div>
   </div>
   <div class="hdr-right" style="position:relative;">
@@ -2695,7 +2712,7 @@ html.dark-mode #pane-calendar .tf1510-span{box-shadow:0 2px 8px rgba(0,0,0,.25)}
   </div>
   <div class="tbl-wrap">
     <table>
-      <thead><tr><th>Task</th><th>Tags</th><th>Priority</th><th>Due date</th><th>Status</th><th>Calendar</th><th>Actions</th></tr></thead>
+      <thead><tr><th>Task / Project</th><th>Tags</th><th>Priority</th><th>Due date</th><th>Status</th><th>Calendar</th><th>Actions</th></tr></thead>
       <tbody id="overviewTbl"></tbody>
     </table>
   </div>
@@ -3163,6 +3180,15 @@ html.dark-mode #pane-calendar .tf1510-span{box-shadow:0 2px 8px rgba(0,0,0,.25)}
     <div class="tf15-section-title">Task information</div>
     <div class="form-grid">
       <div class="ff full"><label class="flbl">Task name <span class="req">*</span></label><input id="fTitle" placeholder="e.g. Review NCR report"/></div>
+      <div class="ff full tf1513-type-field">
+        <label class="flbl" for="fRecordType">Record type</label>
+        <div class="tf1513-type-toggle" role="group" aria-label="Choose task or project">
+          <label><input type="radio" name="tf1513Type" value="task" checked onchange="tf1513SyncType()"><span>☑ Standalone task</span></label>
+          <label><input type="radio" name="tf1513Type" value="project" onchange="tf1513SyncType()"><span>▣ Project</span></label>
+        </div>
+        <input type="hidden" id="fRecordType" value="task">
+        <span class="tf1513-type-hint" id="tf1513TypeHint">A single task. You can still add subtasks.</span>
+      </div>
       <div class="ff full"><label class="flbl">Category
           <button type="button" onclick="toggleCatManager()" style="border:none;background:none;color:#3b82f6;font-size:11px;font-weight:600;cursor:pointer;margin-left:8px;">⚙ Manage</button>
         </label>
@@ -4312,7 +4338,7 @@ function renderOverview(){
           ${hasSubs?`<button onclick="toggleExpandRow('${rowId}')" style="width:16px;height:16px;border-radius:3px;border:0.5px solid #e2e8f0;background:#f7fafc;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;flex-shrink:0;margin-top:2px;color:#718096;" id="exp_${rowId}">▶</button>`:'<span style="width:16px;flex-shrink:0"></span>'}
           <div style="min-width:0;display:flex;align-items:center;gap:5px;">
             ${t.pinned?`<span class="rank-badge ${t.pinRank===1?'rank-1':t.pinRank===2?'rank-2':t.pinRank===3?'rank-3':'rank-n'}" style="font-size:10px;width:18px;height:18px;" title="Priority #${t.pinRank}">${t.pinRank}</span>`:''}
-            <span class="task-link" onclick="event.stopPropagation();openTaskDetail(${t.id})" title="${esc(t.title)}" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'inherit'};font-weight:${t.pinned?'700':'400'};">${truncTitle(t.title,55)}</span>
+            <span class="task-link" onclick="event.stopPropagation();openTaskDetail(${t.id})" title="${esc(t.title)}" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'#a0aec0':'inherit'};font-weight:${t.pinned?'700':'400'};">${truncTitle(t.title,55)}</span> ${tf1513TypeBadge(t)}
             ${hasSubs?`<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><div style="height:3px;width:60px;background:#e2e8f0;border-radius:2px;overflow:hidden"><div style="height:100%;width:${stPct}%;background:#1a3a5c;border-radius:2px"></div></div><span style="font-size:10.5px;color:#718096">${sDone}/${subs.length}</span></div>`:''}
           </div>
         </div>
@@ -4488,8 +4514,8 @@ function renderTasksTab(){
       if(fs==='Overdue'){if(!isOverdue(t))return false;}
       else if(s!==fs)return false;
     }
-    if(_typeFilter==='projects'&&!((t.subtasks||[]).length>0))return false;
-    if(_typeFilter==='individual'&&(t.subtasks||[]).length>0)return false;
+    if(_typeFilter==='projects'&&!tf1513IsProject(t))return false;
+    if(_typeFilter==='individual'&&tf1513IsProject(t))return false;
     return true;
   };
 
@@ -4504,8 +4530,8 @@ function renderTasksTab(){
   const segProjC=document.getElementById('segCountProjects');
   const segIndC=document.getElementById('segCountIndividual');
   if(segAllC) segAllC.textContent=countBase.length;
-  if(segProjC) segProjC.textContent=countBase.filter(t=>(t.subtasks||[]).length>0).length;
-  if(segIndC) segIndC.textContent=countBase.filter(t=>(t.subtasks||[]).length===0).length;
+  if(segProjC) segProjC.textContent=countBase.filter(t=>tf1513IsProject(t)).length;
+  if(segIndC) segIndC.textContent=countBase.filter(t=>!tf1513IsProject(t)).length;
 
   const tf14Compare=(a,b)=>{
     if(tf14Sort==='priority')return ({Hi:0,Med:1,Lo:2}[a.priority||'Med']??1)-({Hi:0,Med:1,Lo:2}[b.priority||'Med']??1);
@@ -4545,7 +4571,7 @@ function renderTasksTab(){
           <input class="tf14-row-select" type="checkbox" aria-label="Select task" ${tf14Selected.has(String(t.id))?'checked':''} onchange="tf14SelectTask(${id},this.checked)">
           <input type="checkbox" aria-label="Complete task" ${t.done?'checked':''} onchange="toggleDone(${id})">
           ${hasSubs?`<button class="tf13-expander" aria-expanded="${isExpanded}" aria-label="${isExpanded?'Collapse':'Expand'} subtasks" onclick="tf13Toggle(${id})">${isExpanded?'⌄':'›'}</button>`:'<span class="tf13-expander-placeholder"></span>'}
-          <div class="tf13-title-block"><button class="tf13-title ${t.done?'tf13-strike':''}" onclick="openTaskDetail(${id})">${safeTitle}</button><div class="tf13-meta">${t.pinned?'<span class="tf13-pin">📌 Pinned #'+Number(t.pinRank||0)+'</span>':''}${tags}${hasSubs?`<span>${nDone} of ${subs.length} subtasks · ${Math.round(nDone/subs.length*100)}%</span>`:''}${t.owner?`<span>· ${esc(t.owner)}</span>`:''}</div>${hasSubs?`<div class="tf13-progress"><div style="width:${Math.round(nDone/subs.length*100)}%"></div></div>`:''}</div>
+          <div class="tf13-title-block"><button class="tf13-title ${t.done?'tf13-strike':''}" onclick="openTaskDetail(${id})">${safeTitle}</button><div class="tf13-meta">${t.pinned?'<span class="tf13-pin">📌 Pinned #'+Number(t.pinRank||0)+'</span>':''}${tf1513TypeBadge(t)}${tags}${hasSubs?`<span>${nDone} of ${subs.length} subtasks · ${Math.round(nDone/subs.length*100)}%</span>`:''}${t.owner?`<span>· ${esc(t.owner)}</span>`:''}</div>${hasSubs?`<div class="tf13-progress"><div style="width:${Math.round(nDone/subs.length*100)}%"></div></div>`:''}</div>
         </div>
         <div class="tf13-col"><span class="tf13-priority ${priority.toLowerCase()}">${priority}</span></div>
         <div class="tf13-col tf13-due ${isOverdue(t)?'late':''}">${due}</div>
@@ -7020,11 +7046,32 @@ function deleteTask(id){
   tasks=tasks.filter(t=>t.id!==id&&t.id!=id);
   save();refreshActive();toast('Task deleted','');
 }
+function tf1513IsProject(t){
+  // Older records had no explicit type; preserve their previous subtasks-based grouping.
+  return t.isProject===true || (t.isProject!==false && (t.subtasks||[]).length>0);
+}
+function tf1513SyncType(){
+  const selected=document.querySelector('input[name="tf1513Type"]:checked');
+  const project=!!(selected&&selected.value==='project');
+  document.getElementById('fRecordType').value=project?'project':'task';
+  document.getElementById('tf1513TypeHint').textContent=project
+    ?'A project groups work and can contain milestones and subtasks.'
+    :'A standalone task. You can still add subtasks.';
+}
+function tf1513SetType(project){
+  const el=document.querySelector('input[name="tf1513Type"][value="'+(project?'project':'task')+'"]');
+  if(el){el.checked=true;tf1513SyncType();}
+}
+function tf1513TypeBadge(t){
+  const project=tf1513IsProject(t);
+  return '<span class="tf1513-type-chip '+(project?'project':'task')+'">'+(project?'▣ Project':'☑ Task')+'</span>';
+}
 function openAddTask(){
   editId=null;
   const tmt1=document.getElementById('taskModalTitle'); if(tmt1) tmt1.textContent='Add task';
   ['fTitle','fOwnerInput','fNotes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fRepeat').value='';
+  tf1513SetType(false);
   renderCatPicker('Work');
   document.getElementById('fStart').value='';
   document.getElementById('fDue').value='';
@@ -7046,6 +7093,7 @@ function openEditTask(id){
   document.getElementById('fOwnerInput').value=t.owner||'';
   document.getElementById('fNotes').value=t.notes||'';
   document.getElementById('fRepeat').value=t.repeat||'';
+  tf1513SetType(tf1513IsProject(t));
   renderCatPicker((t.tags&&t.tags[0])||'Work');
   document.getElementById('fStart').value=t.startDate||'';
   document.getElementById('fDue').value=t.dueDate||'';
@@ -7065,7 +7113,7 @@ function saveTask(){
   if(!title){toast('Task name is required','warn');return;}
   const repeat=document.getElementById('fRepeat').value||'';
   const gcalEl=document.getElementById('fGcal'); const gcal=gcalEl?gcalEl.checked:false;
-  const data={title,tags:[document.getElementById('fTag').value||'Work'],
+  const data={title,isProject:document.getElementById('fRecordType').value==='project',tags:[document.getElementById('fTag').value||'Work'],
     priority:document.getElementById('fPriority').value,
     startDate:document.getElementById('fStart').value,
     dueDate:document.getElementById('fDue').value,
@@ -8100,7 +8148,7 @@ function buildTaskContext(){
     `- "${e.title}" on ${e.date}${e.endDate&&e.endDate!==e.date?' to '+e.endDate:''}${e.time?' at '+e.time:''}`
   );
 
-  return `You are an intelligent AI assistant embedded in TaskFlow Dashboard for Franco at Smart Quality Systems, Singapore. Today is ${new Date().toLocaleDateString('en-SG',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}.
+  return `You are an intelligent AI assistant embedded in TaskFlow Dashboard for the TaskFlow user. Today is ${new Date().toLocaleDateString('en-SG',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}.
 
 TASK SUMMARY:
 - Total tasks: ${tasks.length} | Active: ${active.length} | Done: ${done.length} | Overdue: ${overdue.length} | High priority open: ${hi.length}

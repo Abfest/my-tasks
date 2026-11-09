@@ -1,10 +1,6 @@
-# TaskFlow Sprint 1.5.12 — Month click-to-create reliability fix
+# Sprint 1.5.14 — Neutral TaskFlow branding
 
-- Month day cells now have explicit grid positions to avoid interference from spanning multi-day bars.
-- Clicking blank space in a month cell opens Quick Create for that exact date.
-- Each month cell includes a small **+** action with keyboard focus and descriptive label.
-- Clicking the date number still navigates to Day view; clicking an existing entry still opens that entry.
-- Existing day/week creation and saved task/calendar data are unchanged.
-- This is a local testing build; no live deployment.
-
-**Test:** Calendar > Month > click blank space on a date, then click the +. Check the hint uses the clicked date, create an event, verify it appears on that date. Repeat in dark mode.
+- Replaced the header subtitle “Smart Quality Systems · Singapore” with “Tasks · Calendar · Projects”.
+- Removed the obsolete Smart Quality Systems affiliation from the embedded AI assistant context.
+- No changes to application records, task/project classification, calendar functions, Firebase setup, or supporting OAuth callback.
+- Local test build only; not deployed.
